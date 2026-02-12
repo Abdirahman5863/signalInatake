@@ -1,8 +1,8 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { type FormAnswers } from '@/lib/forms'
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || '',
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY|| '',
 })
 
 export interface AnalysisResult {
@@ -36,8 +36,8 @@ Respond with a JSON object in this exact format:
 Only respond with the JSON object, no additional text.`
 
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
+    const message = await openai.chat.completions.create({
+      model: 'gpt-4o',
       max_tokens: 1000,
       messages: [
         {
@@ -47,13 +47,13 @@ Only respond with the JSON object, no additional text.`
       ],
     })
 
-    const content = message.content[0]
-    if (content.type !== 'text') {
-      throw new Error('Unexpected response type from Claude')
+    const content = message.choices[0].message
+    if (!content.content) {
+      throw new Error('Unexpected response type from OpenAI')
     }
 
     // Parse JSON response
-    const jsonMatch = content.text.match(/\{[\s\S]*\}/)
+    const jsonMatch = content.content.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
       throw new Error('No JSON found in response')
     }

@@ -1,10 +1,10 @@
 'use client'
-// hey whatsapp
-import { useEffect, useState } from 'react'
+
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 
-export default function AuthCallbackPage() {
+function AuthCallbackHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState('Completing authentication...')
@@ -16,7 +16,6 @@ export default function AuthCallbackPage() {
         const error = searchParams.get('error')
         const errorDescription = searchParams.get('error_description')
 
-        // Handle OAuth errors
         if (error) {
           console.error('OAuth error:', error, errorDescription)
           router.push(`/login?error=${encodeURIComponent(errorDescription || error)}`)
@@ -31,7 +30,6 @@ export default function AuthCallbackPage() {
 
         setStatus('Exchanging authorization code...')
 
-        // Exchange code for session
         const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
         
         if (exchangeError) {
@@ -46,12 +44,9 @@ export default function AuthCallbackPage() {
           return
         }
 
-        // Session created successfully
         console.log('Session created:', data.session.user.email)
         setStatus('Success! Redirecting...')
 
-        // CRITICAL: Use router.push, not window.location
-        // This ensures Next.js properly handles the navigation
         router.push('/dashboard')
         
       } catch (err: any) {
@@ -70,5 +65,17 @@ export default function AuthCallbackPage() {
         <p className="text-muted-foreground font-medium">{status}</p>
       </div>
     </div>
+  )
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    }>
+      <AuthCallbackHandler />
+    </Suspense>
   )
 }

@@ -1,19 +1,20 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase/client'
 import { Sparkles, Zap, BarChart3, Shield } from 'lucide-react'
 
-export default function LoginPage() {
+// Separate component that uses useSearchParams
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [googleLoading, setGoogleLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    // Check if user is already authenticated
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
@@ -23,11 +24,9 @@ export default function LoginPage() {
     }
     checkUser()
 
-    // Check for error from OAuth callback
     const errorParam = searchParams.get('error')
     if (errorParam) {
       setError(decodeURIComponent(errorParam))
-      // Clean up URL
       router.replace('/login')
     }
   }, [searchParams, router])
@@ -46,8 +45,6 @@ export default function LoginPage() {
 
       if (error) throw error
       
-      // The OAuth flow will redirect automatically, so we don't need to do anything here
-      // If there's no redirect, it means there was an error
       if (!data?.url) {
         throw new Error('Failed to initiate Google sign in')
       }
@@ -59,7 +56,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Branding and Description */}
+      {/* Left side - Branding */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary/10 via-primary/5 to-background flex-col justify-center p-12 text-foreground">
         <div className="max-w-md mx-auto space-y-8">
           <div className="flex items-center gap-3">
@@ -126,7 +123,6 @@ export default function LoginPage() {
       {/* Right side - Login Form */}
       <div className="flex-1 flex items-center justify-center p-4 md:p-8 lg:p-12">
         <div className="w-full max-w-md space-y-8">
-          {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
             <div className="rounded-lg bg-primary p-2">
               <Sparkles className="h-6 w-6 text-primary-foreground" />
@@ -204,5 +200,18 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Main component with Suspense wrapper
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

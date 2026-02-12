@@ -68,66 +68,74 @@ export default function IntakeFormPage() {
       setCurrentQuestionIndex(currentQuestionIndex - 1)
     }
   }
+const handleSubmit = async () => {
+  if (!leadName.trim() || !leadEmail.trim()) {
+    setError('Please provide your name and email')
+    return
+  }
 
-  const handleSubmit = async () => {
-    if (!leadName.trim() || !leadEmail.trim()) {
-      setError('Please provide your name and email')
-      return
+  setSubmitting(true)
+  setError(null)
+
+  try {
+    // Get form ID from share_link
+    const { data: formData, error: formError } = await supabase
+      .from('intake_forms')
+      .select('id')
+      .eq('share_link', formId)
+      .single()
+
+    if (formError || !formData) {
+      throw new Error('Form not found')
     }
 
-    setSubmitting(true)
-    setError(null)
+    console.log('📊 Starting analysis...')
 
-    try {
-      // Get form ID from share_link
-      const { data: formData, error: formError } = await supabase
-        .from('intake_forms')
-        .select('id')
-        .eq('share_link', formId)
-        .single()
+    // STEP 1: Analyze the lead FIRST
+    const analysisResponse = await fetch('/api/analyze-lead', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        answers,
+      }),
+    })
 
-      if (formError || !formData) {
-        throw new Error('Form not found')
-      }
+    if (!analysisResponse.ok) {
+      throw new Error('Failed to analyze lead')
+    }
 
-      // Insert lead response
-      const { error: insertError } = await supabase
-        .from('lead_responses')
-        .insert({
-          form_id: formData.id,
-          lead_name: leadName.trim(),
-          lead_email: leadEmail.trim(),
-          answers: answers,
-        })
+    const { analysis } = await analysisResponse.json()
+    
+    console.log('✅ Analysis complete:', analysis.badge)
 
-      if (insertError) throw insertError
-
-      // Trigger AI analysis (will be handled by API route)
-      const response = await fetch('/api/analyze-lead', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          formId: formData.id,
-          leadName: leadName.trim(),
-          leadEmail: leadEmail.trim(),
-          answers,
-        }),
+    // STEP 2: Save lead WITH badge
+    const { error: insertError } = await supabase
+      .from('lead_responses')
+      .insert({
+        form_id: formData.id,
+        lead_name: leadName.trim(),
+        lead_email: leadEmail.trim(),
+        answers: answers,
+        badge: analysis.badge, // ← Include badge
+        badge_reasoning: analysis.reasoning, // ← Include reasoning
       })
 
-      if (!response.ok) {
-        console.error('AI analysis failed, but response was saved')
-      }
+    if (insertError) throw insertError
 
-      // Redirect to thank you page or show success message
-      router.push(`/intake/${formId}/thank-you`)
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while submitting your response')
-    } finally {
-      setSubmitting(false)
-    }
+    console.log('💾 Lead saved successfully with badge:', analysis.badge)
+
+    // Redirect to thank you page
+    router.push(`/intake/${formId}/thank-you`)
+    
+  } catch (err: any) {
+    console.error('❌ Submission error:', err)
+    setError(err.message || 'An error occurred while submitting your response')
+  } finally {
+    setSubmitting(false)
   }
+}
 
   if (loading) {
     return (
