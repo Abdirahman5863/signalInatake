@@ -87,7 +87,7 @@ const handleSubmit = async () => {
 
     if (formError || !formData) {
       throw new Error('Form not found')
-    }
+    } 
 
  
     console.log('📊 Analyzing with LeadVett AI...')

@@ -36,7 +36,9 @@ async function fixPendingLeads() {
         .from('lead_responses')
         .update({
           badge: analysis.badge,
-          badge_reasoning: analysis.reasoning,
+           strengths: analysis.strengths?.length || 0,
+      risks: analysis.risks?.length || 0,
+      hasScript:analysis.dmScript
         })
         .eq('id', lead.id)
 

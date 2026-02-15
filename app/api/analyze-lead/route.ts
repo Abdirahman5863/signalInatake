@@ -14,12 +14,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('🤖 Analyzing lead with OpenAI...')
+    console.log('🤖 LeadVett AI analyzing...')
 
-    // Analyze the lead
     const analysis = await analyzeLead(answers as FormAnswers)
 
-    console.log('✅ Analysis result:', analysis.badge, '-', analysis.reasoning.substring(0, 50) + '...')
+    console.log('✅ Analysis complete:', {
+      badge: analysis.badge,
+      strengths: analysis.strengths?.length || 0,
+      risks: analysis.risks?.length || 0,
+      hasScript: !!analysis.dmScript
+    })
 
     return NextResponse.json({ 
       success: true, 
@@ -27,9 +31,9 @@ export async function POST(request: NextRequest) {
     })
     
   } catch (error: any) {
-    console.error('❌ Analysis API error:', error)
+    console.error('❌ LeadVett AI Error:', error)
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: error.message || 'Analysis failed' },
       { status: 500 }
     )
   }

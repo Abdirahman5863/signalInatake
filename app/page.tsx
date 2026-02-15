@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Check, Zap, Copy, AlertCircle, CheckCircle2, Sparkles, Star } from 'lucide-react'
+import { ArrowRight, Check, Zap, Copy, AlertCircle, CheckCircle2, Sparkles, Star, Target, Users } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -38,7 +38,7 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100">
               <Star className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-medium text-gray-700">
-                Trusted by 100+ agencies
+                Trusted by 100+ agencies to qualify leads instantly
               </span>
             </div>
 
@@ -54,7 +54,7 @@ export default function Home() {
             {/* Subheadline */}
             <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               LeadVett AI analyzes your leads in seconds—Strengths vs. Risks—so you can 
-              ignore bad leads guilt-free. Plus instant DM scripts to close faster.
+              prioritize ready buyers and strategically nurture promising leads. Plus instant DM scripts to close faster.
             </p>
 
             {/* CTA */}
@@ -63,7 +63,7 @@ export default function Home() {
                 href="/signup"
                 className="group inline-flex items-center gap-2 rounded-full bg-gray-900 px-8 py-4 text-base font-semibold text-white hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02]"
               >
-                Start qualifying leads for free
+                Start qualifying leads smarter
                 <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -96,7 +96,7 @@ export default function Home() {
                     🔥 GOLD
                   </div>
                   <span className="text-sm font-medium text-gray-600">
-                    → Call within 2 hours
+                    → Priority follow-up within 2 hours
                   </span>
                 </div>
 
@@ -110,15 +110,15 @@ export default function Home() {
                     <ul className="space-y-3">
                       <li className="flex items-start gap-2 text-sm text-green-900">
                         <Check className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                        <span><strong>High Budget:</strong> $5K-10K range confirmed</span>
+                        <span><strong>Strong Budget:</strong> $5K-10K range confirmed</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-green-900">
                         <Check className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                        <span><strong>Urgency:</strong> Needs solution in 7 days</span>
+                        <span><strong>Clear Timeline:</strong> Ready to start in 7 days</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-green-900">
                         <Check className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                        <span><strong>Authority:</strong> CEO makes decisions</span>
+                        <span><strong>Decision Authority:</strong> CEO with buying power</span>
                       </li>
                     </ul>
                   </div>
@@ -127,16 +127,16 @@ export default function Home() {
                   <div className="bg-orange-50 rounded-2xl p-6 border-2 border-orange-200">
                     <h3 className="text-base font-bold text-orange-900 flex items-center gap-2 mb-4">
                       <AlertCircle className="h-5 w-5" />
-                      Risks
+                      Watch For
                     </h3>
                     <ul className="space-y-3">
                       <li className="flex items-start gap-2 text-sm text-orange-900">
                         <span className="text-lg">⚠</span>
-                        <span><strong>Friction:</strong> Needs partner approval</span>
+                        <span><strong>Multi-Stakeholder:</strong> Partner needs buy-in</span>
                       </li>
                       <li className="flex items-start gap-2 text-sm text-orange-900">
                         <span className="text-lg">⚠</span>
-                        <span><strong>History:</strong> Tried 3 agencies before</span>
+                        <span><strong>Previous Experience:</strong> Worked with 3 agencies</span>
                       </li>
                     </ul>
                   </div>
@@ -155,7 +155,7 @@ export default function Home() {
                   </div>
                   <p className="text-sm text-gray-700 leading-relaxed bg-white rounded-xl p-4 border border-gray-200">
                     "Hey Sarah, saw your request! Since you're working with a partner, 
-                    I have a 2-min 'Agency Comparison' PDF that'll speed up their decision. 
+                    I have a 2-min 'Agency Comparison' PDF that'll help align everyone quickly. 
                     Want me to send it?"
                   </p>
                 </div>
@@ -165,7 +165,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Social Proof
+      {/* Social Proof */}
       <section className="py-12 px-6 border-y border-gray-200 bg-gray-50">
         <div className="container mx-auto max-w-6xl">
           <p className="text-center text-sm text-gray-500 mb-6">
@@ -179,7 +179,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section> */}
+      </section>
 
       {/* Problem Section */}
       <section className="py-24 px-6 bg-white">
@@ -196,19 +196,19 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                emoji: '😫',
-                title: '100+ DMs every week',
-                description: 'Calendar fills with meetings that go nowhere'
+                emoji: '⏰',
+                title: '100+ leads every week',
+                description: 'Who should you call first? AI tells you instantly'
               },
               {
-                emoji: '😤',
-                title: '15 hours on bad calls',
-                description: '"What\'s your budget?" "It depends..." every time'
+                emoji: '🎯',
+                title: 'Prioritize strategically',
+                description: 'Gold leads get immediate attention, others get nurtured'
               },
               {
-                emoji: '😞',
-                title: 'Real buyers go cold',
-                description: 'While you\'re stuck with tire-kickers'
+                emoji: '📈',
+                title: 'Close deals faster',
+                description: 'Pre-written scripts help you engage at the right moment'
               }
             ].map((item, i) => (
               <div key={i} className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-8 border-2 border-gray-200 hover:border-gray-300 transition-all">
@@ -221,8 +221,69 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* Badge System */}
       <section className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              The three-tier system
+            </h2>
+            <p className="text-xl text-gray-600">
+              Every lead gets a clear action plan
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Gold */}
+            <div className="bg-gradient-to-br from-green-50 to-white rounded-3xl p-8 border-2 border-green-300 hover:border-green-400 transition-all">
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-base mb-6">
+                🔥 GOLD
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Ready to Buy</h3>
+              <p className="text-gray-600 mb-4">
+                Strong budget ($3K+), urgent timeline, clear decision maker.
+              </p>
+              <div className="flex items-center gap-2 text-sm font-semibold text-green-700">
+                <Target className="h-4 w-4" />
+                <span>Call within 2 hours</span>
+              </div>
+            </div>
+
+            {/* Silver */}
+            <div className="bg-gradient-to-br from-yellow-50 to-white rounded-3xl p-8 border-2 border-yellow-300 hover:border-yellow-400 transition-all">
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 text-white font-bold text-base mb-6">
+                ⭐ SILVER
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">High Potential</h3>
+              <p className="text-gray-600 mb-4">
+                Budget mentioned, flexible timeline, good fit but not urgent.
+              </p>
+              <div className="flex items-center gap-2 text-sm font-semibold text-yellow-700">
+                <Users className="h-4 w-4" />
+                <span>Nurture strategically</span>
+              </div>
+            </div>
+
+            {/* Bronze */}
+            <div className="bg-gradient-to-br from-orange-50 to-white rounded-3xl p-8 border-2 border-orange-300 hover:border-orange-400 transition-all">
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold text-base mb-6">
+                📋 BRONZE
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Early Stage</h3>
+              <p className="text-gray-600 mb-4">
+                Exploring options, budget unclear, timeline flexible.
+              </p>
+              <div className="flex items-center gap-2 text-sm font-semibold text-orange-700">
+                <Zap className="h-4 w-4" />
+                <span>Add to nurture workflow</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-24 px-6 bg-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -238,7 +299,7 @@ export default function Home() {
               {
                 number: '01',
                 title: 'Send your intake link',
-                description: 'Replace Calendly with LeadVett in your IG automation, ManyChat, or bio'
+                description: 'Add to your IG automation, ManyChat, or bio—works everywhere'
               },
               {
                 number: '02',
@@ -248,12 +309,12 @@ export default function Home() {
               {
                 number: '03',
                 title: 'AI assigns badge + gives you DM script',
-                description: 'Gold/Silver/Bronze verdict with strengths, risks, and instant reply template'
+                description: 'Gold/Silver/Bronze verdict with strengths, watch-fors, and instant reply template'
               },
               {
                 number: '04',
-                title: 'You only call Gold leads',
-                description: 'Copy the DM script, close faster, ignore Bronze guilt-free'
+                title: 'Follow your personalized action plan',
+                description: 'Copy the DM script, prioritize Gold leads, nurture Silver, plan Bronze follow-up'
               }
             ].map((step, i) => (
               <div key={i} className="flex gap-8 items-start">
@@ -275,14 +336,14 @@ export default function Home() {
       </section>
 
       {/* Features Grid */}
-      <section className="py-24 px-6 bg-white">
+      <section className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Built for Instagram agencies
             </h2>
             <p className="text-xl text-gray-600">
-              Everything you need to qualify leads in seconds
+              Everything you need to qualify leads intelligently
             </p>
           </div>
 
@@ -291,12 +352,12 @@ export default function Home() {
               {
                 icon: <Zap className="h-6 w-6" />,
                 title: 'Decisive AI',
-                description: 'No essays. Just clear strengths, risks, and action steps.'
+                description: 'No essays. Just clear strengths, considerations, and action steps.'
               },
               {
                 icon: <Copy className="h-6 w-6" />,
                 title: 'One-click scripts',
-                description: 'Copy pre-written DM replies. Paste. Close deals faster.'
+                description: 'Copy pre-written DM replies. Paste. Engage at the perfect moment.'
               },
               {
                 icon: <CheckCircle2 className="h-6 w-6" />,
@@ -310,8 +371,8 @@ export default function Home() {
               },
               {
                 icon: <AlertCircle className="h-6 w-6" />,
-                title: 'Risk detection',
-                description: 'Spot red flags before wasting time on calls.'
+                title: 'Smart insights',
+                description: 'Spot opportunities and considerations before engaging.'
               },
               {
                 icon: <Check className="h-6 w-6" />,
@@ -346,8 +407,8 @@ export default function Home() {
             </div>
           </div>
           <blockquote className="text-2xl md:text-3xl font-medium text-white leading-relaxed mb-8">
-            "LeadVett saved me 12 hours last week. I only call Golds now. 
-            The DM scripts are money—closed 2 deals without even hopping on a call first."
+            "LeadVett helped me prioritize the right leads at the right time. 
+            Closed 3 Gold leads last week while nurturing 5 Silvers. Game changer."
           </blockquote>
           <div className="flex items-center justify-center gap-4">
             <div className="w-12 h-12 rounded-full bg-white/20"></div>
@@ -366,11 +427,11 @@ export default function Home() {
             Ready to qualify leads
             <br />
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              in 10 seconds?
+              strategically?
             </span>
           </h2>
           <p className="text-xl text-gray-600 mb-10">
-            Join 100+ agencies using LeadVett to save 10+ hours per week
+            Join 100+ agencies using LeadVett to work smarter, not harder
           </p>
           <Link
             href="/signup"
