@@ -63,7 +63,7 @@ function LoginForm() {
             <div className="rounded-lg bg-primary p-3">
               <Sparkles className="h-8 w-8 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold">SignalIntake</span>
+            <span className="text-2xl font-bold">LeadVett</span>
           </div>
           
           <div className="space-y-4">
@@ -127,7 +127,7 @@ function LoginForm() {
             <div className="rounded-lg bg-primary p-2">
               <Sparkles className="h-6 w-6 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold">SignalIntake</span>
+            <span className="text-2xl font-bold">Leadvett</span>
           </div>
 
           <div className="space-y-2 text-center lg:text-left">
@@ -194,7 +194,7 @@ function LoginForm() {
 
           <div className="pt-8 border-t">
             <p className="text-xs text-center text-muted-foreground">
-              By continuing, you agree to SignalIntake&apos;s Terms of Service and Privacy Policy
+              By continuing, you agree to LeadVett&apos;s Terms of Service and Privacy Policy
             </p>
           </div>
         </div>

@@ -89,28 +89,25 @@ const handleSubmit = async () => {
       throw new Error('Form not found')
     }
 
-    console.log('📊 Starting analysis...')
+ 
+    console.log('📊 Analyzing with LeadVett AI...')
 
-    // STEP 1: Analyze the lead FIRST
+    // Analyze
     const analysisResponse = await fetch('/api/analyze-lead', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        answers,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ answers }),
     })
 
     if (!analysisResponse.ok) {
-      throw new Error('Failed to analyze lead')
+      throw new Error('AI analysis failed')
     }
 
     const { analysis } = await analysisResponse.json()
     
-    console.log('✅ Analysis complete:', analysis.badge)
+    console.log('✅ LeadVett Verdict:', analysis.badge)
 
-    // STEP 2: Save lead WITH badge
+    // Save with new structure
     const { error: insertError } = await supabase
       .from('lead_responses')
       .insert({
@@ -118,20 +115,22 @@ const handleSubmit = async () => {
         lead_name: leadName.trim(),
         lead_email: leadEmail.trim(),
         answers: answers,
-        badge: analysis.badge, // ← Include badge
-        badge_reasoning: analysis.reasoning, // ← Include reasoning
+        badge: analysis.badge,
+        summary: analysis.summary,
+        strengths: analysis.strengths,
+        risks: analysis.risks,
+        dm_script: analysis.dmScript,
       })
 
     if (insertError) throw insertError
 
-    console.log('💾 Lead saved successfully with badge:', analysis.badge)
+    console.log('💾 Lead saved with full AI analysis')
 
-    // Redirect to thank you page
     router.push(`/intake/${formId}/thank-you`)
     
   } catch (err: any) {
-    console.error('❌ Submission error:', err)
-    setError(err.message || 'An error occurred while submitting your response')
+    console.error('❌ Error:', err)
+    setError(err.message || 'Submission failed')
   } finally {
     setSubmitting(false)
   }

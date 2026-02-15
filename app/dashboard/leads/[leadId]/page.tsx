@@ -5,7 +5,7 @@ import { LeadAnswers } from '@/components/leads/LeadAnswers'
 import { type FormAnswers } from '@/lib/forms'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Mail } from 'lucide-react'
 
 export default async function LeadDetailPage({
   params,
@@ -20,7 +20,6 @@ export default async function LeadDetailPage({
 
   if (!user) return null
 
-  // Get lead response
   const { data: lead, error } = await supabase
     .from('lead_responses')
     .select(
@@ -44,30 +43,47 @@ export default async function LeadDetailPage({
   const answers = lead.answers as FormAnswers
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
       <Link
         href="/dashboard"
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Dashboard
       </Link>
 
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Lead Details</h1>
-        <p className="text-muted-foreground">
-          {lead.intake_forms?.form_name || 'Unknown Form'}
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-1">{lead.lead_name}</h1>
+          <p className="text-muted-foreground">
+            {lead.intake_forms?.form_name || 'Unknown Form'}
+          </p>
+        </div>
+        <a
+          href={`mailto:${lead.lead_email}`}
+          className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          <Mail className="h-4 w-4" />
+          Email Lead
+        </a>
       </div>
 
+      {/* AI Analysis Section */}
+      <div className="rounded-lg border bg-card p-6 shadow-sm">
+        <BadgeDisplay
+          badge={lead.badge}
+          strengths={lead.strengths}
+          risks={lead.risks}
+          dmScript={lead.dm_script}
+          summary={lead.summary}
+        />
+      </div>
+
+      {/* Contact & Timing */}
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+        <div className="rounded-lg border bg-card p-6">
+          <h2 className="text-lg font-semibold mb-4">Contact Information</h2>
           <div className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground">Name</p>
-              <p className="font-medium">{lead.lead_name}</p>
-            </div>
             <div>
               <p className="text-sm text-muted-foreground">Email</p>
               <a
@@ -86,15 +102,29 @@ export default async function LeadDetailPage({
           </div>
         </div>
 
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <BadgeDisplay badge={lead.badge} reasoning={lead.badge_reasoning} />
+        <div className="rounded-lg border bg-card p-6">
+          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+          <div className="space-y-2">
+            <a
+            
+              href={`mailto:${lead.lead_email}`}
+              className="block w-full rounded-md bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors text-center"
+            >
+              Send Email
+            </a>
+            <button
+              className="block w-full rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent transition-colors"
+            >
+              Mark as Contacted
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* Full Responses */}
       <div className="rounded-lg border bg-card p-6 shadow-sm">
         <LeadAnswers answers={answers} />
       </div>
     </div>
   )
 }
-

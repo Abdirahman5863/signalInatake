@@ -1,384 +1,409 @@
 import Link from 'next/link'
-import { ArrowRight, CheckCircle, Zap, Shield, BarChart3, Sparkles, Clock, Target } from 'lucide-react'
+import { ArrowRight, Check, Zap, Copy, AlertCircle, CheckCircle2, Sparkles, Star } from 'lucide-react'
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
+        <div className="container mx-auto flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">SignalIntake</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">LeadVett</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <Link
               href="/login"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
             >
-              Sign In
+              Sign in
             </Link>
             <Link
               href="/signup"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+              className="rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-all shadow-sm hover:shadow-md"
             >
-              Start Free Trial
+              Start free trial
             </Link>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-20 pb-16 md:pt-32 md:pb-24">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border bg-muted/50 px-4 py-2 text-sm">
-            <Zap className="h-4 w-4 text-primary" />
-            <span>Stop Wasting Calls on Tire-Kickers</span>
-          </div>
-          
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-            Turn Instagram DMs Into
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/60">
-              Qualified Leads
-            </span>
-          </h1>
-          
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-            AI qualifies your leads before they hit your calendar. Gold badges = ready to buy. 
-            Bronze badges = politely ignore. Save 10+ hours per week.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Link
-              href="/signup"
-              className="group inline-flex items-center gap-2 rounded-md bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105"
-            >
-              Start Free Trial
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <p className="text-sm text-muted-foreground">
-              14-day trial • No credit card required
+      <section className="pt-32 pb-20 px-6">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center space-y-8">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100">
+              <Star className="h-4 w-4 text-blue-600" />
+              <span className="text-sm font-medium text-gray-700">
+                Trusted by 100+ agencies
+              </span>
+            </div>
+
+            {/* Main Headline */}
+            <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-gray-900 leading-[1.1]">
+              Clear verdicts,
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+                not vague summaries
+              </span>
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              LeadVett AI analyzes your leads in seconds—Strengths vs. Risks—so you can 
+              ignore bad leads guilt-free. Plus instant DM scripts to close faster.
+            </p>
+
+            {/* CTA */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
+              <Link
+                href="/signup"
+                className="group inline-flex items-center gap-2 rounded-full bg-gray-900 px-8 py-4 text-base font-semibold text-white hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02]"
+              >
+                Start qualifying leads for free
+                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+
+            <p className="text-sm text-gray-500">
+              14-day trial • No credit card required • 2-minute setup
             </p>
           </div>
 
-          {/* Social Proof */}
-          <div className="pt-8 flex flex-col items-center gap-3">
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="h-10 w-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-semibold"
-                >
-                  {String.fromCharCode(64 + i)}
+          {/* Hero Visual - Demo Card */}
+          <div className="mt-20 max-w-5xl mx-auto">
+            <div className="rounded-3xl border-2 border-gray-200 bg-white shadow-2xl overflow-hidden">
+              {/* Window Header */}
+              <div className="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center gap-2">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
                 </div>
-              ))}
+                <div className="flex-1 text-center">
+                  <span className="text-sm text-gray-500 font-medium">Lead Analysis</span>
+                </div>
+              </div>
+
+              {/* Demo Content */}
+              <div className="p-8 space-y-6">
+                {/* Badge */}
+                <div className="flex items-center gap-4">
+                  <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-lg shadow-lg">
+                    🔥 GOLD
+                  </div>
+                  <span className="text-sm font-medium text-gray-600">
+                    → Call within 2 hours
+                  </span>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Strengths */}
+                  <div className="bg-green-50 rounded-2xl p-6 border-2 border-green-200">
+                    <h3 className="text-base font-bold text-green-900 flex items-center gap-2 mb-4">
+                      <CheckCircle2 className="h-5 w-5" />
+                      Strengths
+                    </h3>
+                    <ul className="space-y-3">
+                      <li className="flex items-start gap-2 text-sm text-green-900">
+                        <Check className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                        <span><strong>High Budget:</strong> $5K-10K range confirmed</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-green-900">
+                        <Check className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                        <span><strong>Urgency:</strong> Needs solution in 7 days</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-green-900">
+                        <Check className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                        <span><strong>Authority:</strong> CEO makes decisions</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* Risks */}
+                  <div className="bg-orange-50 rounded-2xl p-6 border-2 border-orange-200">
+                    <h3 className="text-base font-bold text-orange-900 flex items-center gap-2 mb-4">
+                      <AlertCircle className="h-5 w-5" />
+                      Risks
+                    </h3>
+                    <ul className="space-y-3">
+                      <li className="flex items-start gap-2 text-sm text-orange-900">
+                        <span className="text-lg">⚠</span>
+                        <span><strong>Friction:</strong> Needs partner approval</span>
+                      </li>
+                      <li className="flex items-start gap-2 text-sm text-orange-900">
+                        <span className="text-lg">⚠</span>
+                        <span><strong>History:</strong> Tried 3 agencies before</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* DM Script */}
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border-2 border-blue-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-gray-900">
+                      AI-Generated Reply (One-Click Copy)
+                    </h3>
+                    <button className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold text-gray-900 hover:bg-gray-50 transition-colors shadow-sm border border-gray-200">
+                      <Copy className="h-3.5 w-3.5" />
+                      Copy
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-700 leading-relaxed bg-white rounded-xl p-4 border border-gray-200">
+                    "Hey Sarah, saw your request! Since you're working with a partner, 
+                    I have a 2-min 'Agency Comparison' PDF that'll speed up their decision. 
+                    Want me to send it?"
+                  </p>
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Join agencies saving 10+ hours/week on bad calls
-            </p>
           </div>
         </div>
       </section>
+
+      {/* Social Proof
+      <section className="py-12 px-6 border-y border-gray-200 bg-gray-50">
+        <div className="container mx-auto max-w-6xl">
+          <p className="text-center text-sm text-gray-500 mb-6">
+            Trusted by agencies that closed $2M+ in new business
+          </p>
+          <div className="flex flex-wrap justify-center items-center gap-12 opacity-40">
+            {['Agency A', 'Studio B', 'Growth Co', 'Scale Inc', 'Digital X'].map((name) => (
+              <div key={name} className="text-xl font-bold text-gray-400">
+                {name}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section> */}
 
       {/* Problem Section */}
-      <section className="container mx-auto px-4 py-16 md:py-24 bg-muted/30">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              You Know This Pain
+      <section className="py-24 px-6 bg-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Stop reading paragraphs
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Every agency faces the same problem
+            <p className="text-xl text-gray-600">
+              Get clinical breakdowns in 10 seconds, not 10 minutes
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="rounded-lg border bg-card p-6">
-              <div className="text-4xl mb-4">😫</div>
-              <h3 className="text-lg font-semibold mb-2">100 DMs/week saying "interested"</h3>
-              <p className="text-muted-foreground text-sm">
-                You send Calendly to everyone and your calendar fills with meetings
-              </p>
-            </div>
-
-            <div className="rounded-lg border bg-card p-6">
-              <div className="text-4xl mb-4">😤</div>
-              <h3 className="text-lg font-semibold mb-2">15 hours/week on bad calls</h3>
-              <p className="text-muted-foreground text-sm">
-                "What's your budget?" "It depends..." Every. Single. Time.
-              </p>
-            </div>
-
-            <div className="rounded-lg border bg-card p-6">
-              <div className="text-4xl mb-4">😞</div>
-              <h3 className="text-lg font-semibold mb-2">Real buyers lost in noise</h3>
-              <p className="text-muted-foreground text-sm">
-                While you're on calls with tire-kickers, serious leads go cold
-              </p>
-            </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                emoji: '😫',
+                title: '100+ DMs every week',
+                description: 'Calendar fills with meetings that go nowhere'
+              },
+              {
+                emoji: '😤',
+                title: '15 hours on bad calls',
+                description: '"What\'s your budget?" "It depends..." every time'
+              },
+              {
+                emoji: '😞',
+                title: 'Real buyers go cold',
+                description: 'While you\'re stuck with tire-kickers'
+              }
+            ].map((item, i) => (
+              <div key={i} className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-8 border-2 border-gray-200 hover:border-gray-300 transition-all">
+                <div className="text-5xl mb-4">{item.emoji}</div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{item.title}</h3>
+                <p className="text-gray-600">{item.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Solution Section */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              How SignalIntake Works
+      {/* How It Works */}
+      <section className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              How LeadVett works
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Simple. Automatic. Effective.
+            <p className="text-xl text-gray-600">
+              Simple, automatic, effective
             </p>
           </div>
 
-          <div className="space-y-8">
-            <div className="flex gap-6">
-              <div className="flex-shrink-0">
-                <div className="rounded-full bg-primary text-primary-foreground w-12 h-12 flex items-center justify-center font-bold text-lg">
-                  1
+          <div className="space-y-12">
+            {[
+              {
+                number: '01',
+                title: 'Send your intake link',
+                description: 'Replace Calendly with LeadVett in your IG automation, ManyChat, or bio'
+              },
+              {
+                number: '02',
+                title: 'Lead answers 5 questions',
+                description: 'Budget, timeline, decision maker, pain, history—takes 60 seconds'
+              },
+              {
+                number: '03',
+                title: 'AI assigns badge + gives you DM script',
+                description: 'Gold/Silver/Bronze verdict with strengths, risks, and instant reply template'
+              },
+              {
+                number: '04',
+                title: 'You only call Gold leads',
+                description: 'Copy the DM script, close faster, ignore Bronze guilt-free'
+              }
+            ].map((step, i) => (
+              <div key={i} className="flex gap-8 items-start">
+                <div className="flex-shrink-0 w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                  {step.number}
+                </div>
+                <div className="flex-1 pt-2">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {step.title}
+                  </h3>
+                  <p className="text-lg text-gray-600">
+                    {step.description}
+                  </p>
                 </div>
               </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">Send Your Intake Link (Not Calendly)</h3>
-                <p className="text-muted-foreground">
-                  When someone DMs "interested" → send your SignalIntake link instead of Calendly. 
-                  Add it to your IG automation, ManyChat, or bio.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-6">
-              <div className="flex-shrink-0">
-                <div className="rounded-full bg-primary text-primary-foreground w-12 h-12 flex items-center justify-center font-bold text-lg">
-                  2
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">Leads Answer 5 Quick Questions</h3>
-                <p className="text-muted-foreground">
-                  What's your budget? When do you want to start? Who decides? 
-                  Takes 60 seconds. Mobile-friendly. No BS.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-6">
-              <div className="flex-shrink-0">
-                <div className="rounded-full bg-primary text-primary-foreground w-12 h-12 flex items-center justify-center font-bold text-lg">
-                  3
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">AI Assigns Gold/Silver/Bronze Badge</h3>
-                <p className="text-muted-foreground">
-                  <span className="font-semibold text-green-600">Gold</span> = Has budget, urgent, decision maker (call NOW) • 
-                  <span className="font-semibold text-yellow-600"> Silver</span> = Potential, nurture later • 
-                  <span className="font-semibold text-orange-600"> Bronze</span> = Just browsing, ignore
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-6">
-              <div className="flex-shrink-0">
-                <div className="rounded-full bg-primary text-primary-foreground w-12 h-12 flex items-center justify-center font-bold text-lg">
-                  4
-                </div>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold mb-2">You Only Call Gold Leads</h3>
-                <p className="text-muted-foreground">
-                  Check your dashboard. See clear badges. Call the Golds within 2 hours. 
-                  Ignore the Bronzes guilt-free. Simple.
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Badge System */}
-      <section className="container mx-auto px-4 py-16 md:py-24 bg-muted/30">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              The Badge System
+      {/* Features Grid */}
+      <section className="py-24 px-6 bg-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Built for Instagram agencies
             </h2>
-            <p className="text-lg text-muted-foreground">
-              Clear verdicts, not vague scores
+            <p className="text-xl text-gray-600">
+              Everything you need to qualify leads in seconds
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="rounded-lg border-2 border-green-500 bg-card p-6">
-              <div className="inline-flex items-center justify-center rounded-full bg-green-500 text-white px-4 py-2 mb-4 text-sm font-bold">
-                🔥 GOLD
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Zap className="h-6 w-6" />,
+                title: 'Decisive AI',
+                description: 'No essays. Just clear strengths, risks, and action steps.'
+              },
+              {
+                icon: <Copy className="h-6 w-6" />,
+                title: 'One-click scripts',
+                description: 'Copy pre-written DM replies. Paste. Close deals faster.'
+              },
+              {
+                icon: <CheckCircle2 className="h-6 w-6" />,
+                title: '10-second analysis',
+                description: 'Lead submits → AI analyzes → Badge ready instantly.'
+              },
+              {
+                icon: <Star className="h-6 w-6" />,
+                title: 'ManyChat ready',
+                description: 'Works with your IG automation. Setup in 2 minutes.'
+              },
+              {
+                icon: <AlertCircle className="h-6 w-6" />,
+                title: 'Risk detection',
+                description: 'Spot red flags before wasting time on calls.'
+              },
+              {
+                icon: <Check className="h-6 w-6" />,
+                title: 'Mobile-first',
+                description: 'Leads fill out on phones. Clean, fast, professional.'
+              }
+            ].map((feature, i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 border-2 border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white mb-4">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  {feature.description}
+                </p>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Ready to Buy</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Budget confirmed ($3K+), timeline urgent (this week/month), decision maker clear.
-              </p>
-              <p className="text-sm font-medium text-green-600">
-                → Call within 2 hours
-              </p>
-            </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <div className="rounded-lg border-2 border-yellow-500 bg-card p-6">
-              <div className="inline-flex items-center justify-center rounded-full bg-yellow-500 text-white px-4 py-2 mb-4 text-sm font-bold">
-                🟡 SILVER
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Potential</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Budget mentioned but flexible, timeline next quarter, worth following up.
-              </p>
-              <p className="text-sm font-medium text-yellow-600">
-                → Nurture, check back later
-              </p>
+      {/* Testimonial */}
+      <section className="py-24 px-6 bg-gradient-to-br from-blue-600 to-purple-600">
+        <div className="container mx-auto max-w-4xl text-center">
+          <div className="flex justify-center mb-6">
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Star key={i} className="h-6 w-6 text-yellow-300 fill-yellow-300" />
+              ))}
             </div>
-
-            <div className="rounded-lg border-2 border-orange-500 bg-card p-6">
-              <div className="inline-flex items-center justify-center rounded-full bg-orange-500 text-white px-4 py-2 mb-4 text-sm font-bold">
-                🟤 BRONZE
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Just Browsing</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                No clear budget, no urgency, not decision maker. Early exploration.
-              </p>
-              <p className="text-sm font-medium text-orange-600">
-                → Ignore or archive
-              </p>
+          </div>
+          <blockquote className="text-2xl md:text-3xl font-medium text-white leading-relaxed mb-8">
+            "LeadVett saved me 12 hours last week. I only call Golds now. 
+            The DM scripts are money—closed 2 deals without even hopping on a call first."
+          </blockquote>
+          <div className="flex items-center justify-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-white/20"></div>
+            <div className="text-left">
+              <p className="font-semibold text-white">Sarah M.</p>
+              <p className="text-sm text-blue-100">Agency Owner, Nairobi</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Built for Agencies Like Yours
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="rounded-lg border bg-card p-6">
-              <div className="rounded-lg bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                <Sparkles className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">AI That Actually Works</h3>
-              <p className="text-muted-foreground text-sm">
-                Powered by Claude AI. Analyzes budget signals, urgency, authority. 
-                80%+ accuracy from day one.
-              </p>
-            </div>
-
-            <div className="rounded-lg border bg-card p-6">
-              <div className="rounded-lg bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                <Clock className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Instant Analysis</h3>
-              <p className="text-muted-foreground text-sm">
-                Lead submits form → AI analyzes → Badge assigned in 10 seconds. 
-                No waiting, no manual work.
-              </p>
-            </div>
-
-            <div className="rounded-lg border bg-card p-6">
-              <div className="rounded-lg bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                <Target className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Mobile-Friendly Forms</h3>
-              <p className="text-muted-foreground text-sm">
-                Leads fill out on their phones in 60 seconds. Clean, fast, professional. 
-                No technical setup needed.
-              </p>
-            </div>
-
-            <div className="rounded-lg border bg-card p-6">
-              <div className="rounded-lg bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                <BarChart3 className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Simple Dashboard</h3>
-              <p className="text-muted-foreground text-sm">
-                See all leads in one place. Filter by badge. Click to see AI reasoning. 
-                No clutter, just what matters.
-              </p>
-            </div>
-
-            <div className="rounded-lg border bg-card p-6">
-              <div className="rounded-lg bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                <Zap className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Works With Your Tools</h3>
-              <p className="text-muted-foreground text-sm">
-                Add link to ManyChat, IG bio, email signature, anywhere. 
-                No complex integration required.
-              </p>
-            </div>
-
-            <div className="rounded-lg border bg-card p-6">
-              <div className="rounded-lg bg-primary/10 w-12 h-12 flex items-center justify-center mb-4">
-                <Shield className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Secure & Private</h3>
-              <p className="text-muted-foreground text-sm">
-                Enterprise-grade security with Supabase. Your leads, your data, fully encrypted.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-16 md:py-24">
-        <div className="max-w-4xl mx-auto rounded-2xl border bg-gradient-to-br from-primary/10 via-primary/5 to-background p-8 md:p-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Stop Wasting Time on Bad Leads
+      {/* Final CTA */}
+      <section className="py-24 px-6 bg-white">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+            Ready to qualify leads
+            <br />
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              in 10 seconds?
+            </span>
           </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join agencies using SignalIntake to save 10+ hours/week and focus on Gold leads only.
+          <p className="text-xl text-gray-600 mb-10">
+            Join 100+ agencies using LeadVett to save 10+ hours per week
           </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-            <Link
-              href="/signup"
-              className="group inline-flex items-center justify-center gap-2 rounded-md bg-primary px-8 py-4 text-base font-semibold text-primary-foreground hover:bg-primary/90 transition-all hover:scale-105"
-            >
-              Start Free Trial
-              <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          <p className="text-sm text-muted-foreground">
-            14-day free trial • No credit card required • Setup in 2 minutes
+          <Link
+            href="/signup"
+            className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-8 py-4 text-lg font-semibold text-white hover:bg-gray-800 transition-all shadow-xl hover:shadow-2xl hover:scale-[1.02]"
+          >
+            Start your free trial
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+          <p className="text-sm text-gray-500 mt-6">
+            14 days free • No credit card • Cancel anytime
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-muted/30">
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+      <footer className="border-t border-gray-200 bg-gray-50">
+        <div className="container mx-auto px-6 py-12">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
-              <span className="font-semibold">SignalIntake</span>
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <Sparkles className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-lg font-bold text-gray-900">LeadVett</span>
             </div>
-            <p className="text-sm text-muted-foreground text-center">
-              © {new Date().getFullYear()} SignalIntake. All rights reserved.
+            <p className="text-sm text-gray-500">
+              © {new Date().getFullYear()} LeadVett. All rights reserved.
             </p>
-            <div className="flex gap-4">
-              <Link
-                href="/login"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Sign In
+            <div className="flex gap-8">
+              <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                Sign in
               </Link>
-              <Link
-                href="/signup"
-                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Sign Up
+              <Link href="/signup" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                Sign up
               </Link>
             </div>
           </div>

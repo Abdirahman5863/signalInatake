@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { ArrowRight } from 'lucide-react'
 
 export async function LeadsTable() {
   const supabase = await createClient()
@@ -10,7 +11,6 @@ export async function LeadsTable() {
 
   if (!user) return null
 
-  // Get all leads from user's forms
   const { data: leads, error } = await supabase
     .from('lead_responses')
     .select(
@@ -25,87 +25,86 @@ export async function LeadsTable() {
     )
     .eq('intake_forms.user_id', user.id)
     .order('created_at', { ascending: false })
-    .limit(10)
+    .limit(50)
 
   if (error) {
-    return (
-      <div className="text-destructive">Error loading leads: {error.message}</div>
-    )
+    return <div className="text-destructive">Error: {error.message}</div>
   }
 
   if (!leads || leads.length === 0) {
-    return null
+    return (
+      <div className="rounded-lg border border-dashed p-12 text-center">
+        <p className="text-muted-foreground">No leads yet. Share your form to start collecting responses.</p>
+      </div>
+    )
   }
 
   const getBadgeColor = (badge: string | null) => {
     switch (badge) {
       case 'Gold':
-        return 'bg-green-500'
+        return 'bg-green-500 text-white'
       case 'Silver':
-        return 'bg-yellow-500'
+        return 'bg-yellow-500 text-white'
       case 'Bronze':
-        return 'bg-orange-500'
+        return 'bg-orange-500 text-white'
       default:
-        return 'bg-gray-500'
+        return 'bg-gray-500 text-white'
     }
   }
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Recent Leads</h2>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">All Leads</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {leads.length} total leads • Click any lead to see full AI analysis
+          </p>
+        </div>
+      </div>
+
       <div className="rounded-md border">
-        <div className="overflow-x-auto -mx-4 md:mx-0">
-          <table className="w-full min-w-[600px]">
+        <div className="overflow-x-auto">
+          <table className="w-full">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left text-sm font-medium">
-                  Lead Name
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium">
-                  Email
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium">
-                  Form
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium">
-                  Badge
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium">
-                  Date
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium">
-                  Actions
-                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Lead Name</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Email</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Form</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Badge</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Summary</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Date</th>
+                <th className="px-4 py-3 text-left text-sm font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {leads.map((lead: any) => (
-                <tr key={lead.id} className="border-b">
-                  <td className="px-4 py-3 text-sm">{lead.lead_name}</td>
-                  <td className="px-4 py-3 text-sm">{lead.lead_email}</td>
-                  <td className="px-4 py-3 text-sm">
-                    {lead.intake_forms?.form_name || 'Unknown'}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
+                <tr key={lead.id} className="border-b hover:bg-muted/50 transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium">{lead.lead_name}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{lead.lead_email}</td>
+                  <td className="px-4 py-3 text-sm">{lead.intake_forms?.form_name || 'Unknown'}</td>
+                  <td className="px-4 py-3">
                     {lead.badge ? (
-                      <Badge
-                        className={`${getBadgeColor(lead.badge)} text-white`}
-                      >
+                      <Badge className={`${getBadgeColor(lead.badge)}`}>
                         {lead.badge}
                       </Badge>
                     ) : (
-                      <span className="text-muted-foreground">Pending</span>
+                      <span className="text-xs text-muted-foreground">Pending</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-sm">
+                  <td className="px-4 py-3 text-sm max-w-xs truncate" title={lead.summary}>
+                    {lead.summary || '-'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
                     {new Date(lead.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 text-sm">
+                  <td className="px-4 py-3">
                     <Link
                       href={`/dashboard/leads/${lead.id}`}
-                      className="text-primary hover:underline"
+                      className="flex items-center gap-1 text-sm text-primary hover:underline"
                     >
                       View
+                      <ArrowRight className="h-3 w-3" />
                     </Link>
                   </td>
                 </tr>
@@ -117,4 +116,3 @@ export async function LeadsTable() {
     </div>
   )
 }
-

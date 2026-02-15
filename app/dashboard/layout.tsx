@@ -14,7 +14,7 @@ export default async function DashboardLayout({
       <nav className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/dashboard" className="text-xl font-bold">
-            SignalIntake
+            LeadVett
           </Link>
           <SignOutButton />
         </div>
