@@ -1,19 +1,26 @@
 import Link from 'next/link'
 import { ArrowRight, Check, Copy, AlertCircle, CheckCircle2, Sparkles, Clock, DollarSign, Zap, MessageSquare } from 'lucide-react'
 import Image from 'next/image'
-
+import leadicon from './public/images/leadicon.png'
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-200 z-50">
         <div className="container mx-auto flex h-16 items-center justify-between px-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-gray-900">LeadVett</span>
-          </div>
+          <div className="flex items-center gap-1">
+  <Image
+    src={leadicon}
+    alt="LeadVett Logo"
+    width={60} // Increased size so it's actually visible
+    height={50}
+    className="object-contain" // Keeps aspect ratio perfect
+  />
+  
+  <span className="text-2xl font-extrabold tracking-tight text-gray-900">
+    Lead<span className="text-[#b5944b]">Vett</span> 
+  </span>
+</div>
           <div className="flex items-center gap-6">
             <Link
               href="/login"
@@ -39,7 +46,7 @@ export default function Home() {
             <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-gray-900 leading-[1.1]">
               Stop wasting
               <br />
-              <span className="bg-gradient-to-r from-red-600 via-orange-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="bg-[#b5944b] bg-clip-text text-transparent">
                 15 hours a week
               </span>
               <br />
@@ -369,7 +376,7 @@ export default function Home() {
       </section>
 
       {/* Social Proof */}
-      <section className="py-20 px-6 bg-gradient-to-br from-blue-600 to-purple-600">
+      <section className="py-20 px-6 bg-[#b5944b]">
         <div className="container mx-auto max-w-4xl text-center">
           <blockquote className="text-2xl md:text-3xl font-medium text-white leading-relaxed mb-8">
             "I closed 3 Golds last week while my competition was still on calls with Bronzes. 
@@ -393,7 +400,7 @@ export default function Home() {
           <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
             Stop wasting time on
             <br />
-            <span className="bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+            <span className="bg-[#b5944b] bg-clip-text text-transparent">
               DMs that won't close
             </span>
           </h2>
@@ -417,12 +424,19 @@ export default function Home() {
       <footer className="border-t border-gray-200 bg-gray-50">
         <div className="container mx-auto px-6 py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-lg font-bold text-gray-900">LeadVett</span>
-            </div>
+                <div className="flex items-center gap-1">
+  <Image
+    src={leadicon}
+    alt="LeadVett Logo"
+    width={60} // Increased size so it's actually visible
+    height={50}
+    className="object-contain" // Keeps aspect ratio perfect
+  />
+  
+  <span className="text-2xl font-extrabold tracking-tight text-gray-900">
+    Lead<span className="text-[#b5944b]">Vett</span> 
+  </span>
+</div>
             <p className="text-sm text-gray-500">
               © {new Date().getFullYear()} LeadVett. All rights reserved.
             </p>
