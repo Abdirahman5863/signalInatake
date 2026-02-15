@@ -11,50 +11,275 @@ export interface AnalysisResult {
   risks: string[]
   dmScript: string
   summary: string
+  action: string
+  ruleBreakdown: RuleScore[]
+  hardRuleTriggered?: string
+}
+
+export interface RuleScore {
+  rule: string
+  impact: 'positive' | 'negative' | 'neutral'
+  weight: number
+  explanation: string
+}
+
+// RULE ENGINE - Programmable Discipline
+function evaluateRules(answers: FormAnswers): {
+  baseScore: number
+  ruleBreakdown: RuleScore[]
+  hardRuleTriggered?: string
+  maxBadgeCap?: 'Silver' | 'Bronze'
+} {
+  const rules: RuleScore[] = []
+  let baseScore = 50 // Start neutral
+  let hardRuleTriggered: string | undefined
+  let maxBadgeCap: 'Silver' | 'Bronze' | undefined
+
+  // HARD DISQUALIFIERS (Auto-reject logic)
+  
+  // Rule 1: Budget hard floor
+  const budgetLower = answers.budget.toLowerCase()
+  if (budgetLower.includes('<') || budgetLower.includes('less than') || 
+      budgetLower.includes('under') || budgetLower.includes('1,000') ||
+      budgetLower.includes('500')) {
+    hardRuleTriggered = 'Budget below minimum threshold ($2K) → Auto-capped at Bronze'
+    maxBadgeCap = 'Bronze'
+    baseScore -= 30
+    rules.push({
+      rule: 'Hard Rule: Budget Floor',
+      impact: 'negative',
+      weight: -30,
+      explanation: 'Budget below $2K minimum → Cannot qualify as Gold/Silver'
+    })
+  }
+
+  // Rule 2: Budget strength (positive signals)
+  if (budgetLower.includes('5,000') || budgetLower.includes('5k') ||
+      budgetLower.includes('10,000') || budgetLower.includes('10k') ||
+      budgetLower.includes('$5-') || budgetLower.includes('$10')) {
+    baseScore += 20
+    rules.push({
+      rule: 'Budget Strength: High-Tier ($5K+)',
+      impact: 'positive',
+      weight: +20,
+      explanation: 'Confirmed budget in premium range'
+    })
+  } else if (budgetLower.includes('3,000') || budgetLower.includes('3k')) {
+    baseScore += 10
+    rules.push({
+      rule: 'Budget Strength: Mid-Tier ($3K+)',
+      impact: 'positive',
+      weight: +10,
+      explanation: 'Workable budget mentioned'
+    })
+  }
+
+  // Rule 3: Timeline urgency
+  const timelineLower = answers.timeline.toLowerCase()
+  if (timelineLower.includes('asap') || timelineLower.includes('immediately') ||
+      timelineLower.includes('this week') || timelineLower.includes('urgent')) {
+    baseScore += 15
+    rules.push({
+      rule: 'Timeline: Immediate Need',
+      impact: 'positive',
+      weight: +15,
+      explanation: 'High urgency = ready to move fast'
+    })
+  } else if (timelineLower.includes('this month')) {
+    baseScore += 10
+    rules.push({
+      rule: 'Timeline: Near-term',
+      impact: 'positive',
+      weight: +10,
+      explanation: 'Clear timeline within 30 days'
+    })
+  } else if (timelineLower.includes('exploring') || timelineLower.includes('not sure') ||
+             timelineLower.includes('eventually')) {
+    baseScore -= 10
+    rules.push({
+      rule: 'Timeline: Vague/Distant',
+      impact: 'negative',
+      weight: -10,
+      explanation: 'No urgency = lower priority'
+    })
+  }
+
+  // Rule 4: Decision authority (CAP LOGIC)
+  const decisionLower = answers.decision_maker.toLowerCase()
+  if (decisionLower.includes('team') || decisionLower.includes('committee') ||
+      decisionLower.includes('need to check') || decisionLower.includes('partner') ||
+      decisionLower.includes('board')) {
+    if (!maxBadgeCap) {
+      maxBadgeCap = 'Silver'
+    }
+    baseScore -= 15
+    rules.push({
+      rule: 'Authority Friction: Multi-Stakeholder',
+      impact: 'negative',
+      weight: -15,
+      explanation: 'No direct decision maker → Capped at Silver max'
+    })
+  } else if (decisionLower.includes('i do') || decisionLower.includes('i decide') ||
+             decisionLower.includes('founder') || decisionLower.includes('ceo') ||
+             decisionLower.includes('owner')) {
+    baseScore += 15
+    rules.push({
+      rule: 'Authority: Clear Decision Maker',
+      impact: 'positive',
+      weight: +15,
+      explanation: 'Direct authority = faster close'
+    })
+  }
+
+  // Rule 5: Trigger clarity (pain point)
+  if (answers.trigger.length > 50 && answers.trigger.toLowerCase().includes('because')) {
+    baseScore += 10
+    rules.push({
+      rule: 'Trigger: Specific Pain Point',
+      impact: 'positive',
+      weight: +10,
+      explanation: 'Clear articulation of problem'
+    })
+  } else if (answers.trigger.length < 20) {
+    baseScore -= 5
+    rules.push({
+      rule: 'Trigger: Vague/Generic',
+      impact: 'negative',
+      weight: -5,
+      explanation: 'Unclear motivation'
+    })
+  }
+
+  // Rule 6: Previous attempts (sophistication signal)
+  const triedLower = answers.tried.toLowerCase()
+  if (triedLower.includes('nothing') || triedLower.includes('no') ||
+      triedLower.includes('haven\'t tried')) {
+    baseScore -= 5
+    rules.push({
+      rule: 'Experience: No Prior Attempts',
+      impact: 'negative',
+      weight: -5,
+      explanation: 'Might not understand scope/pricing'
+    })
+  } else if (triedLower.includes('agency') || triedLower.includes('freelancer') ||
+             triedLower.includes('in-house')) {
+    // This could be positive (sophisticated) or negative (burned before)
+    baseScore += 5
+    rules.push({
+      rule: 'Experience: Prior Vendor Experience',
+      impact: 'positive',
+      weight: +5,
+      explanation: 'Understands process (watch for scope creep)'
+    })
+  }
+
+  return {
+    baseScore,
+    ruleBreakdown: rules,
+    hardRuleTriggered,
+    maxBadgeCap
+  }
+}
+
+// BADGE ASSIGNMENT with Rule Enforcement
+function assignBadge(
+  baseScore: number, 
+  maxBadgeCap?: 'Silver' | 'Bronze'
+): 'Gold' | 'Silver' | 'Bronze' {
+  let calculatedBadge: 'Gold' | 'Silver' | 'Bronze'
+
+  if (baseScore >= 70) {
+    calculatedBadge = 'Gold'
+  } else if (baseScore >= 45) {
+    calculatedBadge = 'Silver'
+  } else {
+    calculatedBadge = 'Bronze'
+  }
+
+  // ENFORCE CAP LOGIC
+  if (maxBadgeCap === 'Bronze') {
+    return 'Bronze'
+  } else if (maxBadgeCap === 'Silver' && calculatedBadge === 'Gold') {
+    return 'Silver'
+  }
+
+  return calculatedBadge
+}
+
+// ACTION RECOMMENDATIONS - Resource-Based
+function getAction(badge: 'Gold' | 'Silver' | 'Bronze'): string {
+  switch (badge) {
+    case 'Gold':
+      return 'Book 30-min Strategy Call within 2 hours'
+    case 'Silver':
+      return 'Send 15-min Screening Loom Video'
+    case 'Bronze':
+      return 'Send Automated PDF Resource / Add to 90-day nurture'
+  }
 }
 
 export async function analyzeLead(answers: FormAnswers): Promise<AnalysisResult> {
-  const prompt = `You are LeadVett AI - a decisive lead qualification expert for agencies. Analyze this lead and provide a clinical breakdown.
+  // STEP 1: Rule Engine Evaluation
+  const ruleEvaluation = evaluateRules(answers)
+  
+  // STEP 2: Assign Badge with Cap Logic
+  const badge = assignBadge(ruleEvaluation.baseScore, ruleEvaluation.maxBadgeCap)
+  
+  // STEP 3: Get Resource-Based Action
+  const action = getAction(badge)
 
-Lead Answers:
-- Trigger: ${answers.trigger}
-- Budget: ${answers.budget}
-- Timeline: ${answers.timeline}
-- Decision Maker: ${answers.decision_maker}
-- Previous Attempts: ${answers.tried}
+  // STEP 4: Extract the EXACT budget/timeline the rules detected
+  const detectedBudget = extractBudgetFromRules(ruleEvaluation.ruleBreakdown)
+  const detectedTimeline = extractTimelineFromRules(ruleEvaluation.ruleBreakdown)
 
-Provide your analysis in this EXACT JSON format:
+  // STEP 5: AI Enhancement with ENFORCED CONSISTENCY
+  const prompt = `You are LeadVett AI - a senior consultant analyzing a lead.
+
+RULE ENGINE RESULTS (YOU MUST USE THESE EXACT NUMBERS):
+- Badge: ${badge}
+- Score: ${ruleEvaluation.baseScore}/100
+- Budget Detected: ${detectedBudget}
+- Timeline Detected: ${detectedTimeline}
+${ruleEvaluation.hardRuleTriggered ? `- Hard Rule: ${ruleEvaluation.hardRuleTriggered}` : ''}
+
+Lead's Raw Answers:
+- Trigger: "${answers.trigger}"
+- Budget: "${answers.budget}"
+- Timeline: "${answers.timeline}"
+- Decision Maker: "${answers.decision_maker}"
+- Previous Attempts: "${answers.tried}"
+
+CRITICAL RULES:
+1. You MUST use the exact budget range/amount detected by rules: "${detectedBudget}"
+2. You MUST use the exact timeline detected by rules: "${detectedTimeline}"
+3. DO NOT invent different numbers or ranges
+4. Reference their actual words in quotes
+
+Provide JSON:
 {
-  "badge": "Gold" | "Silver" | "Bronze",
   "strengths": [
-    "High Budget: Mentioned $5K-10K range",
-    "Immediate Urgency: Needs solution within 7 days",
-    "Clear Authority: Is the Founder/CEO"
+    "Budget Confirmed: ${detectedBudget} mentioned explicitly",
+    "Timeline Clear: ${detectedTimeline}",
+    "Authority: [extract from decision_maker]"
   ],
   "risks": [
-    "Decision Friction: Needs to check with partner",
-    "Vague Goals: No clear KPI mentioned"
+    "Watch-for points based on their actual answers"
   ],
-  "dmScript": "Hey [Lead Name], saw your request! Since you mentioned [specific detail from their response], I have a [specific resource] that might help. Want me to send it over?",
-  "summary": "One clear sentence verdict on this lead"
+  "dmScript": "Senior consultant tone. Reference their EXACT details. Example: 'Before we proceed with the ${detectedBudget} engagement, I need to understand what failed with your previous 3 agencies so we don't repeat those mistakes.'",
+  "summary": "One decisive sentence"
 }
 
-BADGE CRITERIA:
-- Gold: Budget $3K+, Timeline urgent (this week/month), Clear decision maker
-- Silver: Budget mentioned, Timeline flexible, Decision involved
-- Bronze: No clear budget, No urgency, Not decision maker
-
-Be DECISIVE. Use bullet points. No fluff.`
+Tone: Senior consultant who's already qualified them. Confident, not asking permission.`
 
   try {
     const message = await openai.chat.completions.create({
       model: 'gpt-4o',
       max_tokens: 1500,
-      temperature: 0.7,
+      temperature: 0.5, // Lower temp for more consistency
       messages: [
         {
           role: 'system',
-          content: 'You are LeadVett AI - decisive, clinical, bullet-point focused. No essays.'
+          content: 'You are LeadVett AI - senior, clinical, decisive. You enforce rules, not vibes. Use EXACT numbers from rule engine.'
         },
         {
           role: 'user',
@@ -65,31 +290,61 @@ Be DECISIVE. Use bullet points. No fluff.`
 
     const content = message.choices[0].message.content
     if (!content) {
-      throw new Error('No response from AI')
+      throw new Error('No AI response')
     }
 
     const jsonMatch = content.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      throw new Error('No JSON found in response')
+      throw new Error('No JSON in AI response')
     }
 
-    const result = JSON.parse(jsonMatch[0]) as AnalysisResult
+    const aiAnalysis = JSON.parse(jsonMatch[0])
 
-    // Validate
-    if (!['Gold', 'Silver', 'Bronze'].includes(result.badge)) {
-      throw new Error('Invalid badge')
+    return {
+      badge,
+      strengths: aiAnalysis.strengths || [],
+      risks: aiAnalysis.risks || [],
+      dmScript: aiAnalysis.dmScript || 'Thanks for your interest. I need to review your submission before proceeding.',
+      summary: aiAnalysis.summary || `${badge} lead - ${action}`,
+      action,
+      ruleBreakdown: ruleEvaluation.ruleBreakdown,
+      hardRuleTriggered: ruleEvaluation.hardRuleTriggered
     }
-
-    return result
 
   } catch (error) {
-    console.error('❌ AI Analysis Error:', error)
+    console.error('❌ AI Enhancement Error:', error)
+    
+    // Fallback with EXACT rule engine data
     return {
-      badge: 'Bronze',
-      strengths: ['Form submitted'],
-      risks: ['Unable to analyze automatically'],
-      dmScript: 'Thanks for your interest! Let me review your submission and get back to you shortly.',
-      summary: 'Analysis failed - manual review needed'
+      badge,
+      strengths: [
+        `Budget: ${detectedBudget}`,
+        `Timeline: ${detectedTimeline}`,
+        'Form submitted with required information'
+      ],
+      risks: ['AI analysis unavailable - manual review recommended'],
+      dmScript: `Thanks for your interest. Given your ${detectedBudget} budget range and ${detectedTimeline} timeline, let me review your submission and get back to you.`,
+      summary: `${badge} lead based on rule engine evaluation`,
+      action,
+      ruleBreakdown: ruleEvaluation.ruleBreakdown,
+      hardRuleTriggered: ruleEvaluation.hardRuleTriggered
     }
   }
+}
+
+// Helper functions to extract what rules detected
+function extractBudgetFromRules(rules: RuleScore[]): string {
+  const budgetRule = rules.find(r => r.rule.includes('Budget'))
+  if (budgetRule?.rule.includes('$5K+')) return '$5K-10K'
+  if (budgetRule?.rule.includes('$3K+')) return '$3K-5K'
+  if (budgetRule?.rule.includes('$2K')) return 'Below $2K'
+  return 'Budget unclear'
+}
+
+function extractTimelineFromRules(rules: RuleScore[]): string {
+  const timelineRule = rules.find(r => r.rule.includes('Timeline'))
+  if (timelineRule?.rule.includes('Immediate')) return 'within 7 days'
+  if (timelineRule?.rule.includes('Near-term')) return 'this month'
+  if (timelineRule?.rule.includes('Vague')) return 'timeline unclear'
+  return 'flexible timeline'
 }

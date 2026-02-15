@@ -70,13 +70,16 @@ export default async function LeadDetailPage({
 
       {/* AI Analysis Section */}
       <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <BadgeDisplay
-          badge={lead.badge}
-          strengths={lead.strengths}
-          risks={lead.risks}
-          dmScript={lead.dm_script}
-          summary={lead.summary}
-        />
+       <BadgeDisplay
+  badge={lead.badge}
+  strengths={lead.strengths}
+  risks={lead.risks}
+  dmScript={lead.dm_script}
+  summary={lead.summary}
+  action={lead.action}
+  ruleBreakdown={lead.rule_breakdown}
+  hardRuleTriggered={lead.hard_rule_triggered}
+/>
       </div>
 
       {/* Contact & Timing */}

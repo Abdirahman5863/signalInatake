@@ -89,10 +89,8 @@ const handleSubmit = async () => {
       throw new Error('Form not found')
     } 
 
- 
-    console.log('📊 Analyzing with LeadVett AI...')
+  console.log('📊 LeadVett Rule Engine analyzing...')
 
-    // Analyze
     const analysisResponse = await fetch('/api/analyze-lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -100,14 +98,14 @@ const handleSubmit = async () => {
     })
 
     if (!analysisResponse.ok) {
-      throw new Error('AI analysis failed')
+      throw new Error('Analysis failed')
     }
 
     const { analysis } = await analysisResponse.json()
     
-    console.log('✅ LeadVett Verdict:', analysis.badge)
+    console.log('✅ Verdict:', analysis.badge, '| Action:', analysis.action)
 
-    // Save with new structure
+    // Save with full rule engine data
     const { error: insertError } = await supabase
       .from('lead_responses')
       .insert({
@@ -120,11 +118,12 @@ const handleSubmit = async () => {
         strengths: analysis.strengths,
         risks: analysis.risks,
         dm_script: analysis.dmScript,
+        action: analysis.action, // NEW
+        rule_breakdown: analysis.ruleBreakdown, // NEW
+        hard_rule_triggered: analysis.hardRuleTriggered, // NEW
       })
 
     if (insertError) throw insertError
-
-    console.log('💾 Lead saved with full AI analysis')
 
     router.push(`/intake/${formId}/thank-you`)
     
@@ -135,7 +134,6 @@ const handleSubmit = async () => {
     setSubmitting(false)
   }
 }
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
