@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
-import { Copy, Check, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Shield, XCircle } from 'lucide-react'
+import { Copy, Check, AlertCircle, CheckCircle2, ChevronDown, ChevronUp, Shield, XCircle, MessageSquare } from 'lucide-react'
 
 interface RuleScore {
   rule: string
@@ -19,7 +19,65 @@ interface BadgeDisplayProps {
   summary?: string
   action?: string
   ruleBreakdown?: RuleScore[]
-  hardRuleTriggered?: string
+  hardRuleTriggered: string
+  confidenceScore?: number
+  confidenceLevel?: string
+}
+
+function getProposalReadiness(
+  badge: string | null, 
+  hardRule: string | null,
+  ruleBreakdown?: RuleScore[]
+): {
+  status: 'ready' | 'conditional' | 'not-recommended' | 'hold'
+  icon: string
+  title: string
+  description: string
+  color: string
+} {
+  if (hardRule) {
+    return {
+      status: 'not-recommended',
+      icon: '❌',
+      title: 'Proposal Not Recommended',
+      description: 'Hard disqualification rule triggered. Do not send proposal.',
+      color: 'red'
+    }
+  }
+
+  if (badge === 'Gold') {
+    return {
+      status: 'ready',
+      icon: '✅',
+      title: 'Proposal Ready',
+      description: 'Budget confirmed, authority verified, timeline clear. Send proposal within 4 hours.',
+      color: 'green'
+    }
+  }
+
+  if (badge === 'Silver') {
+    const hasAuthorityIssue = ruleBreakdown?.some(r => 
+      r.rule.includes('Authority') && r.impact === 'negative'
+    )
+    
+    return {
+      status: 'conditional',
+      icon: '⚠️',
+      title: 'Proposal Conditional',
+      description: hasAuthorityIssue 
+        ? 'Book discovery call first. Get stakeholder alignment before sending proposal.'
+        : 'Good potential but needs qualification call before proposal.',
+      color: 'yellow'
+    }
+  }
+
+  return {
+    status: 'hold',
+    icon: '⏸️',
+    title: 'Hold on Proposal',
+    description: 'Not ready for proposal. Add to 90-day nurture sequence.',
+    color: 'orange'
+  }
 }
 
 export function BadgeDisplay({ 
@@ -29,7 +87,9 @@ export function BadgeDisplay({
   dmScript, 
   action,
   ruleBreakdown,
-  hardRuleTriggered
+  hardRuleTriggered,
+  confidenceScore,
+  confidenceLevel
 }: BadgeDisplayProps) {
   const [copied, setCopied] = useState(false)
   const [showRules, setShowRules] = useState(false)
@@ -56,6 +116,8 @@ export function BadgeDisplay({
       setTimeout(() => setCopied(false), 2000)
     }
   }
+
+  const proposalReadiness = getProposalReadiness(badge, hardRuleTriggered, ruleBreakdown)
 
   // HARD REJECT MODE
   if (hardRuleTriggered) {
@@ -142,7 +204,53 @@ export function BadgeDisplay({
         </div>
       </div>
 
-      {/* SECTION 2: BREAKDOWN (Collapsible Rules) */}
+      {/* SECTION 2: PROPOSAL READINESS */}
+      <div className={`rounded-xl border-2 p-6 ${
+        proposalReadiness.color === 'green' ? 'bg-green-50 border-green-300' :
+        proposalReadiness.color === 'yellow' ? 'bg-yellow-50 border-yellow-300' :
+        proposalReadiness.color === 'red' ? 'bg-red-50 border-red-300' :
+        'bg-orange-50 border-orange-300'
+      }`}>
+        <div className="flex items-start gap-4">
+          <div className="text-3xl">{proposalReadiness.icon}</div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-gray-900 mb-1">
+              📋 {proposalReadiness.title}
+            </h3>
+            <p className="text-sm text-gray-700">
+              {proposalReadiness.description}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* SECTION 3: CONFIDENCE SCORE */}
+      {confidenceScore !== undefined && (
+        <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base font-bold text-blue-900">
+              Decision Confidence
+            </h3>
+            <Badge className={`text-lg px-4 py-2 ${
+              confidenceLevel === 'High' ? 'bg-green-500' :
+              confidenceLevel === 'Medium' ? 'bg-yellow-500' :
+              'bg-orange-500'
+            } text-white`}>
+              {confidenceLevel === 'High' && '🔥'} 
+              {confidenceLevel === 'Medium' && '⚡'} 
+              {confidenceLevel === 'Low' && '🟡'} 
+              {confidenceScore}% {confidenceLevel}
+            </Badge>
+          </div>
+          <p className="text-sm text-gray-700">
+            {confidenceLevel === 'High' && 'Strong signals across multiple criteria. High likelihood of conversion.'}
+            {confidenceLevel === 'Medium' && 'Mixed signals. Qualification call recommended before major commitment.'}
+            {confidenceLevel === 'Low' && 'Weak signals or conflicting information. Proceed with caution.'}
+          </p>
+        </div>
+      )}
+
+      {/* SECTION 4: BREAKDOWN (Collapsible Rules) */}
       {ruleBreakdown && ruleBreakdown.length > 0 && (
         <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
           <button
@@ -209,34 +317,35 @@ export function BadgeDisplay({
         </div>
       )}
 
-      {/* SECTION 3: WATCHOUTS (Risks Only - Removed Strengths) */}
+      {/* SECTION 5: RISKS TO ADDRESS */}
       {risks && risks.length > 0 && (
         <div className="rounded-xl bg-orange-50 border-2 border-orange-200 p-6">
           <h3 className="text-base font-bold text-orange-900 flex items-center gap-2 mb-4">
             <AlertCircle className="h-5 w-5" />
-            Watch For
+            Risks to Address on Call
           </h3>
           <ul className="space-y-3">
             {risks.map((risk, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-orange-900">
                 <span className="text-lg flex-shrink-0">⚠</span>
-                <span>{risk}</span>
+                <span className="font-medium">{risk}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* SECTION 4: SCRIPT (The Money Maker) */}
+      {/* SECTION 6: NEXT BEST ACTION SCRIPT */}
       {dmScript && (
         <div className="rounded-2xl border-2 border-[#b5944b]/30 bg-gradient-to-br from-[#b5944b]/5 to-white p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-gray-900">
-                One-Click Closer
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                NEXT BEST ACTION
               </h3>
               <p className="text-xs text-gray-600 mt-1">
-                Copy → Paste into DM → Close deal
+                Copy → Paste → Close deal today
               </p>
             </div>
             <button

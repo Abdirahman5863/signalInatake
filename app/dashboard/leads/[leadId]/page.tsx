@@ -70,16 +70,18 @@ export default async function LeadDetailPage({
 
       {/* AI Analysis Section */}
       <div className="rounded-lg border bg-card p-6 shadow-sm">
-       <BadgeDisplay
-  badge={lead.badge}
-  strengths={lead.strengths}
-  risks={lead.risks}
-  dmScript={lead.dm_script}
-  summary={lead.summary}
-  action={lead.action}
-  ruleBreakdown={lead.rule_breakdown}
-  hardRuleTriggered={lead.hard_rule_triggered}
-/>
+        <BadgeDisplay
+          badge={lead.badge}
+          strengths={lead.strengths}
+          risks={lead.risks}
+          dmScript={lead.dm_script}
+          summary={lead.summary}
+          action={lead.action}
+          ruleBreakdown={lead.rule_breakdown}
+          hardRuleTriggered={lead.hard_rule_triggered}
+          confidenceScore={lead.confidence_score}
+          confidenceLevel={lead.confidence_level}
+        />
       </div>
 
       {/* Contact & Timing */}
@@ -109,7 +111,6 @@ export default async function LeadDetailPage({
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
           <div className="space-y-2">
             <a
-            
               href={`mailto:${lead.lead_email}`}
               className="block w-full rounded-md bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 transition-colors text-center"
             >

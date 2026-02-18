@@ -13,9 +13,9 @@ export default async function DashboardPage() {
 
   const { data: forms } = await supabase
     .from('intake_forms')
-    .select('id')
+    .select('*')
     .eq('user_id', user.id)
-    .limit(1)
+    .order('created_at', { ascending: false })
 
   const hasForms = forms && forms.length > 0
 
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {!hasForms ? <EmptyState /> : <FormsList />}
+      {!hasForms ? <EmptyState /> : <FormsList forms={forms} />}
 
       {hasForms && (
         <div className="mt-8">
@@ -38,4 +38,3 @@ export default async function DashboardPage() {
     </div>
   )
 }
-

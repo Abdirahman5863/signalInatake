@@ -87,25 +87,30 @@ const handleSubmit = async () => {
 
     if (formError || !formData) {
       throw new Error('Form not found')
-    } 
+    }
 
-  console.log('📊 LeadVett Rule Engine analyzing...')
+    console.log('📊 LeadVett Rule Engine analyzing...')
 
+    // STEP 1: Analyze the lead FIRST
     const analysisResponse = await fetch('/api/analyze-lead', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        answers,
+      }),
     })
 
     if (!analysisResponse.ok) {
-      throw new Error('Analysis failed')
+      throw new Error('Failed to analyze lead')
     }
 
     const { analysis } = await analysisResponse.json()
     
     console.log('✅ Verdict:', analysis.badge, '| Action:', analysis.action)
 
-    // Save with full rule engine data
+    // STEP 2: Save lead WITH all analysis data
     const { error: insertError } = await supabase
       .from('lead_responses')
       .insert({
@@ -118,18 +123,23 @@ const handleSubmit = async () => {
         strengths: analysis.strengths,
         risks: analysis.risks,
         dm_script: analysis.dmScript,
-        action: analysis.action, // NEW
-        rule_breakdown: analysis.ruleBreakdown, // NEW
-        hard_rule_triggered: analysis.hardRuleTriggered, // NEW
+        action: analysis.action,
+        rule_breakdown: analysis.ruleBreakdown,
+        hard_rule_triggered: analysis.hardRuleTriggered,
+        confidence_score: analysis.confidenceScore,
+        confidence_level: analysis.confidenceLevel,
       })
 
     if (insertError) throw insertError
 
+    console.log('💾 Lead saved successfully with full analysis')
+
+    // Redirect to thank you page
     router.push(`/intake/${formId}/thank-you`)
     
   } catch (err: any) {
-    console.error('❌ Error:', err)
-    setError(err.message || 'Submission failed')
+    console.error('❌ Submission error:', err)
+    setError(err.message || 'An error occurred while submitting your response')
   } finally {
     setSubmitting(false)
   }
