@@ -1,9 +1,7 @@
 export function generateShareLink(): string {
-  // Generate a UUID-based share link (browser-compatible)
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID()
   }
-  // Fallback for older browsers
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
     const v = c === 'x' ? r : (r & 0x3) | 0x8
@@ -11,12 +9,22 @@ export function generateShareLink(): string {
   })
 }
 
-export const FORM_QUESTIONS = [
+export interface FormQuestion {
+  id: string
+  question: string
+  type: 'text' | 'dropdown' | 'textarea' | 'number'
+  required: boolean
+  options?: string[] // For dropdown type
+  order: number
+}
+
+export const DEFAULT_QUESTIONS: FormQuestion[] = [
   {
     id: 'trigger',
     question: "What triggered you to look for help now?",
     type: 'text',
     required: true,
+    order: 1
   },
   {
     id: 'budget',
@@ -24,6 +32,7 @@ export const FORM_QUESTIONS = [
     type: 'dropdown',
     required: true,
     options: ['<$1k', '$1k-$5k', '$5k-$10k', '$10k+'],
+    order: 2
   },
   {
     id: 'timeline',
@@ -31,21 +40,25 @@ export const FORM_QUESTIONS = [
     type: 'dropdown',
     required: true,
     options: ['ASAP', '1-2 weeks', '1 month', '2-3 months', '3+ months'],
+    order: 3
   },
   {
     id: 'decision_maker',
     question: 'Who decides?',
     type: 'text',
     required: true,
+    order: 4
   },
   {
     id: 'tried',
     question: 'What have you tried?',
     type: 'text',
     required: true,
+    order: 5
   },
-] as const
+]
 
-export type QuestionId = typeof FORM_QUESTIONS[number]['id']
-export type FormAnswers = Record<QuestionId, string>
-
+// Legacy support - keep for backward compatibility
+export const FORM_QUESTIONS = DEFAULT_QUESTIONS
+export type QuestionId = string // Changed from literal union to string
+export type FormAnswers = Record<string, string>
