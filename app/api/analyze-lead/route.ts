@@ -1,28 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { analyzeLead } from '@/lib/ai/analyze'
-import { type FormAnswers } from '@/lib/forms'
+import { FormQuestion } from '@/lib/forms'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { answers } = body
+    const { answers, questions } = body
 
-    if (!answers) {
+    if (!answers || !questions) {
       return NextResponse.json(
-        { error: 'Missing answers' },
+        { error: 'Missing answers or questions' },
         { status: 400 }
       )
     }
 
-    console.log('🤖 LeadVett AI analyzing...')
+    console.log('🤖 LeadVett AI analyzing with', questions.length, 'custom questions...')
 
-    const analysis = await analyzeLead(answers as FormAnswers)
+    const analysis = await analyzeLead(
+      answers as Record<string, string>,
+      questions as FormQuestion[]
+    )
 
     console.log('✅ Analysis complete:', {
       badge: analysis.badge,
-      strengths: analysis.strengths?.length || 0,
-      risks: analysis.risks?.length || 0,
-      hasScript: !!analysis.dmScript
+      confidence: `${analysis.confidenceScore}%`,
+      rules: analysis.ruleBreakdown.length
     })
 
     return NextResponse.json({ 
