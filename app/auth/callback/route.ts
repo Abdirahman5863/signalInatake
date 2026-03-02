@@ -6,6 +6,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   // if "next" is in param, use it as the redirect URL
   const next = searchParams.get('next') ?? '/dashboard'
+//   whatever the environment, we should never trust the "next" param to be an absolute URL, so we should always prepend the origin to it
 
   if (code) {
     const supabase = await createClient()
