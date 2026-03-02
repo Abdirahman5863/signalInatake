@@ -1,30 +1,60 @@
-import { FORM_QUESTIONS } from '@/lib/forms'
-import { type FormAnswers } from '@/lib/forms'
+import { FormQuestion } from '@/lib/forms'
 
 interface LeadAnswersProps {
-  answers: FormAnswers
+  answers: Record<string, string>
+  questions?: FormQuestion[] // Optional: current form questions
 }
 
-export function LeadAnswers({ answers }: LeadAnswersProps) {
+export function LeadAnswers({ answers, questions }: LeadAnswersProps) {
+  // Get all question IDs from answers
+  const questionIds = Object.keys(answers)
+
   return (
     <div className="space-y-6">
-      <h3 className="text-lg font-semibold">Lead Responses</h3>
+      <h2 className="text-lg font-semibold">Lead Responses</h2>
+      
       <div className="space-y-4">
-        {FORM_QUESTIONS.map((question) => {
-          const answer = answers[question.id]
+        {questionIds.map((questionId) => {
+          const answer = answers[questionId]
+          
+          // Try to find the question in current form questions
+          const question = questions?.find(q => q.id === questionId)
+          
+          // If question exists in current form, show it
+          // If not, it was deleted/edited - show the answer anyway with a note
+          const questionText = question?.question || `Question (edited/removed)`
+          const isDeleted = !question
+
           return (
-            <div key={question.id} className="space-y-2">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                {question.question}
-              </h4>
-              <div className="rounded-md border bg-card p-4 text-sm">
-                {answer || <span className="text-muted-foreground">No answer provided</span>}
-              </div>
+            <div 
+              key={questionId} 
+              className={`rounded-lg border p-4 ${isDeleted ? 'bg-muted/50 border-dashed' : 'bg-card'}`}
+            >
+              <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
+                {questionText}
+                {isDeleted && (
+                  <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">
+                    Question modified since submission
+                  </span>
+                )}
+              </p>
+              <p className="font-medium">
+                {answer || (
+                  <span className="text-muted-foreground italic">
+                    No answer provided
+                  </span>
+                )}
+              </p>
             </div>
           )
         })}
+        
+        {questionIds.length === 0 && (
+          <p className="text-center text-muted-foreground py-8">
+            No responses recorded
+          </p>
+        )}
       </div>
     </div>
   )
 }
-
