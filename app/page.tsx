@@ -110,7 +110,7 @@ export default function Home() {
               </div>
 
               {/* Demo Content - Mobile Optimized */}
-              <div className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6">
+              <div className="p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6  features">
                 {/* Verdict Section */}
                 <div className="pb-4 sm:pb-6 border-b border-gray-200">
                   <div className="flex flex-col gap-3 mb-3">
@@ -383,7 +383,7 @@ export default function Home() {
       </section>
 
       {/* Pricing - Mobile Optimized */}
-      <section className="py-12 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-12 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white pricing">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-3 sm:mb-4">
@@ -521,12 +521,12 @@ export default function Home() {
         <h3 className="font-semibold text-gray-900 mb-3">Product</h3>
         <ul className="space-y-2">
           <li>
-            <Link href="/signup" className="text-sm text-gray-600 hover:text-gray-900">
+            <Link href="#pricing" className="text-sm text-gray-600 hover:text-gray-900">
               Pricing
             </Link>
           </li>
           <li>
-            <Link href="/signup" className="text-sm text-gray-600 hover:text-gray-900">
+            <Link href="#features" className="text-sm text-gray-600 hover:text-gray-900">
               Features
             </Link>
           </li>
