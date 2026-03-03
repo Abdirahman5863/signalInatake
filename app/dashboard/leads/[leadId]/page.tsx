@@ -1,46 +1,90 @@
-import { createClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
 import { BadgeDisplay } from '@/components/leads/BadgeDisplay'
 import { LeadAnswers } from '@/components/leads/LeadAnswers'
-import { type FormAnswers } from '@/lib/forms'
-import { notFound } from 'next/navigation'
+import { FormQuestion } from '@/lib/forms'
 import Link from 'next/link'
 import { ArrowLeft, Mail } from 'lucide-react'
 
-export default async function LeadDetailPage({
-  params,
-}: {
-  params: { leadId: string }
-}) {
-  await requireAuth()
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+export default function LeadDetailPage() {
+  const params = useParams()
+  const router = useRouter()
+  const leadId = params.leadId as string
+  const [lead, setLead] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!user) return null
+  useEffect(() => {
+    async function loadLead() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login')
+        return
+      }
 
-  const { data: lead, error } = await supabase
-    .from('lead_responses')
-    .select(
-      `
-      *,
-      intake_forms!inner (
-        id,
-        form_name,
-        user_id
-      )
-    `
+      // Fetch lead with form questions
+      const { data, error } = await supabase
+        .from('lead_responses')
+        .select(`
+          *,
+          intake_forms!inner (
+            id,
+            form_name,
+            user_id,
+            questions
+          )
+        `)
+        .eq('id', leadId)
+        .eq('intake_forms.user_id', user.id)
+        .single()
+
+      if (error) {
+        console.error('Error loading lead:', error)
+      }
+
+      if (data) {
+        setLead(data)
+      }
+      setLoading(false)
+    }
+
+    loadLead()
+  }, [leadId, router])
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto py-8">
+        <div className="flex items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      </div>
     )
-    .eq('id', params.leadId)
-    .eq('intake_forms.user_id', user.id)
-    .single()
-
-  if (error || !lead) {
-    notFound()
   }
 
-  const answers = lead.answers as FormAnswers
+  if (!lead) {
+    return (
+      <div className="max-w-5xl mx-auto py-8 space-y-4">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Lead Not Found</h2>
+          <p className="text-muted-foreground mb-4">
+            This lead doesn't exist or you don't have permission to view it.
+          </p>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-2 text-primary hover:underline"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  const answers = lead.answers as Record<string, string>
+  const formQuestions = lead.intake_forms?.questions as FormQuestion[] || []
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -125,9 +169,12 @@ export default async function LeadDetailPage({
         </div>
       </div>
 
-      {/* Full Responses */}
+      {/* Full Responses - NOW WITH QUESTIONS */}
       <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <LeadAnswers answers={answers} />
+        <LeadAnswers 
+          answers={answers} 
+          questions={formQuestions}
+        />
       </div>
     </div>
   )
