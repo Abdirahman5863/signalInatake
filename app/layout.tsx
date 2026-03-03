@@ -224,7 +224,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
-      <body className="font-sans ">{children}</body>
+      <body className="">{children}</body>
     </html>
   )
 }
