@@ -13,7 +13,11 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
   const [questions, setQuestions] = useState<FormQuestion[]>(initialQuestions)
   const [editingId, setEditingId] = useState<string | null>(null)
 
-  const addQuestion = () => {
+  const addQuestion = (e?: React.MouseEvent) => {
+    // CRITICAL FIX: Prevent form submission
+    e?.preventDefault()
+    e?.stopPropagation()
+    
     const newQuestion: FormQuestion = {
       id: `question_${Date.now()}`,
       question: 'New Question',
@@ -35,7 +39,11 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
     onUpdate(updated)
   }
 
-  const deleteQuestion = (id: string) => {
+  const deleteQuestion = (id: string, e?: React.MouseEvent) => {
+    // Prevent form submission
+    e?.preventDefault()
+    e?.stopPropagation()
+    
     const updated = questions.filter(q => q.id !== id).map((q, idx) => ({
       ...q,
       order: idx + 1
@@ -44,7 +52,11 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
     onUpdate(updated)
   }
 
-  const moveQuestion = (id: string, direction: 'up' | 'down') => {
+  const moveQuestion = (id: string, direction: 'up' | 'down', e?: React.MouseEvent) => {
+    // Prevent form submission
+    e?.preventDefault()
+    e?.stopPropagation()
+    
     const index = questions.findIndex(q => q.id === id)
     if (
       (direction === 'up' && index === 0) ||
@@ -64,7 +76,11 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
     onUpdate(reordered)
   }
 
-  const addOption = (questionId: string) => {
+  const addOption = (questionId: string, e?: React.MouseEvent) => {
+    // Prevent form submission
+    e?.preventDefault()
+    e?.stopPropagation()
+    
     const question = questions.find(q => q.id === questionId)
     if (!question) return
 
@@ -86,7 +102,11 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
     updateQuestion(questionId, { options: updated })
   }
 
-  const deleteOption = (questionId: string, optionIndex: number) => {
+  const deleteOption = (questionId: string, optionIndex: number, e?: React.MouseEvent) => {
+    // Prevent form submission
+    e?.preventDefault()
+    e?.stopPropagation()
+    
     const question = questions.find(q => q.id === questionId)
     if (!question || !question.options) return
 
@@ -99,6 +119,7 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Form Questions</h3>
         <button
+          type="button" // CRITICAL: type="button" prevents form submission
           onClick={addQuestion}
           className="flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
@@ -117,14 +138,16 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
             <div className="flex items-start gap-3 mb-3">
               <div className="flex flex-col gap-1 mt-1">
                 <button
-                  onClick={() => moveQuestion(question.id, 'up')}
+                  type="button" // Prevent form submission
+                  onClick={(e) => moveQuestion(question.id, 'up', e)}
                   disabled={index === 0}
                   className="text-gray-400 hover:text-gray-600 disabled:opacity-30"
                 >
                   <GripVertical className="h-4 w-4 rotate-180" />
                 </button>
                 <button
-                  onClick={() => moveQuestion(question.id, 'down')}
+                  type="button" // Prevent form submission
+                  onClick={(e) => moveQuestion(question.id, 'down', e)}
                   disabled={index === questions.length - 1}
                   className="text-gray-400 hover:text-gray-600 disabled:opacity-30"
                 >
@@ -176,7 +199,8 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-medium text-gray-600">Options:</span>
                           <button
-                            onClick={() => addOption(question.id)}
+                            type="button" // Prevent form submission
+                            onClick={(e) => addOption(question.id, e)}
                             className="text-xs text-blue-600 hover:text-blue-700"
                           >
                             + Add Option
@@ -192,7 +216,8 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
                               placeholder={`Option ${optIdx + 1}`}
                             />
                             <button
-                              onClick={() => deleteOption(question.id, optIdx)}
+                              type="button" // Prevent form submission
+                              onClick={(e) => deleteOption(question.id, optIdx, e)}
                               className="text-red-600 hover:text-red-700"
                             >
                               <X className="h-4 w-4" />
@@ -204,6 +229,7 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
 
                     <div className="flex gap-2">
                       <button
+                        type="button" // Prevent form submission
                         onClick={() => setEditingId(null)}
                         className="flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-green-700"
                       >
@@ -237,13 +263,15 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
                       </div>
                       <div className="flex gap-1">
                         <button
+                          type="button" // Prevent form submission
                           onClick={() => setEditingId(question.id)}
                           className="text-gray-600 hover:text-gray-900"
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => deleteQuestion(question.id)}
+                          type="button" // Prevent form submission
+                          onClick={(e) => deleteQuestion(question.id, e)}
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />

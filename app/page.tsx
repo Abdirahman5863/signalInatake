@@ -492,36 +492,88 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer - Mobile */}
-      <footer className="border-t border-gray-200 bg-gray-50">
-        <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
-            <div className="flex items-center gap-1">
-              <Image
-                src={leadicon}
-                alt="LeadVett Logo"
-                width={50}
-                height={42}
-                className="object-contain sm:w-[60px] sm:h-[50px]"
-              />
-              <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-gray-900">
-                Lead<span className="text-[#b5944b]">Vett</span> 
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-500 text-center">
-              © {new Date().getFullYear()} LeadVett. All rights reserved.
-            </p>
-            <div className="flex gap-6 sm:gap-8">
-              <Link href="/login" className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                Sign in
-              </Link>
-              <Link href="/signup" className="text-xs sm:text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                Sign up
-              </Link>
-            </div>
-          </div>
+    {/* Footer */}
+<footer className="border-t border-gray-200 bg-gray-50">
+  <div className="container mx-auto px-6 py-12">
+    <div className="grid md:grid-cols-4 gap-8 mb-8">
+      {/* Brand */}
+      <div className="md:col-span-2">
+        <div className="flex items-center gap-2 mb-4">
+          <Image
+            src={leadicon}
+            alt="LeadVett Logo"
+            width={50}
+            height={40}
+            className="object-contain"
+          />
+          <span className="text-2xl font-extrabold tracking-tight text-gray-900">
+            Lead<span className="text-[#b5944b]">Vett</span>
+          </span>
         </div>
-      </footer>
+        <p className="text-sm text-gray-600 max-w-md">
+          Deploy your agency's qualification policy on autopilot. 
+          Stop wasting time on bad DMs.
+        </p>
+      </div>
+
+      {/* Product */}
+      <div>
+        <h3 className="font-semibold text-gray-900 mb-3">Product</h3>
+        <ul className="space-y-2">
+          <li>
+            <Link href="/signup" className="text-sm text-gray-600 hover:text-gray-900">
+              Pricing
+            </Link>
+          </li>
+          <li>
+            <Link href="/signup" className="text-sm text-gray-600 hover:text-gray-900">
+              Features
+            </Link>
+          </li>
+          <li>
+            <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
+              Sign In
+            </Link>
+          </li>
+        </ul>
+      </div>
+
+      {/* Legal */}
+      <div>
+        <h3 className="font-semibold text-gray-900 mb-3">Legal</h3>
+        <ul className="space-y-2">
+          <li>
+            <Link href="/privacy" className="text-sm text-gray-600 hover:text-gray-900">
+              Privacy Policy
+            </Link>
+          </li>
+          <li>
+            <Link href="/terms" className="text-sm text-gray-600 hover:text-gray-900">
+              Terms of Service
+            </Link>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div className="pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+      <p className="text-sm text-gray-500">
+        © {new Date().getFullYear()} LeadVett. All rights reserved.
+      </p>
+      <div className="flex gap-6">
+        <Link href="/privacy" className="text-sm text-gray-600 hover:text-gray-900">
+          Privacy
+        </Link>
+        <Link href="/terms" className="text-sm text-gray-600 hover:text-gray-900">
+          Terms
+        </Link>
+        <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
+          Sign in
+        </Link>
+      </div>
+    </div>
+  </div>
+</footer>
     </div>
   )
 }
