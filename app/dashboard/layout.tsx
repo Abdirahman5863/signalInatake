@@ -1,4 +1,4 @@
-import { requireAuth } from '@/lib/auth'
+// import { requireAuth } from '@/lib/auth'
 import { SignOutButton } from '@/components/SignOutButton'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -9,7 +9,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  await requireAuth()
+  
 
   return (
     <div className="min-h-screen bg-background">
