@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Create checkout session
     const session = await dodo.checkoutSessions.create({
       product_cart: [{ product_id: PRODUCT_IDS.Leadvett, quantity: 1 }],
-      customer: { email: user.email!, name: user.email! },
+      customer: {  name: user.user_metadata?.full_name || 'Customer',email: user.email! },
       return_url: callbackUrl,
     })
 
