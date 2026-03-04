@@ -35,26 +35,18 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Transaction stored')
 
-    // Create payment using official SDK
-    const payment = await dodo.payments.create({
-      payment_link: true,
-      customer: { email: user.email!, name: user.email! },
+    // Create checkout session
+    const session = await dodo.checkoutSessions.create({
       product_cart: [{ product_id: PRODUCT_IDS.Leadvett, quantity: 1 }],
-      billing: {
-        city: 'Nairobi',
-        country: 'KE',
-        state: 'Nairobi',
-        street: 'N/A',
-        zipcode: '00100',
-      },
+      customer: { email: user.email!, name: user.email! },
       return_url: callbackUrl,
     })
 
-    console.log('✅ Dodo payment created:', payment.payment_id)
+    console.log('✅ Checkout session created:', session)
 
     return NextResponse.json({
       success: true,
-      authorization_url: payment.payment_link,
+      authorization_url: session.checkout_url,
       reference,
     })
 
