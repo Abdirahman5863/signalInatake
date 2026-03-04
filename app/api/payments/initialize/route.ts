@@ -1,64 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { dodoPayments } from '@/lib/payments/dodo'
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const reference = searchParams.get('reference')
+  const status = searchParams.get('status')
+
+  console.log('Payment callback:', { reference, status })
+
+  if (!reference) {
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/pricing?error=missing_reference`)
+  }
+
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    // TEMPORARY: Mock successful payment
+    if (status === 'success') {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+      if (!user) {
+        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/login`)
+      }
 
-    // Single plan pricing
-    const planDetails = {
-      name: 'LeadVett Pro',
-      amount: 4900, // $49 in cents
-      currency: 'USD'
-    }
+      // Calculate subscription period
+      const currentPeriodStart = new Date()
+      const currentPeriodEnd = new Date()
+      currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1)
 
-    // Generate unique reference
-    const reference = `LEADVETT_${Date.now()}_${user.id.substring(0, 8)}`
-
-    // Initialize payment with Dodo
-    const paymentData = await dodoPayments.initializePayment({
-      amount: planDetails.amount,
-      currency: planDetails.currency,
-      email: user.email!,
-      reference,
-      callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback`,
-      metadata: {
+      // Create or update subscription
+      const { error: subError } = await supabase.from('subscriptions').upsert({
         user_id: user.id,
         plan: 'pro',
-        plan_name: planDetails.name
-      }
-    })
+        status: 'active',
+        amount: 4900,
+        currency: 'USD',
+        current_period_start: currentPeriodStart.toISOString(),
+        current_period_end: currentPeriodEnd.toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      })
 
-    // Store pending transaction
-    await supabase.from('payment_transactions').insert({
-      user_id: user.id,
-      amount: planDetails.amount,
-      currency: planDetails.currency,
-      status: 'pending',
-      dodo_reference: reference,
-      metadata: {
-        plan: 'pro',
-        plan_name: planDetails.name
+      if (subError) {
+        console.error('Subscription creation error:', subError)
+        throw subError
       }
-    })
 
-    return NextResponse.json({
-      success: true,
-      authorization_url: paymentData.data.authorization_url,
-      reference: paymentData.data.reference
-    })
+      // Redirect to success page
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/pricing?payment=success`)
+    } else {
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/pricing?payment=failed`)
+    }
 
   } catch (error: any) {
-    console.error('Payment initialization error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Failed to initialize payment' },
-      { status: 500 }
-    )
+    console.error('Payment callback error:', error)
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/pricing?error=verification_failed`)
   }
 }
