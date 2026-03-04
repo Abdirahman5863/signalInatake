@@ -40,8 +40,9 @@ export default async function DashboardPage() {
         <p className="text-muted-foreground mt-2">
           Manage your intake forms and view qualified leads
         </p>
+        <SubscriptionStatus subscription={subscription} />
       </div>
-      <SubscriptionStatus subscription={subscription} />
+      
 
       {!hasForms ? <EmptyState /> : <FormsList forms={forms} />}
 
