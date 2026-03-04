@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     const payment = await dodo.payments.create({
       payment_link: true,
       customer: { email: user.email!, name: user.email! },
-      product_cart: [{ product_id: PRODUCT_IDS.solo, quantity: 1 }],
+      product_cart: [{ product_id: PRODUCT_IDS.Leadvett, quantity: 1 }],
       billing: {
         city: 'Nairobi',
         country: 'KE',
