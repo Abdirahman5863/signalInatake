@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { dodoPayments } from '@/lib/payments/dodo'
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     // Cancel with Dodo if subscription ID exists
     if (subscription.dodo_subscription_id) {
-      await dodoPayments.cancelSubscription(subscription.dodo_subscription_id)
+    //   await dodoPayments.cancelSubscription(subscription.dodo_subscription_id)
     }
 
     // Update subscription to cancel at period end

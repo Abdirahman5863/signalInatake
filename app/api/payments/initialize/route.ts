@@ -1,59 +1,79 @@
+// /app/api/payments/initialize/route.ts
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createPaymentLink } from '@/lib/payments/dodo'
 
-export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
-  const reference = searchParams.get('reference')
-  const status = searchParams.get('status')
-
-  console.log('Payment callback:', { reference, status })
-
-  if (!reference) {
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/pricing?error=missing_reference`)
-  }
-
+export async function POST(request: NextRequest) {
   try {
-    // TEMPORARY: Mock successful payment
-    if (status === 'success') {
-      const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+    console.log('🔷 Payment initialization started')
 
-      if (!user) {
-        return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/login`)
-      }
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-      // Calculate subscription period
-      const currentPeriodStart = new Date()
-      const currentPeriodEnd = new Date()
-      currentPeriodEnd.setMonth(currentPeriodEnd.getMonth() + 1)
-
-      // Create or update subscription
-      const { error: subError } = await supabase.from('subscriptions').upsert({
-        user_id: user.id,
-        plan: 'pro',
-        status: 'active',
-        amount: 4900,
-        currency: 'USD',
-        current_period_start: currentPeriodStart.toISOString(),
-        current_period_end: currentPeriodEnd.toISOString(),
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
-      })
-
-      if (subError) {
-        console.error('Subscription creation error:', subError)
-        throw subError
-      }
-
-      // Redirect to success page
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/pricing?payment=success`)
-    } else {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/pricing?payment=failed`)
+    if (!user) {
+      console.log('❌ No user found')
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    console.log('✅ User authenticated:', user.email)
+
+    const body = await request.json()
+    const { plan } = body
+
+    console.log('📦 Plan selected:', plan)
+
+    // Plan details — extend this when you add the Team plan
+    const planDetails = plan === 'team'
+      ? { name: 'Agency Team', amount: 12900 }   // $129
+      : { name: 'Solo Agency', amount: 4900 }     // $49
+
+    // Unique reference for this transaction
+    const reference = `LEADVETT_${Date.now()}_${user.id.substring(0, 8)}`
+    console.log('📝 Reference:', reference)
+
+    // Callback URL — Dodo will redirect here after payment
+    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback?reference=${reference}`
+
+    // Store pending transaction in Supabase
+    const { error: insertError } = await supabase.from('payment_transactions').insert({
+      user_id: user.id,
+      amount: planDetails.amount,
+      currency: 'USD',
+      status: 'pending',
+      dodo_reference: reference,
+      metadata: { plan: plan || 'solo', plan_name: planDetails.name },
+    })
+
+    if (insertError) {
+      console.error('❌ Transaction insert error:', insertError)
+      throw insertError
+    }
+
+    console.log('✅ Transaction stored in DB')
+
+    // Create Dodo payment link
+    const dodoResponse = await createPaymentLink({
+      amount: planDetails.amount,
+      currency: 'USD',
+      reference,
+      redirectUrl: callbackUrl,
+      customerEmail: user.email,
+    })
+
+    console.log('✅ Dodo payment link created:', dodoResponse)
+
+    return NextResponse.json({
+      success: true,
+      authorization_url: dodoResponse.payment_link || dodoResponse.url,
+      reference,
+    })
+
   } catch (error: any) {
-    console.error('Payment callback error:', error)
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/pricing?error=verification_failed`)
+    console.error('❌ Payment initialization error:', error)
+    return NextResponse.json(
+      { error: error.message || 'Failed to initialize payment' },
+      { status: 500 }
+    )
   }
 }

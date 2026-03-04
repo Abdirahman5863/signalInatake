@@ -1,81 +1,69 @@
-interface DodoPaymentData {
-  amount: number
-  currency: string
-  email: string
+// /lib/payments/dodo.ts
+
+const DODO_API_URL = process.env.NODE_ENV === 'production'
+  ? 'https://live.dodopayments.com'  // swap to live when you go live
+  : 'https://test.dodopayments.com'  // test/sandbox
+
+const DODO_API_KEY = process.env.DODO_SECRET_KEY // your API key from the dashboard
+
+if (!DODO_API_KEY) {
+  console.warn('⚠️ DODO_SECRET_KEY is not set in environment variables')
+}
+
+// ─── Create a payment link ────────────────────────────────────────────────────
+export async function createPaymentLink({
+  amount,
+  currency = 'USD',
+  reference,
+  redirectUrl,
+  customerEmail,
+}: {
+  amount: number        // in cents, e.g. 4900 for $49
+  currency?: string
   reference: string
-  callback_url: string
-  metadata?: Record<string, any>
-}
-
-interface DodoSubscriptionData {
-  plan_code: string
-  customer_email: string
-  customer_name: string
-  metadata?: Record<string, any>
-}
-
-class DodoPayments {
-  private secretKey: string
-  private publicKey: string
-  private baseUrl = 'https://api.dodopayments.com/v1'
-
-  constructor() {
-    this.secretKey = process.env.DODO_SECRET_KEY || ''
-    this.publicKey = process.env.NEXT_PUBLIC_DODO_PUBLIC_KEY || ''
-  }
-
-  private async request(endpoint: string, method: string = 'GET', body?: any) {
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method,
-      headers: {
-        'Authorization': `Bearer ${this.secretKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Payment request failed')
-    }
-
-    return response.json()
-  }
-
-  // Initialize a payment
-  async initializePayment(data: DodoPaymentData) {
-    return this.request('/transactions/initialize', 'POST', data)
-  }
-
-  // Verify a payment
-  async verifyPayment(reference: string) {
-    return this.request(`/transactions/verify/${reference}`)
-  }
-
-  // Create a subscription plan
-  async createPlan(name: string, amount: number, interval: string = 'monthly') {
-    return this.request('/plans', 'POST', {
-      name,
+  redirectUrl: string
+  customerEmail?: string
+}) {
+  const response = await fetch(`${DODO_API_URL}/payments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DODO_API_KEY}`,
+    },
+    body: JSON.stringify({
       amount,
-      interval,
-      currency: 'USD'
-    })
+      currency,
+      payment_link: true,
+      return_url: redirectUrl,
+      metadata: {
+        reference,
+        customer_email: customerEmail,
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Dodo Payments error: ${response.status} — ${error}`)
   }
 
-  // Subscribe a customer to a plan
-  async createSubscription(data: DodoSubscriptionData) {
-    return this.request('/subscriptions', 'POST', data)
-  }
-
-  // Cancel a subscription
-  async cancelSubscription(subscriptionCode: string) {
-    return this.request(`/subscriptions/${subscriptionCode}/cancel`, 'POST')
-  }
-
-  // Get subscription details
-  async getSubscription(subscriptionCode: string) {
-    return this.request(`/subscriptions/${subscriptionCode}`)
-  }
+  return response.json()
 }
 
-export const dodoPayments = new DodoPayments()
+// ─── Verify a payment ────────────────────────────────────────────────────────
+export async function verifyPayment(paymentId: string) {
+  const response = await fetch(`${DODO_API_URL}/payments/${paymentId}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${DODO_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`Dodo verification error: ${response.status} — ${error}`)
+  }
+
+  return response.json()
+}
