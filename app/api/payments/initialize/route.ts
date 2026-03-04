@@ -24,9 +24,8 @@ export async function POST(request: NextRequest) {
     console.log('📦 Plan selected:', plan)
 
     // Plan details — extend this when you add the Team plan
-    const planDetails = plan === 'team'
-      ? { name: 'Agency Team', amount: 12900 }   // $129
-      : { name: 'Solo Agency', amount: 4900 }     // $49
+   
+      const planDetails = { name: 'Solo Agency', amount: 4900 }   // $49
 
     // Unique reference for this transaction
     const reference = `LEADVETT_${Date.now()}_${user.id.substring(0, 8)}`
