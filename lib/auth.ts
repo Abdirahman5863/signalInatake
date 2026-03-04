@@ -9,6 +9,7 @@ export async function getUser() {
 
   return user
 }
+// hey
 
 export async function requireAuth() {
   const user = await getUser()
