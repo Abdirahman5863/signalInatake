@@ -4,6 +4,14 @@ import { ArrowLeft } from 'lucide-react'
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
+      {/* <!-- Google tag (gtag.js) --> */}
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+      <script dangerouslySetInnerHTML={{__html: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C6QJQ6KGNJ');
+      `}}></script>
       <div className="max-w-4xl mx-auto">
         <Link
           href="/"

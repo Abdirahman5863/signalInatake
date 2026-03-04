@@ -10,6 +10,8 @@ import {
 } from "lucide-react"
 import leadicon from "./public/images/leadicon.png"
 
+// Google Analytics tag is handled via next/script in the component
+
 // ─── Live Demo Component ──────────────────────────────────────────────────────
 function LiveDemo() {
   const [step, setStep] = useState(0)
@@ -103,6 +105,7 @@ function LiveDemo() {
     )
   }
 
+
   const q = questions[step]
   return (
     <div className="max-w-xl mx-auto">
@@ -182,6 +185,14 @@ function FAQ() {
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
+      {/* <!-- Google tag (gtag.js) --> */}
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+      <script dangerouslySetInnerHTML={{__html: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C6QJQ6KGNJ');
+      `}}></script>
 
       {/* ── NAV ── */}
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md border-b border-gray-200 z-50">

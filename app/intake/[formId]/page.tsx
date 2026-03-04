@@ -138,6 +138,14 @@ export default function IntakeFormPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
+        {/* <!-- Google tag (gtag.js) --> */}
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+      <script dangerouslySetInnerHTML={{__html: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C6QJQ6KGNJ');
+      `}}></script>
         <div className="text-center">
           <div className="text-lg">Loading form...</div>
         </div>

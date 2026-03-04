@@ -57,6 +57,14 @@ function SignUpForm() {
 
   return (
     <div className="min-h-screen flex">
+      {/* <!-- Google tag (gtag.js) --> */}
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+      <script dangerouslySetInnerHTML={{__html: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C6QJQ6KGNJ');
+      `}}></script>
       {/* Left side - Branding and Value Props */}
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-[#b5944b]/10 via-[#b5944b]/5 to-white flex-col justify-center p-12">
         <div className="max-w-md mx-auto space-y-8">
