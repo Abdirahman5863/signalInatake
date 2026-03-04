@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
 
     // Callback URL — Dodo will redirect here after payment
     const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback?reference=${reference}`
+   
 
     // Store pending transaction in Supabase
     const { error: insertError } = await supabase.from('payment_transactions').insert({
@@ -61,6 +62,8 @@ export async function POST(request: NextRequest) {
     })
 
     console.log('✅ Dodo payment link created:', dodoResponse)
+     console.log('🔑 API Key exists:', !!process.env.DODO_SECRET_KEY)
+console.log('🔑 API Key prefix:', process.env.DODO_SECRET_KEY?.substring(0, 8))
 
     return NextResponse.json({
       success: true,
