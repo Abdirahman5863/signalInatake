@@ -11,18 +11,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { plan } = await request.json()
-
-    // Define plans
-    const plans = {
-      solo: { name: 'Solo Agency', amount: 4900, currency: 'USD' }, // $49 in cents
-      team: { name: 'Agency Team', amount: 12900, currency: 'USD' }, // $129 in cents
-    }
-
-    const selectedPlan = plans[plan as keyof typeof plans]
-    
-    if (!selectedPlan) {
-      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+    // Single plan pricing
+    const planDetails = {
+      name: 'LeadVett Pro',
+      amount: 4900, // $49 in cents
+      currency: 'USD'
     }
 
     // Generate unique reference
@@ -30,28 +23,28 @@ export async function POST(request: NextRequest) {
 
     // Initialize payment with Dodo
     const paymentData = await dodoPayments.initializePayment({
-      amount: selectedPlan.amount,
-      currency: selectedPlan.currency,
+      amount: planDetails.amount,
+      currency: planDetails.currency,
       email: user.email!,
       reference,
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback`,
       metadata: {
         user_id: user.id,
-        plan: plan,
-        plan_name: selectedPlan.name
+        plan: 'pro',
+        plan_name: planDetails.name
       }
     })
 
     // Store pending transaction
     await supabase.from('payment_transactions').insert({
       user_id: user.id,
-      amount: selectedPlan.amount,
-      currency: selectedPlan.currency,
+      amount: planDetails.amount,
+      currency: planDetails.currency,
       status: 'pending',
       dodo_reference: reference,
       metadata: {
-        plan,
-        plan_name: selectedPlan.name
+        plan: 'pro',
+        plan_name: planDetails.name
       }
     })
 
