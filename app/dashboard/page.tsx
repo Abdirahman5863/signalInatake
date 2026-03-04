@@ -2,6 +2,7 @@ import { FormsList } from '@/components/dashboard/FormsList'
 import { LeadsTable } from '@/components/dashboard/LeadsTable'
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { createClient } from '@/lib/supabase/server'
+import { SubscriptionStatus } from '@/components/dashboard/SubscriptionStatus'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -18,6 +19,11 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
 
   const hasForms = forms && forms.length > 0
+  const { data: subscription } = await supabase
+  .from('subscriptions')
+  .select('*')
+  .eq('user_id', user.id)
+  .single()
 
   return (
     <div className="space-y-8">
@@ -35,6 +41,7 @@ export default async function DashboardPage() {
           Manage your intake forms and view qualified leads
         </p>
       </div>
+      <SubscriptionStatus subscription={subscription} />
 
       {!hasForms ? <EmptyState /> : <FormsList forms={forms} />}
 
