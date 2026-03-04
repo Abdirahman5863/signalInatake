@@ -62,8 +62,7 @@ export async function POST(request: NextRequest) {
     })
 
     console.log('✅ Dodo payment link created:', dodoResponse)
-     console.log('🔑 API Key exists:', !!process.env.DODO_SECRET_KEY)
-console.log('🔑 API Key prefix:', process.env.DODO_SECRET_KEY?.substring(0, 8))
+   
 
     return NextResponse.json({
       success: true,
@@ -73,6 +72,8 @@ console.log('🔑 API Key prefix:', process.env.DODO_SECRET_KEY?.substring(0, 8)
 
   } catch (error: any) {
     console.error('❌ Payment initialization error:', error)
+      console.log('🔑 API Key exists:', !!process.env.DODO_SECRET_KEY)
+console.log('🔑 API Key prefix:', process.env.DODO_SECRET_KEY?.substring(0, 8))
     return NextResponse.json(
       { error: error.message || 'Failed to initialize payment' },
       { status: 500 }
