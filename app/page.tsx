@@ -419,7 +419,7 @@ export default function Home() {
               </Link>
               <p className="text-xs text-gray-400 text-center mt-3">No credit card required</p>
             </div>
-            {/* Team */}
+            {/* Team
             <div className="bg-white rounded-2xl sm:rounded-3xl p-7 sm:p-10 border-2 border-[#b5944b] shadow-xl relative">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#b5944b] to-[#d4af37] text-white px-6 py-1.5 rounded-full text-xs font-bold whitespace-nowrap" style={heading}>
                 MOST POPULAR
@@ -442,14 +442,14 @@ export default function Home() {
                 Start 14-day free trial
               </Link>
               <p className="text-xs text-gray-400 text-center mt-3">No credit card required · Cancel anytime</p>
-            </div>
+            </div> */}
           </div>
-          <div className="mt-10 text-center text-sm text-gray-600">
+          {/* <div className="mt-10 text-center text-sm text-gray-600">
             Need enterprise features, custom domain, or API access?{" "}
             <Link href="mailto:sales@leadvett.com" className="text-[#b5944b] font-semibold hover:underline">
               Contact us for Enterprise pricing →
             </Link>
-          </div>
+          </div> */}
         </div>
       </section>
 
