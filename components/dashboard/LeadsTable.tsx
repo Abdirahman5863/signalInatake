@@ -28,13 +28,15 @@ export async function LeadsTable() {
     .limit(50)
 
   if (error) {
-    return <div className="text-destructive">Error: {error.message}</div>
+    return <div className="text-destructive text-sm">Error: {error.message}</div>
   }
 
   if (!leads || leads.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed p-12 text-center">
-        <p className="text-muted-foreground">No leads yet. Share your form to start collecting responses.</p>
+      <div className="rounded-lg border border-dashed p-8 sm:p-12 text-center">
+        <p className="text-sm sm:text-base text-muted-foreground">
+          No leads yet. Share your form to start collecting responses.
+        </p>
       </div>
     )
   }
@@ -83,29 +85,28 @@ export async function LeadsTable() {
     return { icon: '⏸️', text: 'Hold', color: 'text-orange-700' }
   }
 
-  // Separate by priority
   const goldLeads = leads.filter(l => l.badge === 'Gold')
   const silverLeads = leads.filter(l => l.badge === 'Silver')
   const bronzeLeads = leads.filter(l => l.badge === 'Bronze')
   const rejectedLeads = leads.filter(l => l.hard_rule_triggered || l.badge === 'Rejected')
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold">Lead Pipeline</h2>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold">Lead Pipeline</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {goldLeads.length} Gold • {silverLeads.length} Silver • {bronzeLeads.length} Bronze • {rejectedLeads.length} Rejected
           </p>
         </div>
       </div>
 
-      {/* GOLD LEADS - CALL NOW */}
+      {/* GOLD LEADS */}
       {goldLeads.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🔥</span>
-            <h3 className="text-lg font-bold text-green-700">
+            <span className="text-xl sm:text-2xl">🔥</span>
+            <h3 className="text-base sm:text-lg font-bold text-green-700">
               CALL NOW ({goldLeads.length})
             </h3>
           </div>
@@ -115,44 +116,44 @@ export async function LeadsTable() {
               return (
                 <div
                   key={lead.id}
-                  className="bg-green-50 border-2 border-green-300 rounded-xl p-4 hover:border-green-400 transition-all"
+                  className="bg-green-50 border-2 border-green-300 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:border-green-400 transition-all"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-bold text-lg text-gray-900">{lead.lead_name}</h4>
-                        <Badge className="bg-green-500 text-white">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                        <h4 className="font-bold text-base sm:text-lg text-gray-900 truncate">{lead.lead_name}</h4>
+                        <Badge className="bg-green-500 text-white text-xs flex-shrink-0">
                           🔥 GOLD
                         </Badge>
-                        <span className={`text-xs font-semibold ${proposalStatus.color}`}>
-                          {proposalStatus.icon} Proposal {proposalStatus.text}
+                        <span className={`text-xs font-semibold ${proposalStatus.color} flex-shrink-0`}>
+                          {proposalStatus.icon} {proposalStatus.text}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-xs sm:text-sm text-gray-600 mb-2 truncate">
                         {lead.lead_email}
                       </p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-2 font-semibold text-green-700">
-                          <Phone className="h-4 w-4" />
-                          <span>{getActionText(lead.action, lead.badge)}</span>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+                        <div className="flex items-center gap-1 sm:gap-2 font-semibold text-green-700">
+                          <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                          <span className="truncate">{getActionText(lead.action, lead.badge)}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Clock className="h-4 w-4" />
+                        <div className="flex items-center gap-1 sm:gap-2 text-gray-600">
+                          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                           <span>{new Date(lead.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
                       {lead.summary && (
-                        <p className="text-xs text-gray-600 italic mt-2">
+                        <p className="text-xs text-gray-600 italic mt-2 line-clamp-2">
                           {lead.summary}
                         </p>
                       )}
                     </div>
                     <Link
                       href={`/dashboard/leads/${lead.id}`}
-                      className="flex items-center gap-2 rounded-full bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors whitespace-nowrap"
+                      className="flex items-center justify-center gap-2 rounded-full bg-green-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-green-700 transition-colors whitespace-nowrap w-full sm:w-auto"
                     >
-                      View Details
-                      <ArrowRight className="h-4 w-4" />
+                      <span>View Details</span>
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Link>
                   </div>
                 </div>
@@ -162,12 +163,12 @@ export async function LeadsTable() {
         </div>
       )}
 
-      {/* SILVER LEADS - FOLLOW UP */}
+      {/* SILVER LEADS */}
       {silverLeads.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">⚡</span>
-            <h3 className="text-lg font-bold text-yellow-700">
+            <span className="text-xl sm:text-2xl">⚡</span>
+            <h3 className="text-base sm:text-lg font-bold text-yellow-700">
               FOLLOW UP SOON ({silverLeads.length})
             </h3>
           </div>
@@ -177,39 +178,39 @@ export async function LeadsTable() {
               return (
                 <div
                   key={lead.id}
-                  className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 hover:border-yellow-400 transition-all"
+                  className="bg-yellow-50 border-2 border-yellow-300 rounded-lg sm:rounded-xl p-3 sm:p-4 hover:border-yellow-400 transition-all"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-bold text-base text-gray-900">{lead.lead_name}</h4>
-                        <Badge className="bg-yellow-500 text-white">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                        <h4 className="font-bold text-sm sm:text-base text-gray-900 truncate">{lead.lead_name}</h4>
+                        <Badge className="bg-yellow-500 text-white text-xs flex-shrink-0">
                           ⚡ SILVER
                         </Badge>
-                        <span className={`text-xs font-semibold ${proposalStatus.color}`}>
-                          {proposalStatus.icon} Proposal {proposalStatus.text}
+                        <span className={`text-xs font-semibold ${proposalStatus.color} flex-shrink-0`}>
+                          {proposalStatus.icon} {proposalStatus.text}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-xs sm:text-sm text-gray-600 mb-2 truncate">
                         {lead.lead_email}
                       </p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <div className="flex items-center gap-2 font-semibold text-yellow-700">
-                          <Mail className="h-4 w-4" />
-                          <span>{getActionText(lead.action, lead.badge)}</span>
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+                        <div className="flex items-center gap-1 sm:gap-2 font-semibold text-yellow-700">
+                          <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                          <span className="truncate">{getActionText(lead.action, lead.badge)}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Clock className="h-4 w-4" />
+                        <div className="flex items-center gap-1 sm:gap-2 text-gray-600">
+                          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                           <span>{new Date(lead.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
                     <Link
                       href={`/dashboard/leads/${lead.id}`}
-                      className="flex items-center gap-2 rounded-full bg-yellow-600 px-4 py-2 text-sm font-semibold text-white hover:bg-yellow-700 transition-colors whitespace-nowrap"
+                      className="flex items-center justify-center gap-2 rounded-full bg-yellow-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-yellow-700 transition-colors whitespace-nowrap w-full sm:w-auto"
                     >
-                      View
-                      <ArrowRight className="h-4 w-4" />
+                      <span>View</span>
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Link>
                   </div>
                 </div>
@@ -219,12 +220,12 @@ export async function LeadsTable() {
         </div>
       )}
 
-      {/* BRONZE LEADS - NURTURE */}
+      {/* BRONZE LEADS */}
       {bronzeLeads.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🟡</span>
-            <h3 className="text-lg font-bold text-orange-700">
+            <span className="text-xl sm:text-2xl">🟡</span>
+            <h3 className="text-sm sm:text-base font-bold text-orange-700">
               NURTURE / DELAY ({bronzeLeads.length})
             </h3>
           </div>
@@ -234,24 +235,24 @@ export async function LeadsTable() {
               return (
                 <div
                   key={lead.id}
-                  className="bg-orange-50 border border-orange-200 rounded-lg p-3 hover:border-orange-300 transition-all"
+                  className="bg-orange-50 border border-orange-200 rounded-lg p-2 sm:p-3 hover:border-orange-300 transition-all"
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-sm text-gray-900">{lead.lead_name}</h4>
-                        <Badge className="bg-orange-500 text-white text-xs">
+                  <div className="flex items-center justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                        <h4 className="font-semibold text-xs sm:text-sm text-gray-900 truncate">{lead.lead_name}</h4>
+                        <Badge className="bg-orange-500 text-white text-xs flex-shrink-0">
                           BRONZE
                         </Badge>
-                        <span className={`text-xs ${proposalStatus.color}`}>
-                          {proposalStatus.icon} {proposalStatus.text}
+                        <span className={`text-xs ${proposalStatus.color} flex-shrink-0`}>
+                          {proposalStatus.icon}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-600">{lead.lead_email}</p>
+                      <p className="text-xs text-gray-600 truncate">{lead.lead_email}</p>
                     </div>
                     <Link
                       href={`/dashboard/leads/${lead.id}`}
-                      className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                      className="text-xs sm:text-sm text-orange-600 hover:text-orange-700 font-medium whitespace-nowrap"
                     >
                       View
                     </Link>
@@ -268,12 +269,12 @@ export async function LeadsTable() {
         </div>
       )}
 
-      {/* REJECTED LEADS - ARCHIVED */}
+      {/* REJECTED LEADS */}
       {rejectedLeads.length > 0 && (
-        <details className="space-y-3">
+        <details className="space-y-2 sm:space-y-3">
           <summary className="flex items-center gap-2 cursor-pointer">
-            <span className="text-xl">🛑</span>
-            <h3 className="text-base font-bold text-red-700">
+            <span className="text-lg sm:text-xl">🛑</span>
+            <h3 className="text-sm sm:text-base font-bold text-red-700">
               DISQUALIFIED / ARCHIVED ({rejectedLeads.length})
             </h3>
           </summary>
@@ -281,25 +282,25 @@ export async function LeadsTable() {
             {rejectedLeads.slice(0, 3).map((lead: any) => (
               <div
                 key={lead.id}
-                className="bg-red-50 border border-red-200 rounded-lg p-3"
+                className="bg-red-50 border border-red-200 rounded-lg p-2 sm:p-3"
               >
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-semibold text-sm text-gray-700 line-through">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
+                      <h4 className="font-semibold text-xs sm:text-sm text-gray-700 line-through truncate">
                         {lead.lead_name}
                       </h4>
-                      <Badge className="bg-red-600 text-white text-xs">
+                      <Badge className="bg-red-600 text-white text-xs flex-shrink-0">
                         REJECTED
                       </Badge>
                     </div>
-                    <p className="text-xs text-red-600">
+                    <p className="text-xs text-red-600 truncate">
                       {lead.hard_rule_triggered || 'Hard rule triggered'}
                     </p>
                   </div>
                   <Link
                     href={`/dashboard/leads/${lead.id}`}
-                    className="text-xs text-red-600 hover:text-red-700"
+                    className="text-xs text-red-600 hover:text-red-700 whitespace-nowrap"
                   >
                     View
                   </Link>

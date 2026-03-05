@@ -38,7 +38,6 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Delete the form (cascade will delete associated leads)
       const { error } = await supabase
         .from('intake_forms')
         .delete()
@@ -47,11 +46,8 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
 
       if (error) throw error
 
-      // Update local state
       setForms(forms.filter(f => f.id !== formId))
       setShowDeleteConfirm(null)
-      
-      // Refresh the page to update counts
       router.refresh()
     } catch (err: any) {
       console.error('Error deleting form:', err)
@@ -67,29 +63,30 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Your Forms</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h2 className="text-xl sm:text-2xl font-bold">Your Forms</h2>
         <Link
           href="/dashboard/forms/new"
-          className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className="flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
           Create Form
         </Link>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {forms.map((form) => (
           <div
             key={form.id}
-            className="rounded-lg border bg-card p-6 shadow-sm hover:shadow-md transition-shadow"
+            className="rounded-lg border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
           >
-            <h3 className="font-semibold mb-2 text-lg">{form.form_name}</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <h3 className="font-semibold mb-2 text-base sm:text-lg truncate">{form.form_name}</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
               Created {new Date(form.created_at).toLocaleDateString()}
             </p>
             
             {/* Form Link Display */}
-            <div className="bg-muted rounded-md p-3 mb-3">
+            <div className="bg-muted rounded-md p-2 sm:p-3 mb-3">
               <p className="text-xs text-muted-foreground mb-1">Form Link:</p>
               <p className="text-xs font-mono truncate">
                 {typeof window !== 'undefined' 
@@ -103,17 +100,17 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => handleCopyLink(form.share_link, form.id)}
-                className="flex items-center justify-center gap-2 rounded-md bg-[#b5944b] px-4 py-2 text-sm font-medium text-white hover:bg-[#9a7a3d] transition-colors"
+                className="flex items-center justify-center gap-2 rounded-md bg-[#b5944b] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#9a7a3d] transition-colors"
               >
                 {copiedId === form.id ? (
                   <>
-                    <Check className="h-4 w-4" />
-                    Copied!
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span>Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="h-4 w-4" />
-                    Copy Link
+                    <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span>Copy Link</span>
                   </>
                 )}
               </button>
@@ -122,28 +119,28 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
                 <Link
                   href={`/intake/${form.share_link}`}
                   target="_blank"
-                  className="flex items-center justify-center gap-1 rounded-md border border-input px-3 py-2 text-sm font-medium hover:bg-accent transition-colors"
+                  className="flex items-center justify-center gap-1 rounded-md border border-input px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium hover:bg-accent transition-colors"
                   title="Preview form"
                 >
-                  <ExternalLink className="h-3 w-3" />
+                  <ExternalLink className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 </Link>
                 <Link
                   href={`/dashboard/forms/${form.id}/edit`}
-                  className="flex items-center justify-center gap-1 rounded-md border border-input px-3 py-2 text-sm font-medium hover:bg-accent transition-colors"
+                  className="flex items-center justify-center gap-1 rounded-md border border-input px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium hover:bg-accent transition-colors"
                   title="Edit form"
                 >
-                  <Edit className="h-3 w-3" />
+                  <Edit className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 </Link>
                 <button
                   onClick={() => setShowDeleteConfirm(form.id)}
                   disabled={deletingId === form.id}
-                  className="flex items-center justify-center gap-1 rounded-md border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                  className="flex items-center justify-center gap-1 rounded-md border border-red-200 px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
                   title="Delete form"
                 >
                   {deletingId === form.id ? (
-                    <div className="h-3 w-3 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                    <div className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
                   ) : (
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   )}
                 </button>
               </div>
@@ -152,36 +149,36 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm === form.id && (
               <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
-                  <h3 className="text-lg font-bold mb-2 text-gray-900">
+                <div className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full shadow-xl">
+                  <h3 className="text-base sm:text-lg font-bold mb-2 text-gray-900">
                     Delete Form?
                   </h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-4">
                     Are you sure you want to delete "<strong>{form.form_name}</strong>"? 
                     This will also delete all associated lead responses. This action cannot be undone.
                   </p>
-                  <div className="flex gap-3 justify-end">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:justify-end">
                     <button
                       onClick={() => setShowDeleteConfirm(null)}
                       disabled={deletingId === form.id}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                      className="px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md transition-colors order-2 sm:order-1"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={() => handleDelete(form.id)}
                       disabled={deletingId === form.id}
-                      className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50 flex items-center gap-2"
+                      className="px-4 py-2 text-xs sm:text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2 order-1 sm:order-2"
                     >
                       {deletingId === form.id ? (
                         <>
-                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                          Deleting...
+                          <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          <span>Deleting...</span>
                         </>
                       ) : (
                         <>
-                          <Trash2 className="h-4 w-4" />
-                          Delete Form
+                          <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          <span>Delete Form</span>
                         </>
                       )}
                     </button>

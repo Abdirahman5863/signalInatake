@@ -20,14 +20,14 @@ export default async function DashboardPage() {
 
   const hasForms = forms && forms.length > 0
   const { data: subscription } = await supabase
-  .from('subscriptions')
-  .select('*')
-  .eq('user_id', user.id)
-  .single()
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', user.id)
+    .single()
 
   return (
-    <div className="space-y-8">
-      {/* <!-- Google tag (gtag.js) --> */}
+    <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
+      {/* Google Analytics */}
       <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
       <script dangerouslySetInnerHTML={{__html: `
         window.dataLayer = window.dataLayer || [];
@@ -35,19 +35,26 @@ export default async function DashboardPage() {
         gtag('js', new Date());
         gtag('config', 'G-C6QJQ6KGNJ');
       `}}></script>
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Manage your intake forms and view qualified leads
-        </p>
+
+      {/* Header - Mobile Responsive */}
+      <div className="space-y-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
+            Manage your intake forms and view qualified leads
+          </p>
+        </div>
+        
+        {/* Subscription Status */}
         <SubscriptionStatus subscription={subscription} />
       </div>
-      
 
+      {/* Forms Section */}
       {!hasForms ? <EmptyState /> : <FormsList forms={forms} />}
 
+      {/* Leads Table - Mobile Responsive */}
       {hasForms && (
-        <div className="mt-8">
+        <div className="mt-6 sm:mt-8">
           <LeadsTable />
         </div>
       )}
