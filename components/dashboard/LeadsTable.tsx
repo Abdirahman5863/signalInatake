@@ -92,7 +92,15 @@ export async function LeadsTable() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+  <div>
+    <h2 className="text-xl sm:text-2xl font-bold">Recent Leads</h2>
+    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+      Latest 10 leads • <Link href="/dashboard/leads" className="text-primary hover:underline">View all →</Link>
+    </p>
+  </div>
+
         <div>
           <h2 className="text-xl sm:text-2xl font-bold">Lead Pipeline</h2>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">

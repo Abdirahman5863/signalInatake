@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import leadicon from '../public/images/leadicon.png'
-import { Settings, LayoutDashboard, FileText, Menu, X } from 'lucide-react'
+import { Settings, LayoutDashboard, FileText, Menu, X, Users } from 'lucide-react'
 import { SignOutButton } from '@/components/SignOutButton'
 
 export default async function DashboardLayout({
@@ -50,6 +50,13 @@ export default async function DashboardLayout({
                 <LayoutDashboard className="h-4 w-4" />
                 Dashboard
               </Link>
+               <Link
+    href="/dashboard/leads"
+    className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+  >
+    <Users className="h-4 w-4" />
+    Leads
+  </Link>
               <Link
                 href="/dashboard/forms/new"
                 className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
@@ -84,6 +91,13 @@ export default async function DashboardLayout({
               <LayoutDashboard className="h-4 w-4" />
               Dashboard
             </Link>
+             <Link
+    href="/dashboard/leads"
+    className="flex items-center gap-2 text-xs font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap"
+  >
+    <Users className="h-4 w-4" />
+    Leads
+  </Link>
             <Link
               href="/dashboard/forms/new"
               className="flex items-center gap-2 text-xs font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap"

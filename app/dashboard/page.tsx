@@ -1,8 +1,9 @@
 import { FormsList } from '@/components/dashboard/FormsList'
-import { LeadsTable } from '@/components/dashboard/LeadsTable'
+
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { createClient } from '@/lib/supabase/server'
 import { SubscriptionStatus } from '@/components/dashboard/SubscriptionStatus'
+import { RecentLeads } from '@/components/dashboard/RecentLeads'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -19,11 +20,27 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
 
   const hasForms = forms && forms.length > 0
+  
   const { data: subscription } = await supabase
     .from('subscriptions')
     .select('*')
     .eq('user_id', user.id)
     .single()
+
+  // Fetch recent leads (limit to 10 for dashboard)
+  const { data: recentLeads } = await supabase
+    .from('lead_responses')
+    .select(`
+      *,
+      intake_forms!inner (
+        id,
+        form_name,
+        user_id
+      )
+    `)
+    .eq('intake_forms.user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(10)
 
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
@@ -52,10 +69,10 @@ export default async function DashboardPage() {
       {/* Forms Section */}
       {!hasForms ? <EmptyState /> : <FormsList forms={forms} />}
 
-      {/* Leads Table - Mobile Responsive */}
-      {hasForms && (
+      {/* Recent Leads - Limited to 10 */}
+      {hasForms && recentLeads && recentLeads.length > 0 && (
         <div className="mt-6 sm:mt-8">
-          <LeadsTable />
+          <RecentLeads leads={recentLeads} />
         </div>
       )}
     </div>
