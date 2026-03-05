@@ -233,19 +233,14 @@ export default function Home() {
               <div className="text-center p-8">
                 <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center mx-auto mb-4">
                   <Play className="h-8 w-8 text-[#b5944b] ml-1" />
-                  <iframe 
-                    src="https://www.loom.com/embed/d1c3e91584f3475692de1bf5ae7395cc" 
-                    frameBorder="0" 
-                    allowFullScreen 
-                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} 
-                  />
                 </div>
                 <p className="text-lg font-semibold text-gray-700 mb-1" style={heading}>30-Second Product Demo</p>
                 <p className="text-sm text-gray-500 mb-4">See how LeadVett qualifies leads in real-time</p>
-                
-               
-                  
-                
+                {/* <iframe src="https://www.loom.com/share/d1c3e91584f3475692de1bf5ae7395cc" className="w-full aspect-video" allowFullScreen /> */}
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#b5944b] px-6 py-2.5 text-sm font-semibold text-white">
+                  <Play className="h-3.5 w-3.5" /> Add your Loom video here
+      <iframe src="https://www.loom.com/embed/d1c3e91584f3475692de1bf5ae7395cc" frameBorder="0" allowFullScreen style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}></iframe>
+                </span>
               </div>
             </div>
           </div>
