@@ -193,59 +193,71 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* ── HERO ── */}
-      <section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6" aria-label="Hero">
-        <div className="container mx-auto max-w-6xl text-center space-y-6 sm:space-y-8">
-          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-green-50 border border-green-200">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
-            <span className="text-xs sm:text-sm font-medium text-green-700">
-              <strong>127 agencies</strong> saved 1,905 hrs this month
-            </span>
-          </div>
+     {/* ── HERO ── */}
+<section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6" aria-label="Hero">
+  <div className="container mx-auto max-w-6xl text-center space-y-6 sm:space-y-8">
+    <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-green-50 border border-green-200">
+      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
+      <span className="text-xs sm:text-sm font-medium text-green-700">
+        <strong>127 agencies</strong> saved 1,905 hrs this month
+      </span>
+    </div>
 
-          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-gray-900 leading-[1.05]" style={{ ...heading, fontWeight: 900 }}>
-            Stop wasting<br />
-            <span className="bg-gradient-to-r from-[#b5944b] to-[#d4af37] bg-clip-text text-transparent">
-              15 hours a week
-            </span><br />
-            on bad DMs
-          </h1>
+    <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-gray-900 leading-[1.05] font-black">
+      Stop wasting<br />
+      <span className="bg-gradient-to-r from-[#b5944b] to-[#d4af37] bg-clip-text text-transparent">
+        15 hours a week
+      </span><br />
+      on bad DMs
+    </h1>
 
-          <p className="text-base sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            LeadVett AI gives you the clinical verdict on every lead in <strong>10 seconds</strong> — so you close Golds fast and never waste time on tire-kickers again.
-          </p>
+    <p className="text-base sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+      LeadVett AI gives you the clinical verdict on every lead in <strong>10 seconds</strong> — so you close Golds fast and never waste time on tire-kickers again.
+    </p>
 
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-2">
-            <Link href="/signup" className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 rounded-full bg-gray-900 px-7 py-4 text-sm sm:text-base font-semibold text-white hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02]">
-              Start saving time now
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-            </Link>
-            <Link href="#demo" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border-2 border-gray-300 bg-white px-7 py-4 text-sm sm:text-base font-semibold text-gray-900 hover:border-[#b5944b] transition-all">
-              <Play className="h-4 w-4" aria-hidden="true" />
-              Try Live Demo — Free
-            </Link>
-          </div>
-          <p className="text-xs sm:text-sm text-gray-500">14-day trial · No credit card · One avoided call = Year paid</p>
+    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-2">
+      <Link 
+        href="/signup" 
+        className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 rounded-full bg-gray-900 px-7 py-4 text-sm sm:text-base font-semibold text-white hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02]"
+      >
+        Start saving time now
+        <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+      </Link>
+      <Link 
+        href="#demo" 
+        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border-2 border-gray-300 bg-white px-7 py-4 text-sm sm:text-base font-semibold text-gray-900 hover:border-[#b5944b] transition-all"
+      >
+        <Play className="h-4 w-4" aria-hidden="true" />
+        Try Live Demo — Free
+      </Link>
+    </div>
 
-          {/* Video placeholder */}
-          <div className="mt-10 sm:mt-14 max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-100">
-            <div className="aspect-video bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center mx-auto mb-4">
-                  <Play className="h-8 w-8 text-[#b5944b] ml-1" />
-                </div>
-                <p className="text-lg font-semibold text-gray-700 mb-1" style={heading}>30-Second Product Demo</p>
-                <p className="text-sm text-gray-500 mb-4">See how LeadVett qualifies leads in real-time</p>
-                {/* <iframe src="https://www.loom.com/share/d1c3e91584f3475692de1bf5ae7395cc" className="w-full aspect-video" allowFullScreen /> */}
-                <span className="inline-flex items-center gap-2 rounded-full bg-[#b5944b] px-6 py-2.5 text-sm font-semibold text-white">
-                  <Play className="h-3.5 w-3.5" /> Add your Loom video here
-      <iframe src="https://www.loom.com/embed/d1c3e91584f3475692de1bf5ae7395cc" frameBorder="0" allowFullScreen style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%"}}></iframe>
-                </span>
-              </div>
-            </div>
-          </div>
+    <p className="text-xs sm:text-sm text-gray-500">
+      14-day trial · No credit card · One avoided call = Year paid
+    </p>
+
+    {/* LOOM VIDEO - Embedded */}
+    <div className="mt-10 sm:mt-14 max-w-5xl mx-auto">
+      <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-200 bg-gray-900">
+        {/* Loom Embed - Responsive */}
+        <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
+          <iframe 
+            src="https://www.loom.com/embed/d1c3e91584f3475692de1bf5ae7395cc?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true" 
+            frameBorder="0" 
+            allowFullScreen
+            className="absolute top-0 left-0 w-full h-full"
+            title="LeadVett Product Demo"
+          />
         </div>
-      </section>
+      </div>
+      
+      {/* Video Caption */}
+      <p className="text-center text-sm text-gray-600 mt-4">
+        <strong>Real product walkthrough</strong> • See the actual dashboard, badges, and AI analysis
+      </p>
+    </div>
+  </div>
+</section>
 
       {/* ── HOW IT WORKS ── */}
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gray-50" aria-label="How it works">
