@@ -342,23 +342,23 @@ export default function Home() {
       </section>
 
       {/* ── STATS ── */}
-      <section className="py-10 sm:py-14 px-4 sm:px-6 bg-gray-900" aria-label="Key stats">
-        <div className="container mx-auto max-w-5xl grid grid-cols-3 gap-4 sm:gap-8 text-center">
-          {[
-            { val: "15", unit: "hrs/week", label: "Saved on average" },
-            { val: "$49", unit: "/mo", label: "All-in price" },
-            { val: "83×", unit: "ROI", label: "Average return" },
-          ].map((s) => (
-            <div key={s.label}>
-              <div className="text-3xl sm:text-5xl text-[#d4af37]" style={{ ...heading, fontWeight: 900 }}>
-                {s.val}<span className="text-xl sm:text-2xl">{s.unit}</span>
-              </div>
-              <div className="text-xs sm:text-sm text-gray-400 mt-1">{s.label}</div>
-            </div>
-          ))}
+      {/* ── STATS ── */}
+<section className="py-10 sm:py-14 px-4 sm:px-6 bg-gray-900" aria-label="Key stats">
+  <div className="container mx-auto max-w-5xl grid grid-cols-3 gap-4 sm:gap-8 text-center">
+    {[
+      { val: "15", unit: "hrs/week", label: "Time saved" },
+      { val: "$49", unit: "/mo", label: "Simple pricing" },
+      { val: "14", unit: "days", label: "Free trial" },
+    ].map((s) => (
+      <div key={s.label}>
+        <div className="text-3xl sm:text-5xl text-[#d4af37]" style={{ ...heading, fontWeight: 900 }}>
+          {s.val}<span className="text-xl sm:text-2xl">{s.unit}</span>
         </div>
-      </section>
-
+        <div className="text-xs sm:text-sm text-gray-400 mt-1">{s.label}</div>
+      </div>
+    ))}
+  </div>
+</section>
       {/* ── TESTIMONIALS ── */}
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-white" aria-label="Testimonials">
         <div className="container mx-auto max-w-6xl">
@@ -392,66 +392,107 @@ export default function Home() {
       </section>
 
       {/* ── PRICING ── */}
-      <section id="pricing" className="py-14 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white" aria-label="Pricing">
-        <div className="container mx-auto max-w-5xl">
-          <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-4xl md:text-5xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>Simple, Honest Pricing</h2>
-            <p className="text-gray-600 sm:text-lg">One avoided call pays for the whole year</p>
-          </div>
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {/* Solo */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-7 sm:p-10 border-2 border-gray-200 shadow-lg">
-              <h3 className="text-xl text-gray-900 mb-1" style={{ ...heading, fontWeight: 700 }}>Solo Agency</h3>
-              <p className="text-sm text-gray-500 mb-5">Perfect for independent agency owners</p>
-              <div className="flex items-baseline gap-2 mb-7">
-                <span className="text-5xl text-gray-900" style={{ ...heading, fontWeight: 900 }}>$49</span>
-                <span className="text-gray-500">/month</span>
-              </div>
-              <ul className="space-y-3 mb-8">
-                {["Unlimited lead analysis", "Gold / Silver / Bronze badges", "AI-generated DM scripts", "Rule engine transparency", "ManyChat integration", "Mobile-friendly forms", "1 user seat", "Email support"].map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700">
-                    <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />{f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="block w-full rounded-full bg-gray-900 py-4 text-sm font-semibold text-white hover:bg-gray-800 transition-all shadow-md text-center">
-                Start 14-day free trial
-              </Link>
-              <p className="text-xs text-gray-400 text-center mt-3">No credit card required</p>
-            </div>
-            {/* Team
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-7 sm:p-10 border-2 border-[#b5944b] shadow-xl relative">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#b5944b] to-[#d4af37] text-white px-6 py-1.5 rounded-full text-xs font-bold whitespace-nowrap" style={heading}>
-                MOST POPULAR
-              </div>
-              <h3 className="text-xl text-gray-900 mb-1 pt-2" style={{ ...heading, fontWeight: 700 }}>Agency Team</h3>
-              <p className="text-sm text-gray-500 mb-5">For growing agencies with a team</p>
-              <div className="flex items-baseline gap-2 mb-2">
-                <span className="text-5xl text-gray-900" style={{ ...heading, fontWeight: 900 }}>$129</span>
-                <span className="text-gray-500">/month</span>
-              </div>
-              <p className="text-xs text-green-600 font-semibold mb-5">Avg ROI: $4,800/month saved</p>
-              <ul className="space-y-3 mb-8">
-                {["Everything in Solo", "Up to 5 team seats", "Custom budget thresholds per user", "Advanced analytics dashboard", "Webhook & Zapier integration", "White-label forms (coming soon)", "Priority email support", "Weekly strategy call"].map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm text-gray-700">
-                    <Check className="h-5 w-5 text-[#b5944b] flex-shrink-0 mt-0.5" />{f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup?plan=team" className="block w-full rounded-full bg-gradient-to-r from-[#b5944b] to-[#d4af37] py-4 text-sm font-semibold text-white hover:opacity-90 transition-all shadow-md text-center">
-                Start 14-day free trial
-              </Link>
-              <p className="text-xs text-gray-400 text-center mt-3">No credit card required · Cancel anytime</p>
-            </div> */}
-          </div>
-          {/* <div className="mt-10 text-center text-sm text-gray-600">
-            Need enterprise features, custom domain, or API access?{" "}
-            <Link href="mailto:sales@leadvett.com" className="text-[#b5944b] font-semibold hover:underline">
-              Contact us for Enterprise pricing →
-            </Link>
-          </div> */}
+<section id="pricing" className="py-14 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white" aria-label="Pricing">
+  <div className="container mx-auto max-w-5xl">
+    <div className="text-center mb-10 sm:mb-14">
+      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
+        <Sparkles className="h-4 w-4" />
+        Professional Plan
+      </div>
+      <h2 className="text-2xl sm:text-4xl md:text-5xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>
+        Simple, Honest Pricing
+      </h2>
+      <p className="text-gray-600 sm:text-lg">One plan. Everything included. Cancel anytime.</p>
+    </div>
+
+    {/* Single Pricing Card - Centered */}
+    <div className="max-w-xl mx-auto">
+      <div className="bg-white rounded-3xl p-8 sm:p-10 border-2 border-gray-900 shadow-2xl relative">
+        {/* Limited Time Offer Badge */}
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#b5944b] to-[#d4af37] text-white px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap">
+          🔥 LIMITED TIME OFFER
         </div>
-      </section>
+
+        <div className="text-center mb-8 mt-2">
+          <h3 className="text-3xl text-gray-900 mb-2" style={{ ...heading, fontWeight: 700 }}>
+            LeadVett Pro
+          </h3>
+          <div className="flex items-baseline justify-center gap-2 mb-4">
+            <span className="text-6xl text-gray-900" style={{ ...heading, fontWeight: 900 }}>$49</span>
+            <div className="text-left">
+              <div className="text-lg text-gray-600">/month</div>
+              <div className="text-sm text-green-600 font-semibold">14-day free trial</div>
+            </div>
+          </div>
+          <p className="text-gray-600">
+            Everything you need to qualify leads like a pro
+          </p>
+        </div>
+
+        <ul className="space-y-4 mb-8">
+          {[
+            'Unlimited lead analysis',
+            'Gold/Silver/Bronze AI badges',
+            'One-click DM scripts',
+            'Rule engine transparency',
+            'Confidence scoring (0-100%)',
+            'Hard reject automation',
+            'ManyChat integration',
+            'Mobile-friendly forms',
+            'Export to CSV',
+            'Lead status management',
+            'Email support'
+          ].map((feature, i) => (
+            <li key={i} className="flex items-start gap-3">
+              <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+              <span className="text-gray-700 text-base">{feature}</span>
+            </li>
+          ))}
+        </ul>
+
+        <Link 
+          href="/signup" 
+          className="block w-full rounded-full bg-gray-900 px-8 py-4 text-lg font-semibold text-white hover:bg-gray-800 transition-all shadow-lg text-center"
+        >
+          Start 14-Day Free Trial
+        </Link>
+
+        <div className="mt-6 space-y-3 text-center text-sm text-gray-600">
+          <p className="flex items-center justify-center gap-2">
+            <Check className="h-4 w-4 text-green-600" />
+            No credit card required for trial
+          </p>
+          <p className="flex items-center justify-center gap-2">
+            <Check className="h-4 w-4 text-green-600" />
+            Cancel anytime with one click
+          </p>
+          <p className="flex items-center justify-center gap-2">
+            <Check className="h-4 w-4 text-green-600" />
+            One avoided call = Year paid
+          </p>
+        </div>
+      </div>
+
+      {/* Money Back Guarantee */}
+      <div className="mt-8 text-center">
+        <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-50 border-2 border-blue-200">
+          <Shield className="h-5 w-5 text-blue-600" />
+          <span className="text-sm font-medium text-blue-900">
+            30-Day Money-Back Guarantee
+          </span>
+        </div>
+      </div>
+
+      {/* Enterprise Note
+      <div className="mt-10 text-center text-sm text-gray-600">
+        Need team seats or custom features?{" "}
+        <Link href="mailto:sales@leadvett.com" className="text-[#b5944b] font-semibold hover:underline">
+          Contact us for Enterprise pricing →
+        </Link>
+      </div> */}
+    </div>
+  </div>
+</section>
 
       {/* ── FAQ ── */}
       <section className="py-12 sm:py-20 px-4 sm:px-6 bg-white" aria-label="FAQ">
