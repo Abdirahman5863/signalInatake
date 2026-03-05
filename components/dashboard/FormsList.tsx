@@ -63,24 +63,32 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
 
   return (
     <div className="space-y-4">
+      {/* Header with Create Button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h2 className="text-xl sm:text-2xl font-bold">Your Forms</h2>
+        <div>
+          <p className="text-sm text-gray-600">
+            {forms.length} {forms.length === 1 ? 'form' : 'forms'} total
+          </p>
+        </div>
         <Link
           href="/dashboard/forms/new"
           className="flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
-          Create Form
+          Create New Form
         </Link>
       </div>
       
+      {/* Forms Grid */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {forms.map((form) => (
           <div
             key={form.id}
             className="rounded-lg border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
           >
-            <h3 className="font-semibold mb-2 text-base sm:text-lg truncate">{form.form_name}</h3>
+            <h3 className="font-semibold mb-2 text-base sm:text-lg truncate" title={form.form_name}>
+              {form.form_name}
+            </h3>
             <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
               Created {new Date(form.created_at).toLocaleDateString()}
             </p>
@@ -88,7 +96,7 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
             {/* Form Link Display */}
             <div className="bg-muted rounded-md p-2 sm:p-3 mb-3">
               <p className="text-xs text-muted-foreground mb-1">Form Link:</p>
-              <p className="text-xs font-mono truncate">
+              <p className="text-xs font-mono truncate" title={`${window.location.origin}/intake/${form.share_link}`}>
                 {typeof window !== 'undefined' 
                   ? `${window.location.origin}/intake/${form.share_link}`
                   : `intake/${form.share_link}`

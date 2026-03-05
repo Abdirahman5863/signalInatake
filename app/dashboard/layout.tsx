@@ -58,7 +58,7 @@ export default async function DashboardLayout({
     Leads
   </Link>
               <Link
-                href="/dashboard/forms/new"
+                href="/dashboard/forms"
                 className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
               >
                 <FileText className="h-4 w-4" />
@@ -99,7 +99,7 @@ export default async function DashboardLayout({
     Leads
   </Link>
             <Link
-              href="/dashboard/forms/new"
+              href="/dashboard/forms"
               className="flex items-center gap-2 text-xs font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap"
             >
               <FileText className="h-4 w-4" />
