@@ -237,14 +237,14 @@ export default function Home() {
                 <p className="text-lg font-semibold text-gray-700 mb-1" style={heading}>30-Second Product Demo</p>
                 <p className="text-sm text-gray-500 mb-4">See how LeadVett qualifies leads in real-time</p>
                 
-                <div style={{ position: "relative", paddingBottom: "44.0625%", height: 0 }}>
+               
                   <iframe 
                     src="https://www.loom.com/embed/d1c3e91584f3475692de1bf5ae7395cc" 
                     frameBorder="0" 
                     allowFullScreen 
                     style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} 
                   />
-                </div>
+                
               </div>
             </div>
           </div>
