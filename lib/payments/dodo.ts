@@ -6,5 +6,5 @@ export const dodo = new DodoPayments({
 })
 
 export const PRODUCT_IDS = {
-  Leadvett: 'pdt_0NZkpgUmhmLcmW5OyhARe',
+  Leadvett: 'pdt_0NZpe3zMYotwcunYyTL2H',
 }
