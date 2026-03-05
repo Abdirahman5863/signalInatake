@@ -236,7 +236,7 @@ export default function Home() {
                 </div>
                 <p className="text-lg font-semibold text-gray-700 mb-1" style={heading}>30-Second Product Demo</p>
                 <p className="text-sm text-gray-500 mb-4">See how LeadVett qualifies leads in real-time</p>
-                {/* Replace with: <iframe src="https://www.loom.com/embed/YOUR_ID" className="w-full aspect-video" allowFullScreen /> */}
+                <iframe src="https://www.loom.com/share/d1c3e91584f3475692de1bf5ae7395cc" className="w-full aspect-video" allowFullScreen />
                 <span className="inline-flex items-center gap-2 rounded-full bg-[#b5944b] px-6 py-2.5 text-sm font-semibold text-white">
                   <Play className="h-3.5 w-3.5" /> Add your Loom video here
                 </span>
