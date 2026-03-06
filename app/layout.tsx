@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   applicationName: "LeadVett",
   category: "business",
   verification: {
-    google: "YOUR_GOOGLE_VERIFICATION_TOKEN",
+    google: "Ia63zDkjCvHnQgctf78q8vaKQOyBPttO2GIb8BwAFKA",
   },
 }
 
