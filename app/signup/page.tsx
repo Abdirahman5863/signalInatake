@@ -9,10 +9,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Check, Zap, Shield, Users } from 'lucide-react'
 import leadicon from '../public/images/leadicon.png'
 
-export const metadata = {
-  title: "Start Free Trial — LeadVett",
-  description: "Start your 3-day free trial. No credit card required. Qualify DM leads in 10 seconds.",
-}
+
 
 function SignUpForm() {
   const router = useRouter()

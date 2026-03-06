@@ -9,11 +9,6 @@ import { supabase } from '@/lib/supabase/client'
 import { Zap, Shield, BarChart3, Clock } from 'lucide-react'
 import leadicon from '../public/images/leadicon.png'
 
-// Separate component that uses useSearchParams
-export const metadata = {
-  title: "Sign In — LeadVett", 
-  description: "Sign in to your LeadVett account and start qualifying leads automatically.",
-}
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
