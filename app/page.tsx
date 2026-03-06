@@ -348,7 +348,7 @@ export default function Home() {
     {[
       { val: "15", unit: "hrs/week", label: "Time saved" },
       { val: "$49", unit: "/mo", label: "Simple pricing" },
-      { val: "14", unit: "days", label: "Free trial" },
+      { val: "3", unit: "days", label: "Free trial" },
     ].map((s) => (
       <div key={s.label}>
         <div className="text-3xl sm:text-5xl text-[#d4af37]" style={{ ...heading, fontWeight: 900 }}>
