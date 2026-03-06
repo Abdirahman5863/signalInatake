@@ -1,19 +1,16 @@
-import { FormsList } from '@/components/dashboard/FormsList'
-import { RecentLeads } from '@/components/dashboard/RecentLeads'
-import { EmptyState } from '@/components/dashboard/EmptyState'
 import { createClient } from '@/lib/supabase/server'
-import { Clock, AlertCircle, Crown } from 'lucide-react'
+import { FormsList } from '@/components/dashboard/FormsList'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
-const TRIAL_DAYS = 3
-
-export default async function DashboardPage() {
+export default async function FormsPage() {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) return null
+  if (!user) {
+    redirect('/login')
+  }
 
   const { data: forms } = await supabase
     .from('intake_forms')
@@ -21,125 +18,75 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  const hasForms = forms && forms.length > 0
-  
-  const { data: subscription } = await supabase
-    .from('subscriptions')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
-
-  const { data: recentLeads } = await supabase
-    .from('lead_responses')
-    .select(`
-      *,
-      intake_forms!inner (
-        id,
-        form_name,
-        user_id
-      )
-    `)
-    .eq('intake_forms.user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(10)
-
-  // Calculate trial status
-  const hasActiveSubscription = subscription?.status === 'active'
-  const signupDate = new Date(user.created_at)
-  const now = new Date()
-  const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
-  const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
-  const inTrial = trialDaysLeft > 0
-  const trialExpired = trialDaysLeft === 0 && !hasActiveSubscription
-  const trialEndsAt = new Date(signupDate.getTime() + (TRIAL_DAYS * 24 * 60 * 60 * 1000))
-
   return (
-    <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
-      {/* Google Analytics */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
-      <script dangerouslySetInnerHTML={{__html: `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){window.dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-C6QJQ6KGNJ');
-      `}}></script>
-
+    <div className="space-y-6 px-4 sm:px-0">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-        <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
-          Manage your intake forms and view qualified leads
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <Link
+              href="/dashboard"
+              className="text-sm text-gray-600 hover:text-gray-900 flex items-center gap-1"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Dashboard
+            </Link>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Your Forms</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            Manage all your intake forms in one place
+          </p>
+        </div>
       </div>
 
-      {/* SINGLE STATUS BANNER */}
-      {hasActiveSubscription ? (
-        // Active Subscription
-        <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4 sm:p-6">
-          <div className="flex items-start gap-3">
-            <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-green-900 text-sm sm:text-base mb-1">
-                LeadVett Pro - Active ✓
-              </h3>
-              <p className="text-xs sm:text-sm text-green-700">
-                Your next billing date is {new Date(subscription.current_period_end).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-        </div>
-      ) : inTrial ? (
-        // Trial Active
-        <div className="rounded-lg border-2 border-orange-200 bg-orange-50 p-4 sm:p-6">
-          <div className="flex items-start gap-3">
-            <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-orange-900 text-sm sm:text-base mb-1">
-                {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left in your trial
-              </h3>
-              <p className="text-xs sm:text-sm text-orange-700 mb-3">
-                Your trial ends on {trialEndsAt.toLocaleDateString()}. Subscribe now to keep your forms and leads.
-              </p>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-2 rounded-md bg-orange-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-orange-700 transition-colors"
+      {/* Forms List or Empty State */}
+      {!forms || forms.length === 0 ? (
+        <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center bg-gray-50">
+          <div className="max-w-md mx-auto">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-8 h-8 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                Subscribe Now - $49/month
-              </Link>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
             </div>
-          </div>
-        </div>
-      ) : trialExpired ? (
-        // Trial Expired
-        <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 sm:p-6">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-red-900 text-sm sm:text-base mb-1">
-                Trial Expired - Subscribe to Continue
-              </h3>
-              <p className="text-xs sm:text-sm text-red-700 mb-3">
-                Your 3-day trial has ended. Subscribe now to unlock unlimited lead analysis and AI-powered qualification.
-              </p>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              No forms yet
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Create your first intake form to start collecting and qualifying leads.
+            </p>
+            <Link
+              href="/dashboard/forms/new"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                View Plans
-              </Link>
-            </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Create Your First Form
+            </Link>
           </div>
         </div>
-      ) : null}
-
-      {/* Forms Section */}
-      {!hasForms ? <EmptyState /> : <FormsList forms={forms} />}
-
-      {/* Recent Leads */}
-      {hasForms && recentLeads && recentLeads.length > 0 && (
-        <div className="mt-6 sm:mt-8">
-          <RecentLeads leads={recentLeads} />
-        </div>
+      ) : (
+        <FormsList forms={forms} />
       )}
     </div>
   )

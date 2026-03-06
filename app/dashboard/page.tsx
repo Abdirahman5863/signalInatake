@@ -2,10 +2,10 @@ import { FormsList } from '@/components/dashboard/FormsList'
 import { RecentLeads } from '@/components/dashboard/RecentLeads'
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { createClient } from '@/lib/supabase/server'
-import { SubscriptionStatus } from '@/components/dashboard/SubscriptionStatus'
-import { checkSubscriptionAccess } from '@/lib/subscription/access'
-import { redirect } from 'next/navigation'
+import { Clock, AlertCircle, Crown } from 'lucide-react'
 import Link from 'next/link'
+
+const TRIAL_DAYS = 3
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -14,13 +14,6 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser()
 
   if (!user) return null
-
-  // Check subscription access
-  const access = await checkSubscriptionAccess()
-
-  // Show trial/subscription status banner
-  const showTrialBanner = access.reason === 'trial' && access.trialDaysLeft <= 3
-  const showExpiredBanner = !access.hasAccess
 
   const { data: forms } = await supabase
     .from('intake_forms')
@@ -50,6 +43,16 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
     .limit(10)
 
+  // Calculate trial status
+  const hasActiveSubscription = subscription?.status === 'active'
+  const signupDate = new Date(user.created_at)
+  const now = new Date()
+  const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
+  const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
+  const inTrial = trialDaysLeft > 0
+  const trialExpired = trialDaysLeft === 0 && !hasActiveSubscription
+  const trialEndsAt = new Date(signupDate.getTime() + (TRIAL_DAYS * 24 * 60 * 60 * 1000))
+
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
       {/* Google Analytics */}
@@ -61,18 +64,41 @@ export default async function DashboardPage() {
         gtag('config', 'G-C6QJQ6KGNJ');
       `}}></script>
 
-      {/* Trial Warning Banner */}
-      {showTrialBanner && (
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
+          Manage your intake forms and view qualified leads
+        </p>
+      </div>
+
+      {/* SINGLE STATUS BANNER */}
+      {hasActiveSubscription ? (
+        // Active Subscription
+        <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4 sm:p-6">
+          <div className="flex items-start gap-3">
+            <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-green-900 text-sm sm:text-base mb-1">
+                LeadVett Pro - Active ✓
+              </h3>
+              <p className="text-xs sm:text-sm text-green-700">
+                Your next billing date is {new Date(subscription.current_period_end).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : inTrial ? (
+        // Trial Active
         <div className="rounded-lg border-2 border-orange-200 bg-orange-50 p-4 sm:p-6">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">⏰</span>
+            <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <h3 className="font-semibold text-orange-900 text-sm sm:text-base mb-1">
-                {access.trialDaysLeft} {access.trialDaysLeft === 1 ? 'day' : 'days'} left in your trial
+                {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left in your trial
               </h3>
               <p className="text-xs sm:text-sm text-orange-700 mb-3">
-                Your trial ends on {new Date(access.trialEndsAt!).toLocaleDateString()}. 
-                Subscribe now to keep your forms and leads.
+                Your trial ends on {trialEndsAt.toLocaleDateString()}. Subscribe now to keep your forms and leads.
               </p>
               <Link
                 href="/pricing"
@@ -83,41 +109,28 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Expired Banner */}
-      {showExpiredBanner && (
+      ) : trialExpired ? (
+        // Trial Expired
         <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 sm:p-6">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">🔒</span>
+            <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <h3 className="font-semibold text-red-900 text-sm sm:text-base mb-1">
-                Your trial has expired
+                Trial Expired - Subscribe to Continue
               </h3>
               <p className="text-xs sm:text-sm text-red-700 mb-3">
-                Subscribe to continue using LeadVett and access your forms.
+                Your 3-day trial has ended. Subscribe now to unlock unlimited lead analysis and AI-powered qualification.
               </p>
               <Link
                 href="/pricing"
                 className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-red-700 transition-colors"
               >
-                Subscribe Now
+                View Plans
               </Link>
             </div>
           </div>
         </div>
-      )}
-
-      <div className="space-y-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
-            Manage your intake forms and view qualified leads
-          </p>
-        </div>
-        
-        <SubscriptionStatus subscription={subscription} />
-      </div>
+      ) : null}
 
       {/* Forms Section */}
       {!hasForms ? <EmptyState /> : <FormsList forms={forms} />}
