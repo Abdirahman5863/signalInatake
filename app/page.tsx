@@ -233,7 +233,7 @@ export default function Home() {
     </div>
 
     <p className="text-xs sm:text-sm text-gray-500">
-      14-day trial · No credit card · One avoided call = Year paid
+      3-day trial · No credit card · One avoided call = Year paid
     </p>
 
     {/* LOOM VIDEO - Embedded */}
@@ -391,7 +391,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── PRICING ── */}
+{/* ── PRICING ── */}
 <section id="pricing" className="py-14 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white" aria-label="Pricing">
   <div className="container mx-auto max-w-5xl">
     <div className="text-center mb-10 sm:mb-14">
@@ -402,7 +402,7 @@ export default function Home() {
       <h2 className="text-2xl sm:text-4xl md:text-5xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>
         Simple, Honest Pricing
       </h2>
-      <p className="text-gray-600 sm:text-lg">One plan. Everything included. Cancel anytime.</p>
+      <p className="text-gray-600 sm:text-lg">One plan. Everything included. 3-day free trial.</p>
     </div>
 
     {/* Single Pricing Card - Centered */}
@@ -421,7 +421,7 @@ export default function Home() {
             <span className="text-6xl text-gray-900" style={{ ...heading, fontWeight: 900 }}>$49</span>
             <div className="text-left">
               <div className="text-lg text-gray-600">/month</div>
-              <div className="text-sm text-green-600 font-semibold">14-day free trial</div>
+              <div className="text-sm text-green-600 font-semibold">3-day free trial</div>
             </div>
           </div>
           <p className="text-gray-600">
@@ -454,17 +454,17 @@ export default function Home() {
           href="/signup" 
           className="block w-full rounded-full bg-gray-900 px-8 py-4 text-lg font-semibold text-white hover:bg-gray-800 transition-all shadow-lg text-center"
         >
-          Start 14-Day Free Trial
+          Start 3-Day Free Trial
         </Link>
 
         <div className="mt-6 space-y-3 text-center text-sm text-gray-600">
           <p className="flex items-center justify-center gap-2">
             <Check className="h-4 w-4 text-green-600" />
-            No credit card required for trial
+            No credit card required
           </p>
           <p className="flex items-center justify-center gap-2">
             <Check className="h-4 w-4 text-green-600" />
-            Cancel anytime with one click
+            Full access for 3 days
           </p>
           <p className="flex items-center justify-center gap-2">
             <Check className="h-4 w-4 text-green-600" />
@@ -478,18 +478,10 @@ export default function Home() {
         <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-50 border-2 border-blue-200">
           <Shield className="h-5 w-5 text-blue-600" />
           <span className="text-sm font-medium text-blue-900">
-            30-Day Money-Back Guarantee
+            Cancel Anytime - Keep Access Until Period Ends
           </span>
         </div>
       </div>
-
-      {/* Enterprise Note
-      <div className="mt-10 text-center text-sm text-gray-600">
-        Need team seats or custom features?{" "}
-        <Link href="mailto:sales@leadvett.com" className="text-[#b5944b] font-semibold hover:underline">
-          Contact us for Enterprise pricing →
-        </Link>
-      </div> */}
     </div>
   </div>
 </section>
@@ -513,12 +505,12 @@ export default function Home() {
               DMs that won't close
             </span>
           </h2>
-          <p className="text-base sm:text-xl text-gray-400 mb-8">127 agencies already saving 15+ hours per week</p>
+          <p className="text-base sm:text-xl text-gray-400 mb-8">Agencies already saving 15+ hours per week</p>
           <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#b5944b] px-8 py-4 text-base sm:text-lg font-semibold text-white hover:bg-[#9a7a3d] transition-all shadow-xl hover:shadow-2xl hover:scale-[1.02]">
-            Start Your Free 14-Day Trial
+            Start Your Free 3-Day Trial
             <ArrowRight className="h-5 w-5" aria-hidden="true" />
           </Link>
-          <p className="text-sm text-gray-500 mt-4">14 days free · No card · Cancel anytime</p>
+          <p className="text-sm text-gray-500 mt-4">3-days free · No card · Cancel anytime</p>
         </div>
       </section>
 

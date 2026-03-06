@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase/client'
 import { ArrowLeft, Check, Loader2, AlertCircle, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
+const TRIAL_DAYS = 3
+
 export function PricingPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -13,9 +15,14 @@ export function PricingPageContent() {
   const [loading, setLoading] = useState(true)
   const [subscribing, setSubscribing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [trialStatus, setTrialStatus] = useState<{
+    inTrial: boolean
+    daysLeft: number
+    expired: boolean
+  }>({ inTrial: false, daysLeft: 0, expired: false })
 
   useEffect(() => {
-    async function loadSubscription() {
+    async function loadData() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
 
@@ -24,21 +31,36 @@ export function PricingPageContent() {
           return
         }
 
-        const { data } = await supabase
+        // Get subscription
+        const { data: subData } = await supabase
           .from('subscriptions')
           .select('plan, status')
           .eq('user_id', user.id)
           .single()
 
-        setSubscription(data)
+        setSubscription(subData)
+
+        // Check trial status if no active subscription
+        if (!subData || subData.status !== 'active') {
+          const signupDate = new Date(user.created_at)
+          const now = new Date()
+          const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
+          const daysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
+          
+          setTrialStatus({
+            inTrial: daysLeft > 0,
+            daysLeft,
+            expired: daysLeft === 0
+          })
+        }
       } catch (error) {
-        console.error('Error loading subscription:', error)
+        console.error('Error loading data:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    loadSubscription()
+    loadData()
   }, [router])
 
   const handleSubscribe = async () => {
@@ -81,6 +103,14 @@ export function PricingPageContent() {
 
   const paymentStatus = searchParams.get('payment')
   const hasActiveSubscription = subscription?.status === 'active'
+
+  // Dynamic button text
+  const getButtonText = () => {
+    if (subscribing) return 'Processing...'
+    if (trialStatus.inTrial) return `Start ${trialStatus.daysLeft}-Day Free Trial`
+    if (trialStatus.expired) return 'Subscribe Now - $49/month'
+    return 'Start 3-Day Free Trial'
+  }
 
   if (loading) {
     return (
@@ -151,6 +181,40 @@ export function PricingPageContent() {
           </div>
         )}
 
+        {/* Trial Expired Warning */}
+        {trialStatus.expired && !hasActiveSubscription && (
+          <div className="mb-8 rounded-lg bg-orange-50 border-2 border-orange-200 p-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-6 w-6 text-orange-600" />
+              <div>
+                <h3 className="font-bold text-orange-900 mb-1">
+                  Your 3-Day Trial Has Ended
+                </h3>
+                <p className="text-sm text-orange-700">
+                  Subscribe to LeadVett Pro to continue qualifying leads and accessing all features.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Trial Active Info */}
+        {trialStatus.inTrial && !hasActiveSubscription && (
+          <div className="mb-8 rounded-lg bg-blue-50 border-2 border-blue-200 p-6">
+            <div className="flex items-start gap-3">
+              <Sparkles className="h-6 w-6 text-blue-600" />
+              <div>
+                <h3 className="font-bold text-blue-900 mb-1">
+                  {trialStatus.daysLeft} {trialStatus.daysLeft === 1 ? 'Day' : 'Days'} Left in Trial
+                </h3>
+                <p className="text-sm text-blue-700">
+                  Enjoy full access to LeadVett Pro. No credit card required.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
             <Sparkles className="h-4 w-4" />
@@ -160,7 +224,7 @@ export function PricingPageContent() {
             Simple, Honest Pricing
           </h1>
           <p className="text-xl text-gray-600">
-            One plan. Everything included. Cancel anytime.
+            One plan. Everything included. {trialStatus.inTrial ? `${trialStatus.daysLeft}-day free trial.` : 'Cancel anytime.'}
           </p>
         </div>
 
@@ -179,7 +243,16 @@ export function PricingPageContent() {
                 <span className="text-6xl font-bold text-gray-900">$49</span>
                 <div className="text-left">
                   <div className="text-lg text-gray-600">/month</div>
-                  <div className="text-sm text-green-600 font-semibold">14-day free trial</div>
+                  {trialStatus.inTrial && (
+                    <div className="text-sm text-green-600 font-semibold">
+                      {trialStatus.daysLeft} days free
+                    </div>
+                  )}
+                  {trialStatus.expired && (
+                    <div className="text-sm text-orange-600 font-semibold">
+                      Trial ended
+                    </div>
+                  )}
                 </div>
               </div>
               <p className="text-gray-600">
@@ -228,7 +301,11 @@ export function PricingPageContent() {
               <button
                 onClick={handleSubscribe}
                 disabled={subscribing}
-                className="w-full rounded-full bg-gray-900 px-8 py-4 text-lg font-semibold text-white hover:bg-gray-800 transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                className={`w-full rounded-full px-8 py-4 text-lg font-semibold text-white transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 ${
+                  trialStatus.expired 
+                    ? 'bg-orange-600 hover:bg-orange-700' 
+                    : 'bg-gray-900 hover:bg-gray-800'
+                }`}
               >
                 {subscribing ? (
                   <>
@@ -236,21 +313,28 @@ export function PricingPageContent() {
                     Processing...
                   </>
                 ) : (
-                  <>
-                    Start 14-Day Free Trial
-                  </>
+                  getButtonText()
                 )}
               </button>
             )}
 
             <div className="mt-6 space-y-3 text-center text-sm text-gray-600">
+              {trialStatus.inTrial && (
+                <p className="flex items-center justify-center gap-2">
+                  <Check className="h-4 w-4 text-green-600" />
+                  No credit card required for trial
+                </p>
+              )}
+              
+              {trialStatus.expired && (
+                <p className="flex items-center justify-center gap-2 text-orange-700">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                  Trial ended - Subscribe to continue
+                </p>
+              )}
               <p className="flex items-center justify-center gap-2">
                 <Check className="h-4 w-4 text-green-600" />
-                No credit card required for trial
-              </p>
-              <p className="flex items-center justify-center gap-2">
-                <Check className="h-4 w-4 text-green-600" />
-                Cancel anytime with one click
+                Cancel anytime
               </p>
               <p className="flex items-center justify-center gap-2">
                 <Check className="h-4 w-4 text-green-600" />
@@ -258,37 +342,8 @@ export function PricingPageContent() {
               </p>
             </div>
           </div>
-
-          {/* Money Back Guarantee */}
-          <div className="mt-8 text-center">
-            <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-50 border-2 border-blue-200">
-              <Shield className="h-5 w-5 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">
-                30-Day Money-Back Guarantee
-              </span>
-            </div>
-          </div>
         </div>
       </div>
     </div>
-  )
-}
-
-function Shield(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
   )
 }
