@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 // Dodo Payments configuration
-const DODO_BASE_URL = process.env.DODO_MODE === 'live' 
-  ? 'https://live.dodopayments.com'
-  : 'https://test.dodopayments.com'
+const DODO_BASE_URL = 'https://live.dodopayments.com'
+
 
 const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY
 const USE_MOCK_PAYMENTS = !DODO_API_KEY || process.env.USE_MOCK_PAYMENTS === 'true'
