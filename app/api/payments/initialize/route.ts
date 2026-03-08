@@ -1,93 +1,121 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { analyzeLead } from '@/lib/ai/analyze'
-import { FormQuestion } from '@/lib/forms'
 import { createClient } from '@/lib/supabase/server'
-import { checkSubscriptionExpiration } from '@/lib/subscription/check-expiration'
-
-const TRIAL_DAYS = 3
 
 export async function POST(request: NextRequest) {
   try {
-    // Get authenticated user
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check subscription expiration
-    const subscriptionCheck = await checkSubscriptionExpiration(user.id)
-
-    // If has active subscription, allow access
-    if (subscriptionCheck.hasAccess && subscriptionCheck.reason === 'active_subscription') {
-      console.log('✅ Access granted: Active subscription')
-    } else {
-      // Check trial period
-      const signupDate = new Date(user.created_at)
-      const now = new Date()
-      const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
-      const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
-
-      if (trialDaysLeft === 0) {
-        console.log('❌ Access denied: Trial/subscription expired')
-        
-        let errorMessage = 'Your 3-day trial has expired. Subscribe to continue using LeadVett.'
-        
-        if (subscriptionCheck.reason === 'subscription_expired') {
-          errorMessage = 'Your subscription has expired. Renew to continue analyzing leads.'
-        }
-        
-        return NextResponse.json(
-          { 
-            error: errorMessage,
-            requiresSubscription: true,
-            subscriptionExpired: subscriptionCheck.reason === 'subscription_expired',
-            trialExpired: trialDaysLeft === 0,
-            redirectTo: '/pricing'
-          },
-          { status: 403 }
-        )
-      }
-
-      console.log(`⏰ User in trial: ${trialDaysLeft} days left`)
-    }
+    console.log('💳 Payment initialization for user:', user.email)
 
     const body = await request.json()
-    const { answers, questions } = body
+    const { plan } = body
 
-    if (!answers || !questions) {
-      return NextResponse.json(
-        { error: 'Missing answers or questions' },
-        { status: 400 }
-      )
+    if (!plan || plan !== 'pro') {
+      return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
     }
 
-    console.log('🤖 LeadVett AI analyzing with', questions.length, 'custom questions...')
+    // Check if user already has an ACTIVE subscription
+    const { data: existingSubscription } = await supabase
+      .from('subscriptions')
+      .select('status, current_period_end')
+      .eq('user_id', user.id)
+      .single()
 
-    const analysis = await analyzeLead(
-      answers as Record<string, string>,
-      questions as FormQuestion[]
-    )
+    // Only block if subscription is already active AND not expired
+    if (existingSubscription?.status === 'active') {
+      const periodEnd = new Date(existingSubscription.current_period_end)
+      const now = new Date()
+      
+      if (now < periodEnd) {
+        console.log('⚠️ User already has active subscription')
+        return NextResponse.json(
+          { error: 'You already have an active subscription' },
+          { status: 400 }
+        )
+      }
+    }
 
-    console.log('✅ Analysis complete:', {
-      badge: analysis.badge,
-      confidence: `${analysis.confidenceScore}%`,
-      rules: analysis.ruleBreakdown.length
-    })
+    // ALLOW TRIAL USERS TO SUBSCRIBE
+    // Trial users don't have active subscriptions, so they can proceed
 
-    return NextResponse.json({ 
-      success: true, 
-      analysis 
-    })
+    const reference = `leadvett_${user.id}_${Date.now()}`
+
+    // Create transaction record
+    const { error: txError } = await supabase
+      .from('payment_transactions')
+      .insert({
+        user_id: user.id,
+        amount: 4900, // $49.00 in cents
+        currency: 'USD',
+        status: 'pending',
+        dodo_reference: reference,
+        metadata: {
+          plan: 'pro',
+          user_email: user.email
+        }
+      })
+
+    if (txError) {
+      console.error('❌ Transaction creation error:', txError)
+      throw new Error('Failed to create payment transaction')
+    }
+
+    console.log('✅ Transaction created with reference:', reference)
+
+    // MOCK PAYMENT FOR NOW - Replace with real Dodo API call
+    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback?reference=${reference}&status=success`
     
+    console.log('🔷 Mock payment - redirecting to callback')
+
+    return NextResponse.json({
+      success: true,
+      authorization_url: callbackUrl,
+      reference
+    })
+
+    /* REAL DODO PAYMENTS INTEGRATION - Uncomment when you have API keys
+    
+    const response = await fetch('https://api.dodopayments.com/v1/payments/initialize', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.DODO_SECRET_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: 4900,
+        currency: 'USD',
+        reference: reference,
+        customer_email: user.email,
+        callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback`,
+        metadata: {
+          user_id: user.id,
+          plan: 'pro'
+        }
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Payment initialization failed')
+    }
+
+    return NextResponse.json({
+      success: true,
+      authorization_url: data.authorization_url,
+      reference: data.reference
+    })
+    */
+
   } catch (error: any) {
-    console.error('❌ LeadVett AI Error:', error)
+    console.error('❌ Payment initialization error:', error)
     return NextResponse.json(
-      { error: error.message || 'Analysis failed' },
+      { error: error.message || 'Payment initialization failed' },
       { status: 500 }
     )
   }

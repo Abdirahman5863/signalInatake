@@ -34,7 +34,7 @@ export function PricingPageContent() {
         // Get subscription
         const { data: subData } = await supabase
           .from('subscriptions')
-          .select('plan, status')
+          .select('plan, status, current_period_end')
           .eq('user_id', user.id)
           .single()
 
@@ -52,6 +52,15 @@ export function PricingPageContent() {
             daysLeft,
             expired: daysLeft === 0
           })
+        } else {
+          // Has active subscription - check if it's expired
+          const periodEnd = new Date(subData.current_period_end)
+          const now = new Date()
+          
+          if (now > periodEnd) {
+            // Subscription expired
+            setTrialStatus({ inTrial: false, daysLeft: 0, expired: true })
+          }
         }
       } catch (error) {
         console.error('Error loading data:', error)
@@ -104,12 +113,23 @@ export function PricingPageContent() {
   const paymentStatus = searchParams.get('payment')
   const hasActiveSubscription = subscription?.status === 'active'
 
+  // Check if subscription is expired
+  const subscriptionExpired = subscription?.status === 'active' && 
+    new Date(subscription.current_period_end) < new Date()
+
   // Dynamic button text
   const getButtonText = () => {
     if (subscribing) return 'Processing...'
-    if (trialStatus.inTrial) return `Start ${trialStatus.daysLeft}-Day Free Trial`
+    if (subscriptionExpired) return 'Renew Subscription - $49/month'
+    if (trialStatus.inTrial) return `Upgrade Now - Skip ${trialStatus.daysLeft} ${trialStatus.daysLeft === 1 ? 'Day' : 'Days'} Trial`
     if (trialStatus.expired) return 'Subscribe Now - $49/month'
-    return 'Start 3-Day Free Trial'
+    return 'Subscribe Now - $49/month'
+  }
+
+  const getButtonColor = () => {
+    if (trialStatus.expired || subscriptionExpired) return 'bg-orange-600 hover:bg-orange-700'
+    if (trialStatus.inTrial) return 'bg-blue-600 hover:bg-blue-700'
+    return 'bg-gray-900 hover:bg-gray-800'
   }
 
   if (loading) {
@@ -181,6 +201,23 @@ export function PricingPageContent() {
           </div>
         )}
 
+        {/* Trial Active - Can Upgrade Early */}
+        {trialStatus.inTrial && !hasActiveSubscription && (
+          <div className="mb-8 rounded-lg bg-blue-50 border-2 border-blue-200 p-6">
+            <div className="flex items-start gap-3">
+              <Sparkles className="h-6 w-6 text-blue-600" />
+              <div>
+                <h3 className="font-bold text-blue-900 mb-1">
+                  {trialStatus.daysLeft} {trialStatus.daysLeft === 1 ? 'Day' : 'Days'} Left in Trial
+                </h3>
+                <p className="text-sm text-blue-700">
+                  You can upgrade now to skip the trial and get instant access, or continue enjoying your free trial. No credit card required for trial.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Trial Expired Warning */}
         {trialStatus.expired && !hasActiveSubscription && (
           <div className="mb-8 rounded-lg bg-orange-50 border-2 border-orange-200 p-6">
@@ -198,17 +235,17 @@ export function PricingPageContent() {
           </div>
         )}
 
-        {/* Trial Active Info */}
-        {trialStatus.inTrial && !hasActiveSubscription && (
-          <div className="mb-8 rounded-lg bg-blue-50 border-2 border-blue-200 p-6">
+        {/* Subscription Expired */}
+        {subscriptionExpired && (
+          <div className="mb-8 rounded-lg bg-orange-50 border-2 border-orange-200 p-6">
             <div className="flex items-start gap-3">
-              <Sparkles className="h-6 w-6 text-blue-600" />
+              <AlertCircle className="h-6 w-6 text-orange-600" />
               <div>
-                <h3 className="font-bold text-blue-900 mb-1">
-                  {trialStatus.daysLeft} {trialStatus.daysLeft === 1 ? 'Day' : 'Days'} Left in Trial
+                <h3 className="font-bold text-orange-900 mb-1">
+                  Subscription Expired
                 </h3>
-                <p className="text-sm text-blue-700">
-                  Enjoy full access to LeadVett Pro. No credit card required.
+                <p className="text-sm text-orange-700">
+                  Your monthly subscription has ended. Renew now to continue using LeadVett Pro.
                 </p>
               </div>
             </div>
@@ -224,7 +261,9 @@ export function PricingPageContent() {
             Simple, Honest Pricing
           </h1>
           <p className="text-xl text-gray-600">
-            One plan. Everything included. {trialStatus.inTrial ? `${trialStatus.daysLeft}-day free trial.` : 'Cancel anytime.'}
+            One plan. Everything included. 
+            {trialStatus.inTrial && ` ${trialStatus.daysLeft}-day trial available.`}
+            {!trialStatus.inTrial && !hasActiveSubscription && ' Cancel anytime.'}
           </p>
         </div>
 
@@ -244,13 +283,18 @@ export function PricingPageContent() {
                 <div className="text-left">
                   <div className="text-lg text-gray-600">/month</div>
                   {trialStatus.inTrial && (
-                    <div className="text-sm text-green-600 font-semibold">
-                      {trialStatus.daysLeft} days free
+                    <div className="text-sm text-blue-600 font-semibold">
+                      {trialStatus.daysLeft} days trial left
                     </div>
                   )}
                   {trialStatus.expired && (
                     <div className="text-sm text-orange-600 font-semibold">
                       Trial ended
+                    </div>
+                  )}
+                  {subscriptionExpired && (
+                    <div className="text-sm text-orange-600 font-semibold">
+                      Subscription expired
                     </div>
                   )}
                 </div>
@@ -281,7 +325,7 @@ export function PricingPageContent() {
               ))}
             </ul>
 
-            {hasActiveSubscription ? (
+            {hasActiveSubscription && !subscriptionExpired ? (
               <div className="space-y-4">
                 <button
                   disabled
@@ -301,11 +345,7 @@ export function PricingPageContent() {
               <button
                 onClick={handleSubscribe}
                 disabled={subscribing}
-                className={`w-full rounded-full px-8 py-4 text-lg font-semibold text-white transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 ${
-                  trialStatus.expired 
-                    ? 'bg-orange-600 hover:bg-orange-700' 
-                    : 'bg-gray-900 hover:bg-gray-800'
-                }`}
+                className={`w-full rounded-full px-8 py-4 text-lg font-semibold text-white transition-all shadow-lg disabled:opacity-50 flex items-center justify-center gap-2 ${getButtonColor()}`}
               >
                 {subscribing ? (
                   <>
@@ -322,20 +362,15 @@ export function PricingPageContent() {
               {trialStatus.inTrial && (
                 <p className="flex items-center justify-center gap-2">
                   <Check className="h-4 w-4 text-green-600" />
-                  No credit card required for trial
+                  Upgrade early or continue free trial
                 </p>
               )}
-              
-              {trialStatus.expired && (
-                <p className="flex items-center justify-center gap-2 text-orange-700">
-                  <AlertCircle className="h-4 w-4 text-orange-600" />
-                  Trial ended - Subscribe to continue
+              {!hasActiveSubscription && (
+                <p className="flex items-center justify-center gap-2">
+                  <Check className="h-4 w-4 text-green-600" />
+                  {trialStatus.inTrial ? 'No credit card required for trial' : 'Cancel anytime'}
                 </p>
               )}
-              <p className="flex items-center justify-center gap-2">
-                <Check className="h-4 w-4 text-green-600" />
-                Cancel anytime
-              </p>
               <p className="flex items-center justify-center gap-2">
                 <Check className="h-4 w-4 text-green-600" />
                 One avoided call = Year paid
