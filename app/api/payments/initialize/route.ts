@@ -29,8 +29,7 @@ export async function POST(request: NextRequest) {
 
     if (existingSubscription?.status === 'active') {
       const periodEnd = new Date(existingSubscription.current_period_end)
-      const now = new Date()
-      if (now < periodEnd) {
+      if (new Date() < periodEnd) {
         return NextResponse.json(
           { error: 'You already have an active subscription' },
           { status: 400 }
@@ -49,10 +48,7 @@ export async function POST(request: NextRequest) {
         currency: 'USD',
         status: 'pending',
         dodo_reference: reference,
-        metadata: {
-          plan: 'pro',
-          user_email: user.email
-        }
+        metadata: { plan: 'pro', user_email: user.email }
       })
 
     if (txError) {
@@ -65,15 +61,17 @@ export async function POST(request: NextRequest) {
     // ── Create checkout session via Dodo SDK ──────────────────────
     try {
       const checkout = await dodo.checkoutSessions.create({
-        product_id: PRODUCT_IDS.Leadvett,
-        quantity: 1,
+        product_cart: [
+          {
+            product_id: PRODUCT_IDS.Leadvett,
+            quantity: 1,
+          }
+        ],
         customer: {
           email: user.email!,
           name: user.user_metadata?.full_name ?? user.email!,
         },
-        payment_link: false,
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback?reference=${reference}&status=success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?payment=cancelled`,
+        return_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback?reference=${reference}&status=success`,
         metadata: {
           user_id: user.id,
           plan: 'pro',
@@ -83,11 +81,11 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ Dodo checkout session created:', checkout)
 
-      // Save session ID to transaction
+      // Save session ID to the transaction
       await supabase
         .from('payment_transactions')
         .update({
-          dodo_transaction_id: (checkout as any).id ?? (checkout as any).checkout_session_id,
+          dodo_transaction_id: checkout.session_id,
           metadata: {
             plan: 'pro',
             user_email: user.email,
@@ -96,11 +94,7 @@ export async function POST(request: NextRequest) {
         })
         .eq('dodo_reference', reference)
 
-      // Extract checkout URL from response
-      const checkoutUrl =
-        (checkout as any).url ??
-        (checkout as any).checkout_url ??
-        (checkout as any).payment_url
+      const checkoutUrl = checkout.checkout_url
 
       if (!checkoutUrl) {
         console.error('❌ No checkout URL in Dodo response:', checkout)
@@ -111,13 +105,12 @@ export async function POST(request: NextRequest) {
         success: true,
         authorization_url: checkoutUrl,
         reference,
-        session_id: (checkout as any).id,
+        session_id: checkout.session_id,
       })
 
     } catch (dodoError: any) {
       console.error('❌ Dodo SDK error:', dodoError)
 
-      // Mark transaction as failed
       await supabase
         .from('payment_transactions')
         .update({
@@ -127,10 +120,7 @@ export async function POST(request: NextRequest) {
         .eq('dodo_reference', reference)
 
       return NextResponse.json(
-        {
-          error: 'Failed to initialize payment.',
-          details: dodoError.message,
-        },
+        { error: 'Failed to initialize payment.', details: dodoError.message },
         { status: 500 }
       )
     }
