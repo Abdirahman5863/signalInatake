@@ -1,59 +1,93 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { analyzeLead } from '@/lib/ai/analyze'
+import { FormQuestion } from '@/lib/forms'
 import { createClient } from '@/lib/supabase/server'
-import { dodo, PRODUCT_IDS } from '@/lib/payments/dodo'
+import { checkSubscriptionExpiration } from '@/lib/subscription/check-expiration'
+
+const TRIAL_DAYS = 3
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔷 Payment initialization started')
-
+    // Get authenticated user
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
-    console.log('✅ User authenticated:', user.email)
+    // Check subscription expiration
+    const subscriptionCheck = await checkSubscriptionExpiration(user.id)
 
-    const reference = `LEADVETT_${Date.now()}_${user.id.substring(0, 8)}`
-    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback?reference=${reference}`
+    // If has active subscription, allow access
+    if (subscriptionCheck.hasAccess && subscriptionCheck.reason === 'active_subscription') {
+      console.log('✅ Access granted: Active subscription')
+    } else {
+      // Check trial period
+      const signupDate = new Date(user.created_at)
+      const now = new Date()
+      const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
+      const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
 
-    // Store pending transaction
-    const { error: insertError } = await supabase.from('payment_transactions').insert({
-      user_id: user.id,
-      amount: 4900,
-      currency: 'USD',
-      status: 'pending',
-      dodo_reference: reference,
-      metadata: { plan: 'pro', plan_name: 'LeadvettPro' },
-    })
+      if (trialDaysLeft === 0) {
+        console.log('❌ Access denied: Trial/subscription expired')
+        
+        let errorMessage = 'Your 3-day trial has expired. Subscribe to continue using LeadVett.'
+        
+        if (subscriptionCheck.reason === 'subscription_expired') {
+          errorMessage = 'Your subscription has expired. Renew to continue analyzing leads.'
+        }
+        
+        return NextResponse.json(
+          { 
+            error: errorMessage,
+            requiresSubscription: true,
+            subscriptionExpired: subscriptionCheck.reason === 'subscription_expired',
+            trialExpired: trialDaysLeft === 0,
+            redirectTo: '/pricing'
+          },
+          { status: 403 }
+        )
+      }
 
-    if (insertError) {
-      console.error('❌ Transaction insert error:', insertError)
-      throw insertError
+      console.log(`⏰ User in trial: ${trialDaysLeft} days left`)
     }
 
-    console.log('✅ Transaction stored')
+    const body = await request.json()
+    const { answers, questions } = body
 
-    // Create checkout session
-    const session = await dodo.checkoutSessions.create({
-      product_cart: [{ product_id: PRODUCT_IDS.Leadvett, quantity: 1 }],
-      customer: {  name: user.user_metadata?.full_name || 'Customer',email: user.email! },
-      return_url: callbackUrl,
+    if (!answers || !questions) {
+      return NextResponse.json(
+        { error: 'Missing answers or questions' },
+        { status: 400 }
+      )
+    }
+
+    console.log('🤖 LeadVett AI analyzing with', questions.length, 'custom questions...')
+
+    const analysis = await analyzeLead(
+      answers as Record<string, string>,
+      questions as FormQuestion[]
+    )
+
+    console.log('✅ Analysis complete:', {
+      badge: analysis.badge,
+      confidence: `${analysis.confidenceScore}%`,
+      rules: analysis.ruleBreakdown.length
     })
 
-    console.log('✅ Checkout session created:', session)
-
-    return NextResponse.json({
-      success: true,
-      authorization_url: session.checkout_url,
-      reference,
+    return NextResponse.json({ 
+      success: true, 
+      analysis 
     })
-
+    
   } catch (error: any) {
-    console.error('❌ Payment initialization error:', error)
+    console.error('❌ LeadVett AI Error:', error)
     return NextResponse.json(
-      { error: error.message || 'Failed to initialize payment' },
+      { error: error.message || 'Analysis failed' },
       { status: 500 }
     )
   }

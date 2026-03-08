@@ -2,18 +2,28 @@ import { FormsList } from '@/components/dashboard/FormsList'
 import { RecentLeads } from '@/components/dashboard/RecentLeads'
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { createClient } from '@/lib/supabase/server'
-import { Clock, AlertCircle, Crown } from 'lucide-react'
+import { checkSubscriptionExpiration } from '@/lib/subscription/check-expiration'
+import { Clock, AlertCircle, Crown, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 
 const TRIAL_DAYS = 3
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { 
+  searchParams: { payment?: string; reason?: string } 
+}) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) return null
+
+  // Get payment status from URL
+  const paymentStatus = searchParams?.payment
+  const failureReason = searchParams?.reason
+
+  // Check subscription expiration
+  const subscriptionCheck = await checkSubscriptionExpiration(user.id)
 
   const { data: forms } = await supabase
     .from('intake_forms')
@@ -22,12 +32,6 @@ export default async function DashboardPage() {
     .order('created_at', { ascending: false })
 
   const hasForms = forms && forms.length > 0
-  
-  const { data: subscription } = await supabase
-    .from('subscriptions')
-    .select('*')
-    .eq('user_id', user.id)
-    .single()
 
   const { data: recentLeads } = await supabase
     .from('lead_responses')
@@ -44,13 +48,15 @@ export default async function DashboardPage() {
     .limit(10)
 
   // Calculate trial status
-  const hasActiveSubscription = subscription?.status === 'active'
+  const hasActiveSubscription = subscriptionCheck.hasAccess && subscriptionCheck.reason === 'active_subscription'
+  const subscriptionExpired = subscriptionCheck.reason === 'subscription_expired'
+  
   const signupDate = new Date(user.created_at)
   const now = new Date()
   const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
   const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
-  const inTrial = trialDaysLeft > 0
-  const trialExpired = trialDaysLeft === 0 && !hasActiveSubscription
+  const inTrial = trialDaysLeft > 0 && !hasActiveSubscription
+  const trialExpired = trialDaysLeft === 0 && !hasActiveSubscription && !subscriptionExpired
   const trialEndsAt = new Date(signupDate.getTime() + (TRIAL_DAYS * 24 * 60 * 60 * 1000))
 
   return (
@@ -72,9 +78,72 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* SINGLE STATUS BANNER */}
-      {hasActiveSubscription ? (
-        // Active Subscription
+      {/* Payment Success Banner */}
+      {paymentStatus === 'success' && (
+        <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4 sm:p-6">
+          <div className="flex items-start gap-3">
+            <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+            <div>
+              <h3 className="font-bold text-green-900 text-sm sm:text-base mb-1">
+                🎉 Payment Successful!
+              </h3>
+              <p className="text-xs sm:text-sm text-green-700">
+                Welcome to LeadVett Pro! Your subscription is now active for 30 days.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Failed Banner */}
+      {paymentStatus === 'failed' && (
+        <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 sm:p-6">
+          <div className="flex items-start gap-3">
+            <XCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-bold text-red-900 text-sm sm:text-base mb-1">
+                Payment Failed
+              </h3>
+              <p className="text-xs sm:text-sm text-red-700 mb-3">
+                Your payment could not be processed. This could be due to insufficient funds, card declined, or network issues.
+              </p>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+              >
+                Try Again
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Expired Banner - PRIORITY */}
+      {subscriptionExpired && (
+        <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 sm:p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-900 text-sm sm:text-base mb-1">
+                Subscription Expired - Renew to Continue
+              </h3>
+              <p className="text-xs sm:text-sm text-red-700 mb-3">
+                Your monthly subscription ended on {subscriptionCheck.expiredDate ? new Date(subscriptionCheck.expiredDate).toLocaleDateString() : 'recently'}. 
+                Renew now to continue using LeadVett Pro.
+              </p>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+              >
+                Renew Subscription - $49/month
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active Subscription with Expiry Warning */}
+      {hasActiveSubscription && (
         <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4 sm:p-6">
           <div className="flex items-start gap-3">
             <Crown className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 flex-shrink-0 mt-0.5" />
@@ -83,13 +152,20 @@ export default async function DashboardPage() {
                 LeadVett Pro - Active ✓
               </h3>
               <p className="text-xs sm:text-sm text-green-700">
-                Your next billing date is {new Date(subscription.current_period_end).toLocaleDateString()}
+                Your subscription renews on {subscriptionCheck.subscription ? new Date(subscriptionCheck.subscription.current_period_end).toLocaleDateString() : 'N/A'}
+                {subscriptionCheck.daysUntilExpiry && subscriptionCheck.daysUntilExpiry <= 7 && (
+                  <span className="block mt-1 text-orange-700 font-semibold">
+                    ⚠️ {subscriptionCheck.daysUntilExpiry} {subscriptionCheck.daysUntilExpiry === 1 ? 'day' : 'days'} until renewal required
+                  </span>
+                )}
               </p>
             </div>
           </div>
         </div>
-      ) : inTrial ? (
-        // Trial Active
+      )}
+
+      {/* Trial Active */}
+      {inTrial && (
         <div className="rounded-lg border-2 border-orange-200 bg-orange-50 p-4 sm:p-6">
           <div className="flex items-start gap-3">
             <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600 flex-shrink-0 mt-0.5" />
@@ -109,8 +185,10 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
-      ) : trialExpired ? (
-        // Trial Expired
+      )}
+
+      {/* Trial Expired */}
+      {trialExpired && (
         <div className="rounded-lg border-2 border-red-200 bg-red-50 p-4 sm:p-6">
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 flex-shrink-0 mt-0.5" />
@@ -125,12 +203,12 @@ export default async function DashboardPage() {
                 href="/pricing"
                 className="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-red-700 transition-colors"
               >
-                View Plans
+                Subscribe Now - $49/month
               </Link>
             </div>
           </div>
         </div>
-      ) : null}
+      )}
 
       {/* Forms Section */}
       {!hasForms ? <EmptyState /> : <FormsList forms={forms} />}
