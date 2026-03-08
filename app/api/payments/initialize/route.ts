@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       currency: 'USD',
       status: 'pending',
       dodo_reference: reference,
-      metadata: { plan: 'solo', plan_name: 'Solo Agency' },
+      metadata: { plan: 'pro', plan_name: 'LeadvettPro' },
     })
 
     if (insertError) {
