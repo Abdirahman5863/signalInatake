@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
           amount: 4900, // Amount in cents ($49.00)
           currency: 'USD',
           customer_email: user.email,
-          customer_name: user.user_metadata?.full_name || user.email.split('@')[0],
+          customer_name: user.user_metadata?.full_name,
           success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback?reference=${reference}&status=success`,
           cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?payment=cancelled`,
           metadata: {
