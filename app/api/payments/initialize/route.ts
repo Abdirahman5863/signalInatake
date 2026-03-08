@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     // ============================================
     
     // Check if Dodo API keys are configured
-    if (!process.env.DODO_SECRET_KEY || !process.env.NEXT_PUBLIC_DODO_PUBLIC_KEY) {
+    if (!process.env.DODO_PAYMENTS_API_KEY || !process.env.NEXT_PUBLIC_DODO_PUBLIC_KEY) {
       console.error('❌ Dodo Payments API keys not configured')
       return NextResponse.json(
         { 
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       const dodoResponse = await fetch('https://api.dodopayments.com/v1/payments/initialize', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.DODO_SECRET_KEY}`,
+          'Authorization': `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
