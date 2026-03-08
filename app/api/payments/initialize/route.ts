@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+// Dodo Payments configuration
+const DODO_BASE_URL = process.env.DODO_MODE === 'live' 
+  ? 'https://live.dodopayments.com'
+  : 'https://test.dodopayments.com'
+
+const DODO_API_KEY = process.env.DODO_PAYMENTS_API_KEY
+const USE_MOCK_PAYMENTS = !DODO_API_KEY || process.env.USE_MOCK_PAYMENTS === 'true'
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -26,7 +34,6 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single()
 
-    // Only block if subscription is already active AND not expired
     if (existingSubscription?.status === 'active') {
       const periodEnd = new Date(existingSubscription.current_period_end)
       const now = new Date()
@@ -47,7 +54,7 @@ export async function POST(request: NextRequest) {
       .from('payment_transactions')
       .insert({
         user_id: user.id,
-        amount: 4900, // $49.00 in cents
+        amount: 4900,
         currency: 'USD',
         status: 'pending',
         dodo_reference: reference,
@@ -65,73 +72,141 @@ export async function POST(request: NextRequest) {
     console.log('✅ Transaction created with reference:', reference)
 
     // ============================================
+    // MOCK PAYMENT MODE (for testing)
+    // ============================================
+    if (USE_MOCK_PAYMENTS) {
+      console.log('⚠️ Using MOCK payment mode')
+      console.log('Set DODO_PAYMENTS_API_KEY to use real payments')
+      
+      const mockCallbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback?reference=${reference}&status=success&mock=true`
+      
+      return NextResponse.json({
+        success: true,
+        authorization_url: mockCallbackUrl,
+        reference,
+        mock: true
+      })
+    }
+
+    // ============================================
     // REAL DODO PAYMENTS INTEGRATION
     // ============================================
     
-    // Check if Dodo API keys are configured
-    if (!process.env.DODO_PAYMENTS_API_KEY || !process.env.NEXT_PUBLIC_DODO_PUBLIC_KEY) {
-      console.error('❌ Dodo Payments API keys not configured')
-      return NextResponse.json(
-        { 
-          error: 'Payment system not configured. Please contact support.',
-          details: 'Missing Dodo Payments API keys in environment variables'
-        },
-        { status: 500 }
-      )
-    }
-
     try {
-      // Call Dodo Payments API
-      const dodoResponse = await fetch('https://api.dodopayments.com/v1/payments/initialize', {
+      const dodoEndpoint = `${DODO_BASE_URL}/checkout-sessions`
+      console.log('🔷 Calling Dodo Payments:', dodoEndpoint)
+
+      const dodoResponse = await fetch(dodoEndpoint, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${process.env.DODO_PAYMENTS_API_KEY}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${DODO_API_KEY}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
-          amount: 4900, // $49.00 in cents
+          payment_link: false, // Use checkout session, not payment link
+          amount: 4900, // Amount in cents ($49.00)
           currency: 'USD',
-          reference: reference,
           customer_email: user.email,
-          callback_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback`,
+          customer_name: user.user_metadata?.full_name || user.email.split('@')[0],
+          success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/payments/callback?reference=${reference}&status=success`,
+          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?payment=cancelled`,
           metadata: {
             user_id: user.id,
             plan: 'pro',
-            user_email: user.email
+            reference: reference
           }
-        })
+        }),
+        signal: AbortSignal.timeout(15000) // 15 second timeout
       })
 
-      const dodoData = await dodoResponse.json()
+      const responseText = await dodoResponse.text()
+      console.log('Dodo response status:', dodoResponse.status)
+      console.log('Dodo response body:', responseText)
 
       if (!dodoResponse.ok) {
-        console.error('❌ Dodo API error:', dodoData)
-        throw new Error(dodoData.message || 'Payment initialization failed')
+        let errorData
+        try {
+          errorData = JSON.parse(responseText)
+        } catch {
+          errorData = { message: responseText }
+        }
+        
+        console.error('❌ Dodo API error:', {
+          status: dodoResponse.status,
+          data: errorData
+        })
+        
+        throw new Error(errorData.message || errorData.error || `Dodo API returned ${dodoResponse.status}`)
       }
 
-      console.log('✅ Dodo payment initialized:', dodoData.reference)
+      const dodoData = JSON.parse(responseText)
+      console.log('✅ Dodo payment initialized:', dodoData)
+
+      // Update transaction with Dodo checkout session ID
+      await supabase
+        .from('payment_transactions')
+        .update({ 
+          dodo_transaction_id: dodoData.id || dodoData.checkout_session_id,
+          metadata: {
+            plan: 'pro',
+            user_email: user.email,
+            dodo_session: dodoData
+          }
+        })
+        .eq('dodo_reference', reference)
 
       return NextResponse.json({
         success: true,
-        authorization_url: dodoData.authorization_url || dodoData.payment_url,
-        reference: dodoData.reference || reference
+        authorization_url: dodoData.url || dodoData.checkout_url || dodoData.payment_url,
+        reference: reference,
+        session_id: dodoData.id
       })
 
     } catch (dodoError: any) {
-      console.error('❌ Dodo Payments error:', dodoError)
+      console.error('❌ Dodo Payments error:', {
+        message: dodoError.message,
+        code: dodoError.code,
+        cause: dodoError.cause?.message
+      })
       
       // Update transaction as failed
       await supabase
         .from('payment_transactions')
         .update({ 
           status: 'failed',
-          metadata: { error: dodoError.message }
+          metadata: { 
+            error: dodoError.message,
+            error_code: dodoError.code 
+          }
         })
         .eq('dodo_reference', reference)
 
+      // Network error
+      if (dodoError.code === 'ENOTFOUND' || dodoError.code === 'ECONNREFUSED') {
+        return NextResponse.json(
+          { 
+            error: 'Payment service temporarily unavailable.',
+            suggestion: 'Please try again in a few minutes or contact support@leadvett.com'
+          },
+          { status: 503 }
+        )
+      }
+
+      // Timeout error
+      if (dodoError.name === 'TimeoutError') {
+        return NextResponse.json(
+          { 
+            error: 'Payment request timed out.',
+            suggestion: 'Please check your internet connection and try again.'
+          },
+          { status: 504 }
+        )
+      }
+
       return NextResponse.json(
         { 
-          error: 'Failed to initialize payment. Please try again.',
+          error: 'Failed to initialize payment.',
           details: dodoError.message
         },
         { status: 500 }
