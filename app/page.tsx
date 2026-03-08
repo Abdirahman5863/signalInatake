@@ -5,132 +5,40 @@ import Image from "next/image"
 import Script from "next/script"
 import { useState } from "react"
 import {
-  ArrowRight, Check, Copy, AlertCircle, CheckCircle2,
-  Sparkles, Clock, DollarSign, Zap, MessageSquare,
-  Shield, XCircle, ChevronDown, Star, Play,
+  ArrowRight, Check, Sparkles, Clock, Zap, 
+  Shield, ChevronDown, Star, Target, TrendingUp,
+  MessageSquare, Calendar, Users, BarChart3
 } from "lucide-react"
 import leadicon from "./public/images/leadicon.png"
 
-// ─── Font helper — apply Outfit to all headings ───────────────────────────────
 const heading = { fontFamily: "var(--font-outfit), sans-serif" }
 
-// ─── Live Demo ────────────────────────────────────────────────────────────────
-function LiveDemo() {
-  const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState<Record<number, string>>({})
-  const [result, setResult] = useState<null | "gold" | "silver" | "bronze" | "disqualified">(null)
-  const [copied, setCopied] = useState(false)
-
-  const questions = [
-    { label: "What's your monthly budget for this service?", options: ["Under $500", "$500–$2,000", "$2,000–$5,000", "$5,000+"] },
-    { label: "How soon do you need to start?", options: ["Just browsing", "1–3 months", "Within a month", "ASAP / this week"] },
-    { label: "Who makes the final decision?", options: ["Me alone", "Me + partner", "Team vote", "Waiting on investor"] },
-    { label: "Have you worked with an agency before?", options: ["No, first time", "Yes, good experience", "Yes, had problems", "Multiple agencies"] },
-    { label: "How did you hear about us?", options: ["Instagram DM", "Referral", "Google / Search", "ManyChat"] },
-  ]
-
-  const scripts: Record<string, string> = {
-    gold: `Hey! Thanks for filling this out — I can already see you're a great fit. I have a slot open this week. Can we jump on a 20-minute strategy call? Here's my calendar: [link]`,
-    silver: `Thanks for reaching out! Based on your answers, I'd love to learn more. A quick call would help me understand your goals. When works for you this week?`,
-    bronze: `Thanks for your interest! Right now my availability is limited to projects at a higher investment level. I'll keep your details and reach out when I have something that fits your budget.`,
-    disqualified: `Hi! Thanks for reaching out. Unfortunately our minimum engagement starts at $2,000/month. We wouldn't be the right fit at this stage, but here are some resources that might help: [link]`,
-  }
-
-  const badge = {
-    gold: { emoji: "🔥", label: "GOLD", color: "text-yellow-600 bg-yellow-50 border-yellow-300" },
-    silver: { emoji: "⚡", label: "SILVER", color: "text-gray-600 bg-gray-100 border-gray-300" },
-    bronze: { emoji: "🥉", label: "BRONZE", color: "text-orange-700 bg-orange-50 border-orange-300" },
-    disqualified: { emoji: "⛔", label: "DISQUALIFIED", color: "text-red-700 bg-red-50 border-red-300" },
-  }
-
-  if (result) {
-    const b = badge[result]
-    const script = scripts[result]
-    return (
-      <div className="max-w-xl mx-auto space-y-5">
-        <div className={`rounded-2xl border-2 p-6 ${b.color}`}>
-          <div className="flex items-center gap-3 mb-3">
-            <span className="text-3xl">{b.emoji}</span>
-            <span className="text-xl tracking-wide" style={{ ...heading, fontWeight: 800 }}>{b.label}</span>
-          </div>
-          <p className="text-sm font-medium opacity-80">
-            {result === "gold" && "Strong budget, clear authority, immediate need. Book a call within 2 hours."}
-            {result === "silver" && "Good potential but some friction. Nurture before closing."}
-            {result === "bronze" && "Low urgency or budget concerns. Low priority — respond when convenient."}
-            {result === "disqualified" && "Budget below minimum threshold. Auto-archived. Zero time wasted."}
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-[#b5944b]" />
-            <span className="font-semibold text-gray-900 text-sm">One-Click Closer Script</span>
-          </div>
-          <p className="text-gray-700 text-sm leading-relaxed bg-gray-50 rounded-xl p-4 mb-4">{script}</p>
-          <button
-            onClick={() => { navigator.clipboard.writeText(script); setCopied(true); setTimeout(() => setCopied(false), 2000) }}
-            className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 transition-all"
-          >
-            {copied ? <><CheckCircle2 className="h-4 w-4 text-green-400" /> Copied!</> : <><Copy className="h-4 w-4" /> Copy Script</>}
-          </button>
-        </div>
-        <div className="text-center pt-2">
-          <button onClick={() => { setStep(0); setAnswers({}); setResult(null) }} className="text-sm text-gray-500 underline hover:text-gray-800 transition-colors mr-6">
-            Try Again
-          </button>
-          <Link href="/signup" className="inline-flex items-center gap-2 rounded-full bg-[#b5944b] px-6 py-3 text-sm font-semibold text-white hover:bg-[#9a7a3d] transition-all">
-            Set Up Your Real Forms <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  const q = questions[step]
-  return (
-    <div className="max-w-xl mx-auto">
-      <div className="flex gap-1.5 mb-6">
-        {questions.map((_, i) => (
-          <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i <= step ? "bg-[#b5944b]" : "bg-gray-200"}`} />
-        ))}
-      </div>
-      <p className="text-xs text-gray-400 mb-4 font-medium">Question {step + 1} of {questions.length}</p>
-      <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-5" style={heading}>{q.label}</h3>
-      <div className="space-y-3">
-        {q.options.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => {
-              const next = { ...answers, [step]: opt }
-              setAnswers(next)
-              if (step < questions.length - 1) {
-                setStep(step + 1)
-              } else {
-                const budget = next[0]; const timeline = next[1]; const decision = next[2]
-                if (budget === "Under $500") { setResult("disqualified"); return }
-                if (budget === "$5,000+" && (timeline === "ASAP / this week" || timeline === "Within a month") && decision === "Me alone") { setResult("gold"); return }
-                if (budget === "$2,000–$5,000" || budget === "$5,000+") { setResult(timeline === "Just browsing" ? "silver" : "gold"); return }
-                if (budget === "$500–$2,000") { setResult("silver"); return }
-                setResult("bronze")
-              }
-            }}
-            className={`w-full text-left px-5 py-4 rounded-xl border-2 text-sm font-medium transition-all hover:border-[#b5944b] hover:bg-[#fdf8ee] ${answers[step] === opt ? "border-[#b5944b] bg-[#fdf8ee]" : "border-gray-200 bg-white"}`}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ─── FAQ ──────────────────────────────────────────────────────────────────────
+// FAQ Component
 const faqs = [
-  { q: "How accurate is the AI analysis?", a: "LeadVett uses GPT-4 combined with our proprietary rule engine. In testing with 500+ real agency leads, it matched or exceeded human qualification accuracy 94% of the time." },
-  { q: "Can I customize the qualification rules?", a: "Yes. You can set custom budget thresholds, add your own questions, and adjust scoring weights. The Agency Team plan includes full custom rule engine training." },
-  { q: "Does it integrate with ManyChat?", a: "Absolutely. Paste your LeadVett form link into ManyChat's auto-reply and you're live in under 2 minutes — no developer needed." },
-  { q: "What if I don't like it?", a: "Cancel anytime during your 14-day trial. No questions asked. No credit card required to start." },
-  { q: "How is this different from a Google Form?", a: "Google Forms collect data. LeadVett analyzes, scores, prioritizes, and gives you the exact next step with a pre-written closing script. It's the difference between raw data and actionable intelligence." },
-  { q: "Does it work for non-Instagram businesses?", a: "Yes. While it's optimized for IG DM agencies, any business receiving inbound enquiries via DM, email, or link-in-bio can use LeadVett to qualify leads instantly." },
+  { 
+    q: "How is this different from a regular form?", 
+    a: "Regular forms collect data. LeadVett analyzes every answer, scores buying intent (0-100%), assigns a priority badge, and tells you exactly when to reach out. It's the difference between raw data and a clinical verdict." 
+  },
+  { 
+    q: "Can I customize the questions?", 
+    a: "Absolutely. You control every question. LeadVett's AI adapts to YOUR questions - whether you ask about budget, timeline, pain points, or anything else. You're not locked into templates." 
+  },
+  { 
+    q: "What if I get too many Gold leads?", 
+    a: "That's why we show numerical scores. A Gold 89% is different from Gold 76%. You can prioritize the strongest signals first and queue the rest. You'll never miss a hot lead again." 
+  },
+  { 
+    q: "Does it integrate with my tools?", 
+    a: "Yes. Share your LeadVett link in ManyChat, Instagram bio, email auto-responders, or anywhere you currently share a Calendly link. Works with any DM automation tool." 
+  },
+  { 
+    q: "How accurate is the AI?", 
+    a: "LeadVett uses GPT-4 + a rule engine that analyzes budget, urgency, authority, and pain signals. In testing with 500+ real leads, it matched or beat human qualification 94% of the time." 
+  },
+  { 
+    q: "What's the 3-day trial?", 
+    a: "Full access to everything. Create unlimited forms, analyze unlimited leads, see the whole system. No credit card required. Cancel anytime if it's not saving you time." 
+  },
 ]
 
 function FAQ() {
@@ -142,7 +50,6 @@ function FAQ() {
           <button
             className="w-full flex items-center justify-between px-6 py-5 text-left font-semibold text-gray-900 text-sm sm:text-base"
             onClick={() => setOpen(open === i ? null : i)}
-            aria-expanded={open === i}
             style={heading}
           >
             {faq.q}
@@ -159,12 +66,9 @@ function FAQ() {
   )
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
-
-      {/* Google Analytics — loaded via next/script for performance */}
       <Script src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ" strategy="afterInteractive" />
       <Script id="gtag-init" strategy="afterInteractive" dangerouslySetInnerHTML={{__html: `
         window.dataLayer = window.dataLayer || [];
@@ -173,17 +77,17 @@ export default function Home() {
         gtag('config', 'G-C6QJQ6KGNJ');
       `}} />
 
-      {/* ── NAV ── */}
+      {/* NAV */}
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md border-b border-gray-200 z-50">
         <div className="container mx-auto flex h-14 sm:h-16 items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-1.5" aria-label="LeadVett home">
-            <Image src={leadicon} alt="LeadVett logo" width={45} height={38} className="object-contain sm:w-[52px] sm:h-[44px]" priority />
+          <Link href="/" className="flex items-center gap-1.5">
+            <Image src={leadicon} alt="LeadVett" width={45} height={38} className="object-contain sm:w-[52px] sm:h-[44px]" priority />
             <span className="text-lg sm:text-2xl tracking-tight text-gray-900" style={{ ...heading, fontWeight: 800 }}>
               Lead<span className="text-[#b5944b]">Vett</span>
             </span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-5">
-            <Link href="#demo" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">Try Demo</Link>
+            <Link href="#how-it-works" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">How it Works</Link>
             <Link href="#pricing" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">Pricing</Link>
             <Link href="/login" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Sign in</Link>
             <Link href="/signup" className="rounded-full bg-gray-900 px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-semibold text-white hover:bg-gray-800 transition-all shadow-sm">
@@ -193,188 +97,411 @@ export default function Home() {
         </div>
       </nav>
 
-     {/* ── HERO ── */}
-<section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6" aria-label="Hero">
-  <div className="container mx-auto max-w-6xl text-center space-y-6 sm:space-y-8">
-    <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-green-50 border border-green-200">
-      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" aria-hidden="true" />
-      <span className="text-xs sm:text-sm font-medium text-green-700">
-        <strong>127 agencies</strong> saved 1,905 hrs this month
-      </span>
-    </div>
-
-    <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-gray-900 leading-[1.05] font-black">
-      Stop wasting<br />
-      <span className="bg-gradient-to-r from-[#b5944b] to-[#d4af37] bg-clip-text text-transparent">
-        15 hours a week
-      </span><br />
-      on bad DMs
-    </h1>
-
-    <p className="text-base sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-      LeadVett AI gives you the clinical verdict on every lead in <strong>10 seconds</strong> — so you close Golds fast and never waste time on tire-kickers again.
-    </p>
-
-    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-2">
-      <Link 
-        href="/signup" 
-        className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 rounded-full bg-gray-900 px-7 py-4 text-sm sm:text-base font-semibold text-white hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02]"
-      >
-        Start saving time now
-        <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-      </Link>
-      <Link 
-        href="#demo" 
-        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border-2 border-gray-300 bg-white px-7 py-4 text-sm sm:text-base font-semibold text-gray-900 hover:border-[#b5944b] transition-all"
-      >
-        <Play className="h-4 w-4" aria-hidden="true" />
-        Try Live Demo — Free
-      </Link>
-    </div>
-
-    <p className="text-xs sm:text-sm text-gray-500">
-      3-day trial · No credit card · One avoided call = Year paid
-    </p>
-
-    {/* LOOM VIDEO - Embedded */}
-    <div className="mt-10 sm:mt-14 max-w-5xl mx-auto">
-      <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-200 bg-gray-900">
-        {/* Loom Embed - Responsive */}
-        <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
-          <iframe 
-            src="https://www.loom.com/embed/d1c3e91584f3475692de1bf5ae7395cc?hide_owner=true&hide_share=true&hide_title=true&hideEmbedTopBar=true" 
-            frameBorder="0" 
-            allowFullScreen
-            className="absolute top-0 left-0 w-full h-full"
-            title="LeadVett Product Demo"
-          />
-        </div>
-      </div>
-      
-      {/* Video Caption */}
-      <p className="text-center text-sm text-gray-600 mt-4">
-        <strong>Real product walkthrough</strong> • See the actual dashboard, badges, and AI analysis
-      </p>
-    </div>
-  </div>
-</section>
-
-      {/* ── HOW IT WORKS ── */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gray-50" aria-label="How it works">
-        <div className="container mx-auto max-w-5xl">
-          <div className="text-center mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-4xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>Works With Your IG Automation</h2>
-            <p className="text-gray-600 sm:text-lg">Setup in 2 minutes. No developer needed.</p>
+      {/* HERO */}
+      <section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6">
+        <div className="container mx-auto max-w-6xl text-center space-y-6 sm:space-y-8">
+          <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-green-50 border border-green-200">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-xs sm:text-sm font-medium text-green-700">
+              Used by <strong>127+ founders</strong> who stopped wasting time on tire-kickers
+            </span>
           </div>
-          <div className="grid sm:grid-cols-3 gap-6 sm:gap-8">
-            {[
-              { step: "1", icon: <MessageSquare className="h-6 w-6 text-[#b5944b]" />, title: "Add Your LeadVett Link", body: "Paste your form link into ManyChat auto-reply or your IG bio." },
-              { step: "2", icon: <Clock className="h-6 w-6 text-[#b5944b]" />, title: "Leads Fill 60-Sec Form", body: "Mobile-friendly. 5 questions. Budget, timeline, authority. Avg: 58 seconds." },
-              { step: "3", icon: <Zap className="h-6 w-6 text-[#b5944b]" />, title: "Get Instant Gold Alert", body: "AI analyzes → Badge assigned → DM script ready. Book the call." },
-            ].map((item) => (
-              <div key={item.step} className="bg-white rounded-2xl border-2 border-gray-200 p-6 sm:p-8 shadow-sm hover:border-[#b5944b] transition-colors">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="w-8 h-8 rounded-full bg-[#b5944b] text-white text-sm font-bold flex items-center justify-center" style={heading}>{item.step}</span>
-                  {item.icon}
+
+          <h1 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl tracking-tight text-gray-900 leading-[1.05]" style={{ ...heading, fontWeight: 900 }}>
+            Decide who deserves<br />
+            a call—<span className="bg-gradient-to-r from-[#b5944b] to-[#d4af37] bg-clip-text text-transparent">before you</span><br />
+            <span className="bg-gradient-to-r from-[#b5944b] to-[#d4af37] bg-clip-text text-transparent">book one</span>
+          </h1>
+
+          <p className="text-base sm:text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            LeadVett analyzes every inquiry in <strong>10 seconds</strong>, scores their buying intent (0-100%), and tells you in plain English who's worth your time and when to reach out.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center pt-2">
+            <Link 
+              href="/signup" 
+              className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 rounded-full bg-gray-900 px-7 py-4 text-sm sm:text-base font-semibold text-white hover:bg-gray-800 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02]"
+            >
+              Start 3-day free trial
+              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <Link 
+              href="#how-it-works" 
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full border-2 border-gray-300 bg-white px-7 py-4 text-sm sm:text-base font-semibold text-gray-900 hover:border-[#b5944b] transition-all"
+            >
+              See how it works
+            </Link>
+          </div>
+
+          <p className="text-xs sm:text-sm text-gray-500">
+            3-day trial · No credit card · $49/month after
+          </p>
+
+          {/* HERO VISUAL - Lead Score Example */}
+          <div className="mt-10 sm:mt-14 max-w-4xl mx-auto">
+            <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl border-2 border-gray-200 shadow-2xl p-6 sm:p-10">
+              {/* Lead Header */}
+              <div className="flex items-start justify-between mb-8">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-1" style={heading}>Sarah Martinez</h3>
+                  <p className="text-gray-600">Instagram Growth Agency</p>
                 </div>
-                <h3 className="font-bold text-gray-900 mb-2" style={heading}>{item.title}</h3>
-                <p className="text-sm text-gray-600">{item.body}</p>
+                <button className="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors">
+                  Email Lead
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ── DECISION ENGINE ── */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-white" aria-label="Decision engine">
-        <div className="container mx-auto max-w-5xl">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-4xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>The Decision Engine</h2>
-            <p className="text-gray-600 sm:text-lg">No essays. Decisive verdicts in 10 seconds.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            <div className="rounded-2xl border-2 border-yellow-300 bg-yellow-50 p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">🔥</span>
-                <span className="text-yellow-700 text-lg" style={{ ...heading, fontWeight: 800 }}>GOLD</span>
-                <span className="ml-auto text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full font-semibold">Book in 2hrs</span>
+              {/* AI Verdict */}
+              <div className="mb-6">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">AI VERDICT</p>
+                <div className="flex items-center gap-4">
+                  <div className="inline-flex items-center gap-2 bg-green-500 text-white px-5 py-3 rounded-full font-bold text-lg">
+                    🔥 Gold
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-gray-400" />
+                  <p className="text-gray-900 font-semibold">Priority: Book call within 2 hours</p>
+                </div>
               </div>
-              <p className="text-sm text-yellow-800 font-medium mb-3">"Strong budget, clear authority, immediate need"</p>
-              <div className="space-y-1.5 text-xs text-gray-700">
-                <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />Budget: $5K+ confirmed</div>
-                <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />Timeline: Immediate (7 days)</div>
-                <div className="flex items-center gap-2"><AlertCircle className="h-4 w-4 text-yellow-500 flex-shrink-0" />Watch: Tried 3 agencies before</div>
-              </div>
-            </div>
-            <div className="rounded-2xl border-2 border-red-200 bg-red-50 p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">⛔</span>
-                <span className="text-red-700 text-lg" style={{ ...heading, fontWeight: 800 }}>AUTO REJECTED</span>
-              </div>
-              <p className="text-sm text-red-800 font-medium mb-3">"Budget below minimum threshold"</p>
-              <p className="text-xs text-red-700">$500 mentioned · Your minimum: $2,000</p>
-              <p className="text-xs text-gray-500 mt-3 italic">"This alone saves me 5 hours a week. No more guilt ignoring bad leads." — Agency Owner, Lagos</p>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ── LIVE DEMO ── */}
-      <section id="demo" className="py-14 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-amber-50 to-white" aria-label="Live demo">
-        <div className="container mx-auto max-w-3xl">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#b5944b]/10 text-[#b5944b] text-sm font-semibold mb-4">
-              <Sparkles className="h-4 w-4" />
-              Try it — no signup needed
+              {/* Status Box */}
+              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6 mb-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <Check className="h-5 w-5 text-white" />
+                  </div>
+                  <h4 className="font-bold text-green-900 text-lg" style={heading}>📋 Proposal Ready</h4>
+                </div>
+                <p className="text-green-800 text-sm">
+                  Budget confirmed, authority verified, timeline clear. Send proposal within 4 hours.
+                </p>
+              </div>
+
+              {/* Decision Confidence */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-semibold text-blue-900">Decision Confidence</p>
+                  <div className="inline-flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full font-bold">
+                    🔥 87% High
+                  </div>
+                </div>
+                <p className="text-blue-800 text-sm">
+                  Strong signals across multiple criteria. High likelihood of conversion.
+                </p>
+              </div>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl text-gray-900 mb-4" style={{ ...heading, fontWeight: 800 }}>
-              Experience LeadVett<br />in 60 Seconds
-            </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-xl mx-auto">
-              Answer 5 questions as if you were a lead. Watch our AI badge the result and generate a closing script — live.
+
+            <p className="text-center text-sm text-gray-600 mt-6">
+              <strong>Real LeadVett analysis</strong> • See exact scores, buying intent signals, and next steps
             </p>
           </div>
-          <div className="bg-white rounded-2xl shadow-xl border-2 border-gray-200 p-6 sm:p-10">
-            <LiveDemo />
-          </div>
-          <p className="text-center text-xs text-gray-400 mt-5">This is a live LeadVett AI simulation. Test data is not saved.</p>
         </div>
       </section>
 
-      {/* ── STATS ── */}
-      {/* ── STATS ── */}
-<section className="py-10 sm:py-14 px-4 sm:px-6 bg-gray-900" aria-label="Key stats">
-  <div className="container mx-auto max-w-5xl grid grid-cols-3 gap-4 sm:gap-8 text-center">
-    {[
-      { val: "15", unit: "hrs/week", label: "Time saved" },
-      { val: "$49", unit: "/mo", label: "Simple pricing" },
-      { val: "3", unit: "days", label: "Free trial" },
-    ].map((s) => (
-      <div key={s.label}>
-        <div className="text-3xl sm:text-5xl text-[#d4af37]" style={{ ...heading, fontWeight: 900 }}>
-          {s.val}<span className="text-xl sm:text-2xl">{s.unit}</span>
+      {/* THE PROBLEM */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-gray-900 text-white">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl sm:text-5xl mb-4" style={{ ...heading, fontWeight: 800 }}>
+              The Founder's Dilemma
+            </h2>
+            <p className="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto">
+              Every DM inquiry looks the same until you waste 30 minutes on a discovery call
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="text-4xl mb-4">😤</div>
+              <h3 className="text-xl font-bold mb-2" style={heading}>Time Vampires</h3>
+              <p className="text-gray-400 text-sm">
+                "Just exploring options" leads who ghost after 3 calls
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="text-4xl mb-4">💸</div>
+              <h3 className="text-xl font-bold mb-2" style={heading}>Wrong Budget</h3>
+              <p className="text-gray-400 text-sm">
+                "Can you do it for $500?" when your minimum is $5,000
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+              <div className="text-4xl mb-4">📅</div>
+              <h3 className="text-xl font-bold mb-2" style={heading}>Calendar Chaos</h3>
+              <p className="text-gray-400 text-sm">
+                Calendar filled with Bronze leads while Gold leads wait
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="text-xs sm:text-sm text-gray-400 mt-1">{s.label}</div>
-      </div>
-    ))}
-  </div>
-</section>
-      {/* ── TESTIMONIALS ── */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-white" aria-label="Testimonials">
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section id="how-it-works" className="py-14 sm:py-24 px-4 sm:px-6 bg-white">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-semibold mb-4">
+              <Sparkles className="h-4 w-4" />
+              How LeadVett Works
+            </div>
+            <h2 className="text-3xl sm:text-5xl text-gray-900 mb-4" style={{ ...heading, fontWeight: 800 }}>
+              Three Steps to Never Waste<br />Time on Bad Leads Again
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Setup takes 5 minutes. Then every inquiry gets analyzed in 10 seconds.
+            </p>
+          </div>
+
+          {/* Step 1 */}
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-[#b5944b] rounded-full flex items-center justify-center text-white font-bold text-xl">1</div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900" style={heading}>Create Your Custom Intake</h3>
+            </div>
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Build 3-7 questions specific to YOUR business. Ask about budget, urgency, authority, pain points, timeline—whatever matters for qualification.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700">Pre-built templates for agencies, consultants, SaaS, coaches</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700">Customize every question - you're not locked into our templates</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700">Setup takes 5 minutes, works forever</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-8">
+                <div className="space-y-4">
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <p className="text-sm font-semibold text-gray-900 mb-2">What's your monthly budget for this?</p>
+                    <div className="flex gap-2">
+                      <button className="px-3 py-1.5 bg-gray-100 rounded text-xs">$500-$2K</button>
+                      <button className="px-3 py-1.5 bg-gray-900 text-white rounded text-xs">$2K-$5K</button>
+                      <button className="px-3 py-1.5 bg-gray-100 rounded text-xs">$5K+</button>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <p className="text-sm font-semibold text-gray-900 mb-2">When do you need to start?</p>
+                    <div className="flex gap-2">
+                      <button className="px-3 py-1.5 bg-gray-100 rounded text-xs">ASAP</button>
+                      <button className="px-3 py-1.5 bg-gray-100 rounded text-xs">This month</button>
+                      <button className="px-3 py-1.5 bg-gray-100 rounded text-xs">Exploring</button>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-gray-200">
+                    <p className="text-sm font-semibold text-gray-900 mb-2">Who makes the final decision?</p>
+                    <input className="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Type your answer..." />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-[#b5944b] rounded-full flex items-center justify-center text-white font-bold text-xl">2</div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900" style={heading}>Leads Fill Your Form (60 Seconds)</h3>
+            </div>
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-8">
+                <div className="bg-white rounded-xl p-6 mb-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">SM</div>
+                    <div>
+                      <p className="font-semibold text-gray-900">Sarah Martinez</p>
+                      <p className="text-xs text-gray-500">Instagram Growth Agency</p>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2">
+                      <MessageSquare className="h-4 w-4 text-gray-400 mt-0.5" />
+                      <p className="text-sm text-gray-700">"We need to scale our client acquisition. Current system isn't working."</p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Target className="h-4 w-4 text-gray-400 mt-0.5" />
+                      <p className="text-sm text-gray-700">Budget: <strong>$5,000-$10,000</strong></p>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Clock className="h-4 w-4 text-gray-400 mt-0.5" />
+                      <p className="text-sm text-gray-700">Timeline: <strong>ASAP - this week</strong></p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <Clock className="h-4 w-4" />
+                  <span>Completed in 58 seconds</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Share your LeadVett link instead of your calendar. Leads answer your questions in under 60 seconds. Mobile-friendly, looks professional, no friction.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700">Share in ManyChat auto-replies, IG bio, email signatures</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700">Works with any DM automation tool</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700">Average completion time: 58 seconds</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-12 h-12 bg-[#b5944b] rounded-full flex items-center justify-center text-white font-bold text-xl">3</div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-gray-900" style={heading}>Get Instant AI Verdict + Score</h3>
+            </div>
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  LeadVett AI analyzes every answer in 10 seconds. You get a clinical verdict: Gold (87%), Silver (64%), or Bronze (42%) with exact buying intent signals.
+                </p>
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700"><strong>Numerical scores</strong> - Prioritize Gold 89% before Gold 76%</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700"><strong>Clear next steps</strong> - "Book call in 2 hours" vs "Nurture for 90 days"</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700"><strong>Signal breakdown</strong> - See exactly why they scored that way</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="space-y-4">
+                {/* Gold Example */}
+                <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🔥</span>
+                      <span className="font-bold text-green-900 text-lg" style={heading}>GOLD</span>
+                    </div>
+                    <div className="bg-green-500 text-white px-4 py-1.5 rounded-full text-sm font-bold">
+                      89% High
+                    </div>
+                  </div>
+                  <p className="text-sm text-green-800 font-semibold mb-2">→ Priority: Book call within 2 hours</p>
+                  <p className="text-xs text-green-700">
+                    Strong budget ($5K+), immediate timeline, clear authority
+                  </p>
+                </div>
+
+                {/* Silver Example */}
+                <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">⚡</span>
+                      <span className="font-bold text-gray-900 text-lg" style={heading}>SILVER</span>
+                    </div>
+                    <div className="bg-gray-500 text-white px-4 py-1.5 rounded-full text-sm font-bold">
+                      64% Medium
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-800 font-semibold mb-2">→ Send 15-min screening Loom</p>
+                  <p className="text-xs text-gray-600">
+                    Decent budget, shared decision, 1-month timeline
+                  </p>
+                </div>
+
+                {/* Bronze Example */}
+                <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">🥉</span>
+                      <span className="font-bold text-orange-900 text-lg" style={heading}>BRONZE</span>
+                    </div>
+                    <div className="bg-orange-500 text-white px-4 py-1.5 rounded-full text-sm font-bold">
+                      42% Low
+                    </div>
+                  </div>
+                  <p className="text-sm text-orange-800 font-semibold mb-2">→ Add to 90-day nurture sequence</p>
+                  <p className="text-xs text-orange-700">
+                    Lower budget, vague timeline, exploring options
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS */}
+      <section className="py-10 sm:py-14 px-4 sm:px-6 bg-gray-900">
+        <div className="container mx-auto max-w-5xl grid grid-cols-3 gap-4 sm:gap-8 text-center">
+          {[
+            { val: "15", unit: "hrs/week", label: "Time saved" },
+            { val: "$49", unit: "/mo", label: "Simple pricing" },
+            { val: "3", unit: "days", label: "Free trial" },
+          ].map((s) => (
+            <div key={s.label}>
+              <div className="text-3xl sm:text-5xl text-[#d4af37]" style={{ ...heading, fontWeight: 900 }}>
+                {s.val}<span className="text-xl sm:text-2xl">{s.unit}</span>
+              </div>
+              <div className="text-xs sm:text-sm text-gray-400 mt-1">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-10">
-            <h2 className="text-2xl sm:text-4xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>Trusted by 127+ Agencies</h2>
-            <p className="text-gray-600">Real results from real agency owners</p>
+            <h2 className="text-2xl sm:text-4xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>Trusted by 127+ Founders</h2>
+            <p className="text-gray-600">Real results from real agency owners and consultants</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { initials: "SM", gradient: "from-blue-500 to-purple-500", quote: "I closed 3 Gold leads last week while my competition was still on calls with Bronze tire-kickers. The DM scripts alone are worth $1,000/month.", name: "Sarah Martinez", role: "Instagram Growth Agency", extra: "$127K closed in 90 days" },
-              { initials: "JO", gradient: "from-green-500 to-emerald-500", quote: "LeadVett saved me 15 hours this week alone. The auto-reject feature means I never feel guilty about ignoring low-budget leads anymore.", name: "James Ochieng", role: "Social Media Agency, Nairobi", extra: "@jamesochieng" },
-              { initials: "AP", gradient: "from-orange-500 to-red-500", quote: "The confidence scores are scary accurate. I now know exactly who to follow up with first. My close rate went from 12% to 34%.", name: "Aisha Patel", role: "ManyChat Automation Expert", extra: "2,400+ IG followers" },
+              { 
+                initials: "SM", 
+                gradient: "from-blue-500 to-purple-500", 
+                quote: "I closed 3 Gold leads last week while my competition was still on calls with Bronze tire-kickers. The numerical scores changed everything - I know exactly who to call first.", 
+                name: "Sarah Martinez", 
+                role: "Instagram Growth Agency", 
+                extra: "$127K closed in 90 days" 
+              },
+              { 
+                initials: "JO", 
+                gradient: "from-green-500 to-emerald-500", 
+                quote: "LeadVett saved me 15 hours this week alone. I can finally prioritize the 89% Gold leads before the 76% ones. No more guessing who's serious.", 
+                name: "James Ochieng", 
+                role: "Social Media Agency, Nairobi", 
+                extra: "@jamesochieng" 
+              },
+              { 
+                initials: "AP", 
+                gradient: "from-orange-500 to-red-500", 
+                quote: "The confidence scores are scary accurate. I now know exactly who to follow up with first. My close rate went from 12% to 34% in one month.", 
+                name: "Aisha Patel", 
+                role: "ManyChat Automation Expert", 
+                extra: "2,400+ IG followers" 
+              },
             ].map((t) => (
               <div key={t.name} className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 sm:p-8 border-2 border-gray-200 shadow-sm hover:border-[#b5944b] transition-colors">
                 <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />)}
+                  {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />)}
                 </div>
                 <p className="text-gray-700 text-sm leading-relaxed mb-6">"{t.quote}"</p>
                 <div className="flex items-center gap-3">
@@ -391,103 +518,100 @@ export default function Home() {
         </div>
       </section>
 
-{/* ── PRICING ── */}
-<section id="pricing" className="py-14 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white" aria-label="Pricing">
-  <div className="container mx-auto max-w-5xl">
-    <div className="text-center mb-10 sm:mb-14">
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
-        <Sparkles className="h-4 w-4" />
-        Professional Plan
-      </div>
-      <h2 className="text-2xl sm:text-4xl md:text-5xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>
-        Simple, Honest Pricing
-      </h2>
-      <p className="text-gray-600 sm:text-lg">One plan. Everything included. 3-day free trial.</p>
-    </div>
+      {/* PRICING */}
+      <section id="pricing" className="py-14 sm:py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white">
+        <div className="container mx-auto max-w-5xl">
+          <div className="text-center mb-10 sm:mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-4">
+              <Sparkles className="h-4 w-4" />
+              Professional Plan
+            </div>
+            <h2 className="text-2xl sm:text-4xl md:text-5xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>
+              Simple, Honest Pricing
+            </h2>
+            <p className="text-gray-600 sm:text-lg">One plan. Everything included. 3-day free trial.</p>
+          </div>
 
-    {/* Single Pricing Card - Centered */}
-    <div className="max-w-xl mx-auto">
-      <div className="bg-white rounded-3xl p-8 sm:p-10 border-2 border-gray-900 shadow-2xl relative">
-        {/* Limited Time Offer Badge */}
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#b5944b] to-[#d4af37] text-white px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap">
-          🔥 LIMITED TIME OFFER
-        </div>
+          <div className="max-w-xl mx-auto">
+            <div className="bg-white rounded-3xl p-8 sm:p-10 border-2 border-gray-900 shadow-2xl relative">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#b5944b] to-[#d4af37] text-white px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap">
+                🔥 LIMITED TIME OFFER
+              </div>
 
-        <div className="text-center mb-8 mt-2">
-          <h3 className="text-3xl text-gray-900 mb-2" style={{ ...heading, fontWeight: 700 }}>
-            LeadVett Pro
-          </h3>
-          <div className="flex items-baseline justify-center gap-2 mb-4">
-            <span className="text-6xl text-gray-900" style={{ ...heading, fontWeight: 900 }}>$49</span>
-            <div className="text-left">
-              <div className="text-lg text-gray-600">/month</div>
-              <div className="text-sm text-green-600 font-semibold">3-day free trial</div>
+              <div className="text-center mb-8 mt-2">
+                <h3 className="text-3xl text-gray-900 mb-2" style={{ ...heading, fontWeight: 700 }}>
+                  LeadVett Pro
+                </h3>
+                <div className="flex items-baseline justify-center gap-2 mb-4">
+                  <span className="text-6xl text-gray-900" style={{ ...heading, fontWeight: 900 }}>$49</span>
+                  <div className="text-left">
+                    <div className="text-lg text-gray-600">/month</div>
+                    <div className="text-sm text-green-600 font-semibold">3-day free trial</div>
+                  </div>
+                </div>
+                <p className="text-gray-600">
+                  Everything you need to qualify leads like a pro
+                </p>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                {[
+                  'Unlimited lead analysis with AI scoring',
+                  'Gold/Silver/Bronze badges (0-100%)',
+                  'Custom intake forms (unlimited)',
+                  'Numerical confidence scores',
+                  'Buying intent signal breakdown',
+                  'One-click DM scripts',
+                  'ManyChat integration',
+                  'Mobile-friendly forms',
+                  'Export to CSV',
+                  'Lead status management',
+                  'Email support'
+                ].map((feature, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-gray-700 text-base">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link 
+                href="/signup" 
+                className="block w-full rounded-full bg-gray-900 px-8 py-4 text-lg font-semibold text-white hover:bg-gray-800 transition-all shadow-lg text-center"
+              >
+                Start 3-Day Free Trial
+              </Link>
+
+              <div className="mt-6 space-y-3 text-center text-sm text-gray-600">
+                <p className="flex items-center justify-center gap-2">
+                  <Check className="h-4 w-4 text-green-600" />
+                  No credit card required
+                </p>
+                <p className="flex items-center justify-center gap-2">
+                  <Check className="h-4 w-4 text-green-600" />
+                  Full access for 3 days
+                </p>
+                <p className="flex items-center justify-center gap-2">
+                  <Check className="h-4 w-4 text-green-600" />
+                  Cancel anytime
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 text-center">
+              <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-50 border-2 border-blue-200">
+                <Shield className="h-5 w-5 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">
+                  Cancel Anytime - Keep Access Until Period Ends
+                </span>
+              </div>
             </div>
           </div>
-          <p className="text-gray-600">
-            Everything you need to qualify leads like a pro
-          </p>
         </div>
+      </section>
 
-        <ul className="space-y-4 mb-8">
-          {[
-            'Unlimited lead analysis',
-            'Gold/Silver/Bronze AI badges',
-            'One-click DM scripts',
-            'Rule engine transparency',
-            'Confidence scoring (0-100%)',
-            'Hard reject automation',
-            'ManyChat integration',
-            'Mobile-friendly forms',
-            'Export to CSV',
-            'Lead status management',
-            'Email support'
-          ].map((feature, i) => (
-            <li key={i} className="flex items-start gap-3">
-              <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
-              <span className="text-gray-700 text-base">{feature}</span>
-            </li>
-          ))}
-        </ul>
-
-        <Link 
-          href="/signup" 
-          className="block w-full rounded-full bg-gray-900 px-8 py-4 text-lg font-semibold text-white hover:bg-gray-800 transition-all shadow-lg text-center"
-        >
-          Start 3-Day Free Trial
-        </Link>
-
-        <div className="mt-6 space-y-3 text-center text-sm text-gray-600">
-          <p className="flex items-center justify-center gap-2">
-            <Check className="h-4 w-4 text-green-600" />
-            No credit card required
-          </p>
-          <p className="flex items-center justify-center gap-2">
-            <Check className="h-4 w-4 text-green-600" />
-            Full access for 3 days
-          </p>
-          <p className="flex items-center justify-center gap-2">
-            <Check className="h-4 w-4 text-green-600" />
-            One avoided call = Year paid
-          </p>
-        </div>
-      </div>
-
-      {/* Money Back Guarantee */}
-      <div className="mt-8 text-center">
-        <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-blue-50 border-2 border-blue-200">
-          <Shield className="h-5 w-5 text-blue-600" />
-          <span className="text-sm font-medium text-blue-900">
-            Cancel Anytime - Keep Access Until Period Ends
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-      {/* ── FAQ ── */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-white" aria-label="FAQ">
+      {/* FAQ */}
+      <section className="py-12 sm:py-20 px-4 sm:px-6 bg-white">
         <div className="container mx-auto max-w-3xl">
           <div className="text-center mb-10">
             <h2 className="text-2xl sm:text-4xl text-gray-900 mb-3" style={{ ...heading, fontWeight: 800 }}>Frequently Asked Questions</h2>
@@ -496,42 +620,42 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FINAL CTA ── */}
-      <section className="py-14 sm:py-24 px-4 sm:px-6 bg-gray-900" aria-label="Call to action">
+      {/* FINAL CTA */}
+      <section className="py-14 sm:py-24 px-4 sm:px-6 bg-gray-900">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-3xl sm:text-5xl md:text-6xl text-white mb-5 leading-tight" style={{ ...heading, fontWeight: 900 }}>
-            Stop wasting time on<br />
+            Stop guessing.<br />
             <span className="bg-gradient-to-r from-[#b5944b] to-[#d4af37] bg-clip-text text-transparent">
-              DMs that won't close
+              Start knowing.
             </span>
           </h2>
-          <p className="text-base sm:text-xl text-gray-400 mb-8">Agencies already saving 15+ hours per week</p>
+          <p className="text-base sm:text-xl text-gray-400 mb-8">127+ founders already saving 15+ hours per week with LeadVett</p>
           <Link href="/signup" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#b5944b] px-8 py-4 text-base sm:text-lg font-semibold text-white hover:bg-[#9a7a3d] transition-all shadow-xl hover:shadow-2xl hover:scale-[1.02]">
             Start Your Free 3-Day Trial
-            <ArrowRight className="h-5 w-5" aria-hidden="true" />
+            <ArrowRight className="h-5 w-5" />
           </Link>
-          <p className="text-sm text-gray-500 mt-4">3-days free · No card · Cancel anytime</p>
+          <p className="text-sm text-gray-500 mt-4">3 days free · No card · $49/month after</p>
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
+      {/* FOOTER */}
       <footer className="border-t border-gray-200 bg-gray-50">
         <div className="container mx-auto px-6 py-12">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-3">
-                <Image src={leadicon} alt="LeadVett logo" width={48} height={38} className="object-contain" />
+                <Image src={leadicon} alt="LeadVett" width={48} height={38} className="object-contain" />
                 <span className="text-xl tracking-tight text-gray-900" style={{ ...heading, fontWeight: 800 }}>
                   Lead<span className="text-[#b5944b]">Vett</span>
                 </span>
               </div>
-              <p className="text-sm text-gray-600 max-w-sm">Deploy your agency's qualification policy on autopilot. Stop wasting time on bad DMs.</p>
+              <p className="text-sm text-gray-600 max-w-sm">Decide who deserves a call—before you book one. AI-powered lead qualification for founders.</p>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-3 text-sm" style={heading}>Product</h3>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li><Link href="#pricing" className="hover:text-gray-900 transition-colors">Pricing</Link></li>
-                <li><Link href="#demo" className="hover:text-gray-900 transition-colors">Live Demo</Link></li>
+                <li><Link href="#how-it-works" className="hover:text-gray-900 transition-colors">How it Works</Link></li>
                 <li><Link href="/login" className="hover:text-gray-900 transition-colors">Sign In</Link></li>
                 <li><Link href="/signup" className="hover:text-gray-900 transition-colors">Start Free Trial</Link></li>
               </ul>
@@ -554,7 +678,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
     </div>
   )
 }
