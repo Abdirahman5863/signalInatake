@@ -1,5 +1,6 @@
-import { ContactPageClient } from "@/components/Contactclient"
+
 import type { Metadata } from "next"
+import { ContactPageClient } from "./client"
 
 
 export const metadata: Metadata = {
@@ -9,5 +10,5 @@ export const metadata: Metadata = {
 }
 
 export default function ContactPage() {
-  return <ContactPageClient />
+  return <ContactPageClient/>
 }

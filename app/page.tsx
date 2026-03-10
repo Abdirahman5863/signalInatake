@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import leadicon from "./public/images/leadicon.png"
 import { FAQ } from "@/components/FAQ"
+import { ContactTrigger } from "@/components/Contactmodal"
 const heading = { fontFamily: "var(--font-outfit), sans-serif" }
 
 
@@ -35,7 +36,10 @@ export default function Home() {
           <div className="flex items-center gap-2 sm:gap-5">
             <Link href="#how-it-works" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">How it Works</Link>
             <Link href="#pricing" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">Pricing</Link>
+            
+             <ContactTrigger/>
             <Link href="/login" className="text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">Sign in</Link>
+           
             <Link href="/signup" className="rounded-full bg-gray-900 px-3 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm font-semibold text-white hover:bg-gray-800 transition-all shadow-sm">
               Start free trial
             </Link>
@@ -743,6 +747,7 @@ export default function Home() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-3 text-sm" style={heading}>Legal</h3>
               <ul className="space-y-2 text-sm text-gray-600">
+                <li><Link href="/contact" className="hover:text-gray-900 transition-colors">Contact</Link></li>
                 <li><Link href="/privacy" className="hover:text-gray-900 transition-colors">Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-gray-900 transition-colors">Terms of Service</Link></li>
               </ul>
