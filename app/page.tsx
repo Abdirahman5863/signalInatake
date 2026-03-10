@@ -3,8 +3,8 @@ import Link from "next/link"
 import Image from "next/image"
 import Script from "next/script"
 import {
-  ArrowRight, Check, Sparkles, Shield, ChevronDown, Star,
-  Brain, Target, TrendingUp, Zap, Clock, XCircle, CheckCircle2,
+  ArrowRight, Check, Sparkles, Shield,  Star,
+  Brain, Target, TrendingUp,  Clock, XCircle, CheckCircle2,
   AlertTriangle,  BarChart3
 } from "lucide-react"
 import leadicon from "./public/images/leadicon.png"
