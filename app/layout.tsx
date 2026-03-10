@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next"
 import { Outfit, Inter_Tight } from "next/font/google"
 import "./globals.css"
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 // ─── Fonts ────────────────────────────────────────────────────────────────────
 // Headings: Outfit — geometric, sharp, confident. Used by fintech & SaaS brands.
 const outfit = Outfit({
@@ -114,7 +114,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
+
       <body className="antialiased" style={{ fontFamily: "var(--font-inter-tight), sans-serif" }}>
+        <SpeedInsights/>
         {children}
       </body>
     </html>
