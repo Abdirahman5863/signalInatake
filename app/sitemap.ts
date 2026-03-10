@@ -16,6 +16,12 @@ const baseUrl = "https://leadvett.com"
       changeFrequency: "monthly",
       priority: 0.9,
     },
+     {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.7,
+    },
     {
       url: `${baseUrl}/login`,
       lastModified: new Date(),
@@ -28,6 +34,7 @@ const baseUrl = "https://leadvett.com"
       changeFrequency: "yearly",
       priority: 0.3,
     },
+    
     {
       url: `${baseUrl}/terms`,
       lastModified: new Date(),
