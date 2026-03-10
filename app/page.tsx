@@ -2,7 +2,6 @@
 import Link from "next/link"
 import Image from "next/image"
 import Script from "next/script"
-import { useState } from "react"
 import {
   ArrowRight, Check, Sparkles, Shield, ChevronDown, Star,
   Brain, Target, TrendingUp, Zap, Clock, XCircle, CheckCircle2,
