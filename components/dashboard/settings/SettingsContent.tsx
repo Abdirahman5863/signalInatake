@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { supabase } from '@/lib/supabase/client'  // ✅ Changed to client import
 import { 
   User, CreditCard, Bell, Shield, LogOut, ArrowLeft,
   Mail, Calendar, Crown, Clock, Check, X, Download,
@@ -28,12 +28,11 @@ export function SettingsContent({ user, subscription, payments, trialInfo }: Set
 
   const handleSignOut = async () => {
     setLoading(true)
-   
-    const supabase = await createClient()
-    await supabase.auth.signOut()
+    await supabase.auth.signOut()  // ✅ Now using client supabase
     router.push('/login')
   }
 
+  // ... rest of the component stays exactly the same
   const tabs = [
     { id: 'account' as const, label: 'Account', icon: User },
     { id: 'billing' as const, label: 'Billing', icon: CreditCard },
