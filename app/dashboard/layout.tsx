@@ -7,15 +7,18 @@ import leadicon from '../public/images/leadicon.png'
 import { Settings, LayoutDashboard, FileText, Menu, X, Users } from 'lucide-react'
 import { SignOutButton } from '@/components/SignOutButton'
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+import { usePathname } from 'next/navigation'
+
+function DashboardLayoutComponent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  // @ts-ignore: Server Component workaround
+  const supabase = (global as any).supabase || createClient();
+  // @ts-ignore: Server Component workaround
+  const user = (global as any).user || null;
+
+  if (!user) {
+    redirect('/login')
+  }
 
   if (!user) {
     redirect('/login')
@@ -106,12 +109,16 @@ export default async function DashboardLayout({
               New Form
             </Link>
             <Link
-              href="/pricing"
-              className="flex items-center gap-2 text-xs font-medium text-gray-700 hover:text-gray-900 whitespace-nowrap"
-            >
-              <Settings className="h-4 w-4" />
-              Pricing
-            </Link>
+  href="/dashboard/settings"
+  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+    pathname === '/dashboard/settings'
+      ? 'bg-accent text-accent-foreground'
+      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+  }`}
+>
+  <Settings className="h-5 w-5" />
+  <span>Settings</span>
+</Link>
           </nav>
         </div>
       </header>
