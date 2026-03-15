@@ -8,7 +8,7 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/api/supabase/:path*',
+        source: '/supabase/:path*',
         destination: 'https://wukrqycdlgpxlkfqwjbw.supabase.co/:path*',
       },
     ]
