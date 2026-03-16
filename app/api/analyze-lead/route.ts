@@ -81,30 +81,29 @@ export async function POST(request: NextRequest) {
       console.log('💾 Saving lead to database...')
       
       const { data: lead, error: leadError } = await supabase
-        .from('lead_responses')
-        .insert({
-          form_id: formId,
-          user_id: user.id,
-          email: leadEmail || answers.email || 'unknown@email.com',
-          name: leadName || answers.name || 'Unknown Lead',
-          answers: answers,
-          badge: analysis.badge,
-          confidence_score: analysis.confidenceScore,
-          ai_analysis: {
-            summary: analysis.summary,
-            strengths: analysis.strengths,
-            risks: analysis.risks,
-            dmScript: analysis.dmScript,
-            action: analysis.action,
-            ruleBreakdown: analysis.ruleBreakdown,
-            hardRuleTriggered: analysis.hardRuleTriggered,
-            confidenceLevel: analysis.confidenceLevel
-          },
-          status: 'new'
-        })
-        .select()
-        .single()
-
+  .from('lead_responses')
+  .insert({
+    form_id: formId,
+    lead_email: leadEmail || answers.email || 'unknown@email.com',
+    lead_name: leadName || answers.name || 'Unknown Lead',
+    answers: answers,
+    badge: analysis.badge,
+    confidence_score: analysis.confidenceScore,
+    ai_analysis: {
+      summary: analysis.summary,
+      strengths: analysis.strengths,
+      risks: analysis.risks,
+      dmScript: analysis.dmScript,
+      action: analysis.action,
+      ruleBreakdown: analysis.ruleBreakdown,
+      hardRuleTriggered: analysis.hardRuleTriggered,
+      confidenceLevel: analysis.confidenceLevel
+    },
+    status: 'new'
+  })
+  .select()
+  .single()
+  
       if (leadError) {
         console.error('❌ Failed to save lead:', leadError)
         // Don't fail the whole request, just log the error

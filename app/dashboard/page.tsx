@@ -37,19 +37,20 @@ export default async function DashboardPage({ searchParams }: {
   const hasForms = forms && forms.length > 0
 
   // Simplified query - get leads directly without join
+// Get leads with form join (same as leads page)
 const { data: recentLeads, error: leadsError } = await supabase
   .from('lead_responses')
-  .select('*')
-  .eq('user_id', user.id)
+  .select(`
+    *,
+    intake_forms!inner (
+      id,
+      form_name,
+      user_id
+    )
+  `)
+  .eq('intake_forms.user_id', user.id)  // ✅ Filter through the join
   .order('created_at', { ascending: false })
   .limit(10)
-
-if (leadsError) {
-  console.error('❌ Error fetching leads:', leadsError)
-}
-
-console.log('✅ Recent leads found:', recentLeads?.length || 0)
-
   // Calculate trial status
   const hasActiveSubscription = subscriptionCheck.hasAccess && subscriptionCheck.reason === 'active_subscription'
   const subscriptionExpired = subscriptionCheck.reason === 'subscription_expired'

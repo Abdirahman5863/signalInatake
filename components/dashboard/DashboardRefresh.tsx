@@ -10,19 +10,20 @@ export function DashboardRefresh({ userId }: { userId: string }) {
   useEffect(() => {
     // Subscribe to new leads
     const leadsChannel = supabase
-      .channel('dashboard-leads')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'lead_responses',
-          filter: `user_id=eq.${userId}`
-        },
+  .channel('dashboard-leads')
+  .on(
+    'postgres_changes',
+    {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'lead_responses'
+      // ✅ No filter - we'll check on the client side
+    },
         (payload) => {
-          console.log('🎯 New lead received!', payload.new)
-          router.refresh() // Refresh server component data
-        }
+  console.log('🎯 New lead received!', payload.new)
+  // Refresh regardless - the dashboard will filter by user
+  router.refresh()
+}
       )
       .subscribe()
 
