@@ -3,7 +3,7 @@ import { RecentLeads } from '@/components/dashboard/RecentLeads'
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { createClient } from '@/lib/supabase/server'
 import { checkSubscriptionExpiration } from '@/lib/subscription/check-expiration'
-import { Clock, AlertCircle, Crown, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
+import { Clock, AlertCircle, Crown, CheckCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
 import { DashboardRefresh } from '@/components/dashboard/DashboardRefresh'
 
@@ -76,24 +76,12 @@ export default async function DashboardPage({ searchParams }: {
       {/* Client-side Auto Refresh Component */}
       <DashboardRefresh userId={user.id} />
 
-      {/* Header with Manual Refresh Button */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
-            Manage your intake forms and view qualified leads
-          </p>
-        </div>
-        
-        {/* Manual Refresh Button */}
-        <button
-          onClick={() => window.location.reload()}
-          className="hidden sm:inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          title="Refresh dashboard"
-        >
-          <RefreshCw className="h-4 w-4" />
-          <span className="hidden lg:inline">Refresh</span>
-        </button>
+      {/* Header - NO REFRESH BUTTON (Removed to fix error) */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
+          Manage your intake forms and view qualified leads
+        </p>
       </div>
 
       {/* Payment Success Banner */}
