@@ -3,10 +3,13 @@ import { RecentLeads } from '@/components/dashboard/RecentLeads'
 import { EmptyState } from '@/components/dashboard/EmptyState'
 import { createClient } from '@/lib/supabase/server'
 import { checkSubscriptionExpiration } from '@/lib/subscription/check-expiration'
-import { Clock, AlertCircle, Crown, CheckCircle, XCircle } from 'lucide-react'
+import { Clock, AlertCircle, Crown, CheckCircle, XCircle, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import { DashboardRefresh } from '@/components/dashboard/DashboardRefresh'
 
 const TRIAL_DAYS = 3
+
+export const revalidate = 0 // Disable caching for this page
 
 export default async function DashboardPage({ searchParams }: { 
   searchParams: { payment?: string; reason?: string } 
@@ -34,7 +37,7 @@ export default async function DashboardPage({ searchParams }: {
   const hasForms = forms && forms.length > 0
 
   const { data: recentLeads } = await supabase
-    .from('lead_responses')
+    .from('leads')
     .select(`
       *,
       intake_forms!inner (
@@ -70,12 +73,27 @@ export default async function DashboardPage({ searchParams }: {
         gtag('config', 'G-C6QJQ6KGNJ');
       `}}></script>
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-        <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
-          Manage your intake forms and view qualified leads
-        </p>
+      {/* Client-side Auto Refresh Component */}
+      <DashboardRefresh userId={user.id} />
+
+      {/* Header with Manual Refresh Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
+            Manage your intake forms and view qualified leads
+          </p>
+        </div>
+        
+        {/* Manual Refresh Button */}
+        <button
+          onClick={() => window.location.reload()}
+          className="hidden sm:inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          title="Refresh dashboard"
+        >
+          <RefreshCw className="h-4 w-4" />
+          <span className="hidden lg:inline">Refresh</span>
+        </button>
       </div>
 
       {/* Payment Success Banner */}
@@ -113,6 +131,23 @@ export default async function DashboardPage({ searchParams }: {
               >
                 Try Again
               </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Processing Banner */}
+      {paymentStatus === 'processing' && (
+        <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4 sm:p-6">
+          <div className="flex items-start gap-3">
+            <div className="h-6 w-6 border-4 border-blue-600 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            <div>
+              <h3 className="font-bold text-blue-900 text-sm sm:text-base mb-1">
+                Payment Processing
+              </h3>
+              <p className="text-xs sm:text-sm text-blue-700">
+                Your payment is being processed. This page will update automatically.
+              </p>
             </div>
           </div>
         </div>

@@ -103,45 +103,84 @@ export default function NewFormPage() {
       setChecking(false)
     }
   }
-
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+  e.preventDefault()
+  setLoading(true)
+  setError(null)
 
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
 
-      if (!user) {
-        throw new Error('You must be logged in to create a form')
-      }
-
-      // Double-check access before creating
-      if (!canCreate) {
-        throw new Error('You need an active subscription to create more forms')
-      }
-
-      const shareLink = generateShareLink()
-
-      const { error: insertError } = await supabase
-        .from('intake_forms')
-        .insert({
-          user_id: user.id,
-          form_name: formName,
-          share_link: shareLink,
-          instructions: instructions || null,
-          questions: questions,
-        })
-
-      if (insertError) throw insertError
-
-      router.push('/dashboard')
-    } catch (error: any) {
-      setError(error.message || 'An error occurred while creating the form')
-    } finally {
-      setLoading(false)
+    if (!user) {
+      throw new Error('You must be logged in to create a form')
     }
+
+    if (!canCreate) {
+      throw new Error('You need an active subscription to create more forms')
+    }
+
+    const shareLink = generateShareLink()
+
+    const { error: insertError } = await supabase
+      .from('intake_forms')
+      .insert({
+        user_id: user.id,
+        form_name: formName,
+        share_link: shareLink,
+        instructions: instructions || null,
+        questions: questions,
+      })
+
+    if (insertError) throw insertError
+
+    // Refresh the forms page data
+    router.refresh() // Add this line
+    router.push('/dashboard/forms')
+  } catch (error: any) {
+    setError(error.message || 'An error occurred while creating the form')
+  } finally {
+    setLoading(false)
   }
+}
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setLoading(true)
+  //   setError(null)
+
+  //   try {
+  //     const { data: { user } } = await supabase.auth.getUser()
+
+  //     if (!user) {
+  //       throw new Error('You must be logged in to create a form')
+  //     }
+
+  //     // Double-check access before creating
+  //     if (!canCreate) {
+  //       throw new Error('You need an active subscription to create more forms')
+  //     }
+
+  //     const shareLink = generateShareLink()
+
+  //     const { error: insertError } = await supabase
+  //       .from('intake_forms')
+  //       .insert({
+  //         user_id: user.id,
+  //         form_name: formName,
+  //         share_link: shareLink,
+  //         instructions: instructions || null,
+  //         questions: questions,
+  //       })
+
+  //     if (insertError) throw insertError
+
+  //     router.push('/dashboard')
+  //   } catch (error: any) {
+  //     setError(error.message || 'An error occurred while creating the form')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
 
   if (checking) {
     return (

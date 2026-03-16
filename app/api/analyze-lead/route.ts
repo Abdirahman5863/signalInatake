@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { analyzeLead } from '@/lib/ai/analyze'
 import { FormQuestion } from '@/lib/forms'
 import { createClient } from '@/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 
 const TRIAL_DAYS = 3
 
@@ -21,11 +22,12 @@ export async function POST(request: NextRequest) {
     // Check if user has active subscription
     const { data: subscription } = await supabase
       .from('subscriptions')
-      .select('status')
+      .select('status, current_period_end')
       .eq('user_id', user.id)
       .single()
 
-    const hasActiveSubscription = subscription?.status === 'active'
+    const hasActiveSubscription = subscription?.status === 'active' && 
+      new Date(subscription.current_period_end) > new Date()
 
     // If no active subscription, check trial period
     if (!hasActiveSubscription) {
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { answers, questions } = body
+    const { answers, questions, formId, leadEmail, leadName } = body
 
     if (!answers || !questions) {
       return NextResponse.json(
@@ -62,6 +64,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🤖 LeadVett AI analyzing with', questions.length, 'custom questions...')
 
+    // Run AI analysis
     const analysis = await analyzeLead(
       answers as Record<string, string>,
       questions as FormQuestion[]
@@ -72,6 +75,48 @@ export async function POST(request: NextRequest) {
       confidence: `${analysis.confidenceScore}%`,
       rules: analysis.ruleBreakdown.length
     })
+
+    // Save lead to database if formId is provided
+    if (formId) {
+      console.log('💾 Saving lead to database...')
+      
+      const { data: lead, error: leadError } = await supabase
+        .from('leads')
+        .insert({
+          form_id: formId,
+          user_id: user.id,
+          email: leadEmail || answers.email || 'unknown@email.com',
+          name: leadName || answers.name || 'Unknown Lead',
+          answers: answers,
+          badge: analysis.badge,
+          confidence_score: analysis.confidenceScore,
+          ai_analysis: {
+            summary: analysis.summary,
+            strengths: analysis.strengths,
+            risks: analysis.risks,
+            dmScript: analysis.dmScript,
+            action: analysis.action,
+            ruleBreakdown: analysis.ruleBreakdown,
+            hardRuleTriggered: analysis.hardRuleTriggered,
+            confidenceLevel: analysis.confidenceLevel
+          },
+          status: 'new'
+        })
+        .select()
+        .single()
+
+      if (leadError) {
+        console.error('❌ Failed to save lead:', leadError)
+        // Don't fail the whole request, just log the error
+      } else {
+        console.log('✅ Lead saved with ID:', lead.id)
+        
+        // Revalidate dashboard and leads pages to show new data
+        revalidatePath('/dashboard')
+        revalidatePath('/dashboard/leads')
+        revalidatePath(`/dashboard/leads/${lead.id}`)
+      }
+    }
 
     return NextResponse.json({ 
       success: true, 
