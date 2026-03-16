@@ -99,9 +99,9 @@ export function RecentLeads({ leads }: RecentLeadsProps) {
                       <h4 className="font-bold text-base sm:text-lg text-gray-900 truncate">
                         {lead.lead_name}
                       </h4>
-                      <Badge className="bg-green-500 text-white text-xs flex-shrink-0">
-                        🔥 GOLD
-                      </Badge>
+                    <Badge className="bg-green-500 text-white text-xs flex-shrink-0">
+  🔥 GOLD {lead.confidence_score}%
+</Badge>
                     </div>
                     <p className="text-xs sm:text-sm text-gray-600 mb-2 truncate">
                       {lead.lead_email}
@@ -159,9 +159,9 @@ export function RecentLeads({ leads }: RecentLeadsProps) {
                       <h4 className="font-semibold text-sm text-gray-900 truncate">
                         {lead.lead_name}
                       </h4>
-                      <Badge className={`${getBadgeColor(lead.badge)} text-xs flex-shrink-0`}>
-                        {lead.badge}
-                      </Badge>
+                     <Badge className={`${getBadgeColor(lead.badge)} text-xs flex-shrink-0`}>
+  {lead.badge} {lead.confidence_score}%
+</Badge>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-600">
                       <span className="truncate">{lead.lead_email}</span>
