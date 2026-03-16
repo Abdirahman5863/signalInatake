@@ -16,7 +16,7 @@ export function DashboardRefresh({ userId }: { userId: string }) {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'leads',
+          table: 'lead_responses',
           filter: `user_id=eq.${userId}`
         },
         (payload) => {

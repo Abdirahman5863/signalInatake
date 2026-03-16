@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       console.log('💾 Saving lead to database...')
       
       const { data: lead, error: leadError } = await supabase
-        .from('leads')
+        .from('lead_responses')
         .insert({
           form_id: formId,
           user_id: user.id,

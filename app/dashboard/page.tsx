@@ -38,7 +38,7 @@ export default async function DashboardPage({ searchParams }: {
 
   // Simplified query - get leads directly without join
 const { data: recentLeads, error: leadsError } = await supabase
-  .from('leads')
+  .from('lead_responses')
   .select('*')
   .eq('user_id', user.id)
   .order('created_at', { ascending: false })
