@@ -32,13 +32,17 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Always let auth routes and API routes through
-  if (pathname.startsWith('/auth') || pathname.startsWith('/api')) {
+  // Always let auth routes, API routes, and PUBLIC intake forms through
+  if (
+    pathname.startsWith('/auth') || 
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/intake')  // ✅ INTAKE FORMS ARE PUBLIC
+  ) {
     return supabaseResponse
   }
 
   // Protected routes — redirect to login if not logged in
-  const protectedPaths = ['/dashboard', '/intake', '/forms', '/settings']
+  const protectedPaths = ['/dashboard', '/forms', '/settings', '/leads']
   const isProtected = protectedPaths.some(p => pathname.startsWith(p))
 
   if (isProtected && !user) {
