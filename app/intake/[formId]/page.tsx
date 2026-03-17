@@ -25,58 +25,35 @@ export default function IntakeFormPage() {
   useEffect(() => {
     async function checkForm() {
       try {
-        // Try to find form by share_link first, then by id
-        let query = supabase
+        // Always try share_link first — works for all users including anonymous
+        const { data: byShareLink } = await supabase
           .from('intake_forms')
           .select('*')
+          .eq('share_link', formId)
+          .maybeSingle()
 
-        // Check if formId looks like a UUID or a share link
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(formId)
-        
-        if (isUUID) {
-          // Try both id and share_link
-          const { data: byId } = await supabase
-            .from('intake_forms')
-            .select('*')
-            .eq('id', formId)
-            .single()
-
-          if (byId) {
-            setFormExists(true)
-            setFormData(byId)
-            setLoading(false)
-            return
-          }
-
-          const { data: byShareLink } = await supabase
-            .from('intake_forms')
-            .select('*')
-            .eq('share_link', formId)
-            .single()
-
-          if (byShareLink) {
-            setFormExists(true)
-            setFormData(byShareLink)
-            setLoading(false)
-            return
-          }
-        } else {
-          // Assume it's a share_link
-          const { data } = await supabase
-            .from('intake_forms')
-            .select('*')
-            .eq('share_link', formId)
-            .single()
-
-          if (data) {
-            setFormExists(true)
-            setFormData(data)
-            setLoading(false)
-            return
-          }
+        if (byShareLink) {
+          setFormExists(true)
+          setFormData(byShareLink)
+          setLoading(false)
+          return
         }
 
-        // If we get here, form was not found
+        // Fallback: try by actual id
+        const { data: byId } = await supabase
+          .from('intake_forms')
+          .select('*')
+          .eq('id', formId)
+          .maybeSingle()
+
+        if (byId) {
+          setFormExists(true)
+          setFormData(byId)
+          setLoading(false)
+          return
+        }
+
+        // Nothing found
         setFormExists(false)
       } catch (err) {
         console.error('Form lookup error:', err)
@@ -123,7 +100,6 @@ export default function IntakeFormPage() {
     try {
       console.log('📊 LeadVett analyzing submission...')
 
-      // Call API with public submission flag
       const analysisResponse = await fetch('/api/analyze-lead', {
         method: 'POST',
         headers: {
@@ -132,7 +108,7 @@ export default function IntakeFormPage() {
         body: JSON.stringify({
           answers,
           questions,
-          formId: formData.id,  // Use the actual form ID from database
+          formId: formData.id,
           leadEmail: leadEmail.trim(),
           leadName: leadName.trim(),
           isPublicSubmission: true
@@ -141,21 +117,20 @@ export default function IntakeFormPage() {
 
       if (!analysisResponse.ok) {
         const errorData = await analysisResponse.json()
-        
+
         if (errorData.formOwnerExpired) {
           throw new Error('This form is no longer accepting submissions. Please contact the form owner.')
         }
-        
+
         throw new Error(errorData.error || 'Failed to submit form')
       }
 
       const { analysis } = await analysisResponse.json()
-      
+
       console.log('✅ Submission successful:', analysis.badge)
 
-      // Redirect to thank you page
       router.push(`/intake/${formId}/thank-you`)
-      
+
     } catch (err: any) {
       console.error('❌ Submission error:', err)
       setError(err.message || 'An error occurred while submitting your response')
@@ -167,13 +142,6 @@ export default function IntakeFormPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
-        <script dangerouslySetInnerHTML={{__html: `
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){window.dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-C6QJQ6KGNJ');
-        `}}></script>
         <div className="text-center">
           <div className="h-8 w-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <div className="text-lg">Loading form...</div>
@@ -199,7 +167,6 @@ export default function IntakeFormPage() {
     )
   }
 
-  // Show name/email collection
   if (currentQuestionIndex === -1) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4 py-8 md:py-4">
@@ -313,7 +280,6 @@ export default function IntakeFormPage() {
                 )}
               </h2>
 
-              {/* Text Input */}
               {currentQuestion.type === 'text' && (
                 <input
                   type="text"
@@ -325,7 +291,6 @@ export default function IntakeFormPage() {
                 />
               )}
 
-              {/* Textarea */}
               {currentQuestion.type === 'textarea' && (
                 <textarea
                   value={answers[currentQuestion.id] || ''}
@@ -336,7 +301,6 @@ export default function IntakeFormPage() {
                 />
               )}
 
-              {/* Number Input */}
               {currentQuestion.type === 'number' && (
                 <input
                   type="number"
@@ -348,7 +312,6 @@ export default function IntakeFormPage() {
                 />
               )}
 
-              {/* Dropdown */}
               {currentQuestion.type === 'dropdown' && (
                 <select
                   value={answers[currentQuestion.id] || ''}
