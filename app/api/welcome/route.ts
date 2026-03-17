@@ -5,9 +5,10 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 export async function POST(req: Request) {
   const { email, name } = await req.json()
   
-  await resend.emails.send({
-    from: 'contact@leadvett.com',
-    to: email,
+await resend.emails.send({
+ from: 'Abdirahman from LeadVett <contact@leadvett.com>',
+  replyTo: 'contact@leadvett.com',
+  to: email,
     subject: 'Welcome to LeadVett — quick start guide',
     text: `Hey ${name},
 
