@@ -70,70 +70,57 @@ export default function IntakeFormPage() {
   }
 
   const handleSubmit = async () => {
-    if (!leadName.trim() || !leadEmail.trim()) {
-      setError('Please provide your name and email')
-      return
-    }
-
-    setSubmitting(true)
-    setError(null)
-
-    try {
-      console.log('📊 LeadVett Rule Engine analyzing...')
-
-      // STEP 1: Analyze the lead
-      const analysisResponse = await fetch('/api/analyze-lead', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          answers,
-          questions, // Send questions so AI knows the context
-        }),
-      })
-
-      if (!analysisResponse.ok) {
-        throw new Error('Failed to analyze lead')
-      }
-
-      const { analysis } = await analysisResponse.json()
-      
-      console.log('✅ Verdict:', analysis.badge, '| Action:', analysis.action)
-
-      // STEP 2: Save lead with full analysis
-      const { error: insertError } = await supabase
-        .from('lead_responses')
-        .insert({
-          form_id: formData.id,
-          lead_name: leadName.trim(),
-          lead_email: leadEmail.trim(),
-          answers: answers,
-          badge: analysis.badge,
-          summary: analysis.summary,
-          strengths: analysis.strengths,
-          risks: analysis.risks,
-          dm_script: analysis.dmScript,
-          action: analysis.action,
-          rule_breakdown: analysis.ruleBreakdown,
-          hard_rule_triggered: analysis.hardRuleTriggered,
-          confidence_score: analysis.confidenceScore,
-          confidence_level: analysis.confidenceLevel,
-        })
-
-      if (insertError) throw insertError
-
-      console.log('💾 Lead saved successfully')
-
-      router.push(`/intake/${formId}/thank-you`)
-      
-    } catch (err: any) {
-      console.error('❌ Submission error:', err)
-      setError(err.message || 'An error occurred while submitting your response')
-    } finally {
-      setSubmitting(false)
-    }
+  if (!leadName.trim() || !leadEmail.trim()) {
+    setError('Please provide your name and email')
+    return
   }
+
+  setSubmitting(true)
+  setError(null)
+
+  try {
+    console.log('📊 LeadVett analyzing submission...')
+
+    // Call API with public submission flag
+    const analysisResponse = await fetch('/api/analyze-lead', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        answers,
+        questions,
+        formId: formData.id,  // ✅ Include formId
+        leadEmail: leadEmail.trim(),
+        leadName: leadName.trim(),
+        isPublicSubmission: true  // ✅ Flag as public submission
+      }),
+    })
+
+    if (!analysisResponse.ok) {
+      const errorData = await analysisResponse.json()
+      
+      if (errorData.formOwnerExpired) {
+        throw new Error('This form is no longer accepting submissions. Please contact the form owner.')
+      }
+      
+      throw new Error(errorData.error || 'Failed to submit form')
+    }
+
+    const { analysis } = await analysisResponse.json()
+    
+    console.log('✅ Submission successful:', analysis.badge)
+
+    // Redirect to thank you page
+    router.push(`/intake/${formId}/thank-you`)
+    
+  } catch (err: any) {
+    console.error('❌ Submission error:', err)
+    setError(err.message || 'An error occurred while submitting your response')
+  } finally {
+    setSubmitting(false)
+  }
+}
 
   if (loading) {
     return (
