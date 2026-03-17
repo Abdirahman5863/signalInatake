@@ -1,406 +1,390 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
-import { FormQuestion } from '@/lib/forms'
-import { ProgressIndicator } from '@/components/intake/ProgressIndicator'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import { generateShareLink, DEFAULT_QUESTIONS, FormQuestion } from '@/lib/forms'
+import { ArrowLeft, Save, AlertCircle, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { FormBuilder } from '@/components/forms/FormBuilder'
 
-export default function IntakeFormPage() {
-  const params = useParams()
+const TRIAL_DAYS = 3
+const FREE_FORMS_LIMIT = 1
+
+export default function NewFormPage() {
   const router = useRouter()
-  const formId = params.formId as string
-
-  const [formExists, setFormExists] = useState<boolean | null>(null)
-  const [formData, setFormData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [leadName, setLeadName] = useState('')
-  const [leadEmail, setLeadEmail] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const [formName, setFormName] = useState('')
+  const [instructions, setInstructions] = useState('')
+  const [questions, setQuestions] = useState<FormQuestion[]>(DEFAULT_QUESTIONS)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Access control states
+  const [checking, setChecking] = useState(true)
+  const [canCreate, setCanCreate] = useState(false)
+  const [accessInfo, setAccessInfo] = useState<{
+    hasSubscription: boolean
+    inTrial: boolean
+    trialDaysLeft: number
+    formCount: number
+    reason?: string
+  } | null>(null)
 
   useEffect(() => {
-    async function checkForm() {
-      try {
-        // Try to find form by share_link first, then by id
-        let query = supabase
-          .from('intake_forms')
-          .select('*')
+    checkAccess()
+  }, [])
 
-        // Check if formId looks like a UUID or a share link
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(formId)
-        
-        if (isUUID) {
-          // Try both id and share_link
-          const { data: byId } = await supabase
-            .from('intake_forms')
-            .select('*')
-            .eq('id', formId)
-            .single()
-
-          if (byId) {
-            setFormExists(true)
-            setFormData(byId)
-            setLoading(false)
-            return
-          }
-
-          const { data: byShareLink } = await supabase
-            .from('intake_forms')
-            .select('*')
-            .eq('share_link', formId)
-            .single()
-
-          if (byShareLink) {
-            setFormExists(true)
-            setFormData(byShareLink)
-            setLoading(false)
-            return
-          }
-        } else {
-          // Assume it's a share_link
-          const { data } = await supabase
-            .from('intake_forms')
-            .select('*')
-            .eq('share_link', formId)
-            .single()
-
-          if (data) {
-            setFormExists(true)
-            setFormData(data)
-            setLoading(false)
-            return
-          }
-        }
-
-        // If we get here, form was not found
-        setFormExists(false)
-      } catch (err) {
-        console.error('Form lookup error:', err)
-        setFormExists(false)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    if (formId) {
-      checkForm()
-    }
-  }, [formId])
-
-  const questions: FormQuestion[] = formData?.questions || []
-
-  const handleAnswerChange = (questionId: string, value: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }))
-  }
-
-  const handleNext = () => {
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1)
-    }
-  }
-
-  const handleBack = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1)
-    } else if (currentQuestionIndex === 0) {
-      setCurrentQuestionIndex(-1)
-    }
-  }
-
-  const handleSubmit = async () => {
-    if (!leadName.trim() || !leadEmail.trim()) {
-      setError('Please provide your name and email')
-      return
-    }
-
-    setSubmitting(true)
-    setError(null)
-
+  const checkAccess = async () => {
     try {
-      console.log('📊 LeadVett analyzing submission...')
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        router.push('/login')
+        return
+      }
 
-      // Call API with public submission flag
-      const analysisResponse = await fetch('/api/analyze-lead', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          answers,
-          questions,
-          formId: formData.id,  // Use the actual form ID from database
-          leadEmail: leadEmail.trim(),
-          leadName: leadName.trim(),
-          isPublicSubmission: true
-        }),
+      // Check subscription
+      const { data: subscription } = await supabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .single()
+
+      const hasActiveSubscription = subscription?.status === 'active'
+
+      // Check form count
+      const { count: formCount } = await supabase
+        .from('intake_forms')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+
+      // Check trial
+      let inTrial = false
+      let trialDaysLeft = 0
+      
+      if (!hasActiveSubscription) {
+        const signupDate = new Date(user.created_at)
+        const now = new Date()
+        const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
+        trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
+        inTrial = trialDaysLeft > 0
+      }
+
+      // Determine if user can create form
+      let allowed = false
+      let reason = ''
+
+      if (hasActiveSubscription) {
+        allowed = true
+        reason = 'subscription'
+      } else if (inTrial && (formCount || 0) < FREE_FORMS_LIMIT) {
+        allowed = true
+        reason = 'trial'
+      } else if (inTrial && (formCount || 0) >= FREE_FORMS_LIMIT) {
+        allowed = false
+        reason = 'trial_limit_reached'
+      } else {
+        allowed = false
+        reason = 'trial_expired'
+      }
+
+      setAccessInfo({
+        hasSubscription: hasActiveSubscription,
+        inTrial,
+        trialDaysLeft,
+        formCount: formCount || 0,
+        reason
+      })
+      setCanCreate(allowed)
+      setChecking(false)
+
+    } catch (err) {
+      console.error('Access check error:', err)
+      setChecking(false)
+    }
+  }
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setError(null)
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      throw new Error('You must be logged in to create a form')
+    }
+
+    if (!canCreate) {
+      throw new Error('You need an active subscription to create more forms')
+    }
+
+    const shareLink = generateShareLink()
+
+    const { error: insertError } = await supabase
+      .from('intake_forms')
+      .insert({
+        user_id: user.id,
+        form_name: formName,
+        share_link: shareLink,
+        instructions: instructions || null,
+        questions: questions,
       })
 
-      if (!analysisResponse.ok) {
-        const errorData = await analysisResponse.json()
-        
-        if (errorData.formOwnerExpired) {
-          throw new Error('This form is no longer accepting submissions. Please contact the form owner.')
-        }
-        
-        throw new Error(errorData.error || 'Failed to submit form')
-      }
+    if (insertError) throw insertError
 
-      const { analysis } = await analysisResponse.json()
-      
-      console.log('✅ Submission successful:', analysis.badge)
-
-      // Redirect to thank you page
-      router.push(`/intake/${formId}/thank-you`)
-      
-    } catch (err: any) {
-      console.error('❌ Submission error:', err)
-      setError(err.message || 'An error occurred while submitting your response')
-    } finally {
-      setSubmitting(false)
-    }
+    // Refresh the forms page data
+    router.refresh() // Add this line
+    router.push('/dashboard/forms')
+  } catch (error: any) {
+    setError(error.message || 'An error occurred while creating the form')
+  } finally {
+    setLoading(false)
   }
+}
 
-  if (loading) {
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault()
+  //   setLoading(true)
+  //   setError(null)
+
+  //   try {
+  //     const { data: { user } } = await supabase.auth.getUser()
+
+  //     if (!user) {
+  //       throw new Error('You must be logged in to create a form')
+  //     }
+
+  //     // Double-check access before creating
+  //     if (!canCreate) {
+  //       throw new Error('You need an active subscription to create more forms')
+  //     }
+
+  //     const shareLink = generateShareLink()
+
+  //     const { error: insertError } = await supabase
+  //       .from('intake_forms')
+  //       .insert({
+  //         user_id: user.id,
+  //         form_name: formName,
+  //         share_link: shareLink,
+  //         instructions: instructions || null,
+  //         questions: questions,
+  //       })
+
+  //     if (insertError) throw insertError
+
+  //     router.push('/dashboard')
+  //   } catch (error: any) {
+  //     setError(error.message || 'An error occurred while creating the form')
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
+
+  if (checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
-        <script dangerouslySetInnerHTML={{__html: `
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){window.dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-C6QJQ6KGNJ');
-        `}}></script>
-        <div className="text-center">
-          <div className="h-8 w-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <div className="text-lg">Loading form...</div>
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="h-12 w-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-gray-600">Checking access...</p>
+          </div>
         </div>
       </div>
     )
   }
 
-  if (!formExists) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">📋</div>
-          <h1 className="text-2xl font-bold mb-2">Form Not Found</h1>
-          <p className="text-muted-foreground mb-6">
-            This intake form does not exist or has been removed.
-          </p>
-          <p className="text-sm text-gray-500">
-            Form ID: <code className="bg-gray-100 px-2 py-1 rounded">{formId}</code>
-          </p>
-        </div>
-      </div>
-    )
-  }
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Google Analytics */}
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+      <script dangerouslySetInnerHTML={{__html: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-C6QJQ6KGNJ');
+      `}}></script>
 
-  // Show name/email collection
-  if (currentQuestionIndex === -1) {
-    return (
-      <div className="flex min-h-screen items-center justify-center p-4 py-8 md:py-4">
-        <div className="w-full max-w-2xl space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">
-              {formData.form_name || 'Get Started'}
-            </h1>
-            {formData.instructions && (
-              <p className="text-muted-foreground mb-4">
-                {formData.instructions}
+      <Link
+        href="/dashboard"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Dashboard
+      </Link>
+
+      {/* Trial Warning Banner */}
+      {accessInfo && accessInfo.inTrial && !accessInfo.hasSubscription && canCreate && (
+        <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
+          <div className="flex items-start gap-3">
+            <Clock className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-blue-900 mb-1">
+                Trial Mode: {accessInfo.trialDaysLeft} {accessInfo.trialDaysLeft === 1 ? 'day' : 'days'} left
               </p>
-            )}
-            <p className="text-muted-foreground">
-              Please provide your contact information to continue
+              <p className="text-xs text-blue-700">
+                You can create {FREE_FORMS_LIMIT} form during your trial. 
+                Forms created: {accessInfo.formCount}/{FREE_FORMS_LIMIT}.{' '}
+                <Link href="/pricing" className="underline font-semibold">
+                  Subscribe for unlimited forms
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Access Blocked - Trial Limit Reached */}
+      {!canCreate && accessInfo?.reason === 'trial_limit_reached' && (
+        <div className="rounded-lg border-2 border-orange-200 bg-orange-50 p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-6 w-6 text-orange-600 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-bold text-orange-900 text-lg mb-2">
+                Trial Form Limit Reached
+              </h3>
+              <p className="text-sm text-orange-700 mb-4">
+                You've created your {FREE_FORMS_LIMIT} trial form. Subscribe to LeadVett Pro to create unlimited forms and qualify unlimited leads.
+              </p>
+              <div className="space-y-2 mb-4">
+                <p className="text-xs text-orange-800">
+                  <strong>What you get with Pro:</strong>
+                </p>
+                <ul className="text-xs text-orange-700 space-y-1 ml-4">
+                  <li>• Unlimited forms</li>
+                  <li>• Unlimited lead analysis</li>
+                  <li>• AI-generated DM scripts</li>
+                  <li>• Advanced analytics</li>
+                  <li>• {accessInfo.trialDaysLeft} days left in trial</li>
+                </ul>
+              </div>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-2 rounded-md bg-orange-600 px-6 py-3 text-sm font-semibold text-white hover:bg-orange-700 transition-colors"
+              >
+                Subscribe Now - $49/month
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Access Blocked - Trial Expired */}
+      {!canCreate && accessInfo?.reason === 'trial_expired' && (
+        <div className="rounded-lg border-2 border-red-200 bg-red-50 p-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-bold text-red-900 text-lg mb-2">
+                Your 3-Day Trial Has Expired
+              </h3>
+              <p className="text-sm text-red-700 mb-4">
+                Subscribe to LeadVett Pro to continue creating forms and qualifying leads.
+              </p>
+              <Link
+                href="/pricing"
+                className="inline-flex items-center gap-2 rounded-md bg-red-600 px-6 py-3 text-sm font-semibold text-white hover:bg-red-700 transition-colors"
+              >
+                Subscribe Now - $49/month
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form Creation UI - Only show if access allowed */}
+      {canCreate && (
+        <>
+          <div>
+            <h1 className="text-3xl font-bold">Create New Form</h1>
+            <p className="text-muted-foreground mt-2">
+              Customize your lead qualification form with your own questions
             </p>
           </div>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (leadName.trim() && leadEmail.trim()) {
-                setCurrentQuestionIndex(0)
-              }
-            }}
-            className="space-y-4"
-          >
+          <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                {error}
+              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                <span>{error}</span>
               </div>
             )}
 
-            <div>
-              <label htmlFor="leadName" className="block text-sm font-medium mb-2">
-                Your Name
-              </label>
-              <input
-                id="leadName"
-                type="text"
-                required
-                value={leadName}
-                onChange={(e) => setLeadName(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                placeholder="John Doe"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="leadEmail" className="block text-sm font-medium mb-2">
-                Your Email
-              </label>
-              <input
-                id="leadEmail"
-                type="email"
-                required
-                value={leadEmail}
-                onChange={(e) => setLeadEmail(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                placeholder="john@example.com"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2"
-            >
-              Continue
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </form>
-        </div>
-      </div>
-    )
-  }
-
-  const currentQuestion = questions[currentQuestionIndex]
-  const isLastQuestion = currentQuestionIndex === questions.length - 1
-
-  return (
-    <div className="flex min-h-screen items-center justify-center p-4 py-8 md:py-4">
-      <div className="w-full max-w-2xl space-y-6">
-        <ProgressIndicator
-          current={currentQuestionIndex + 1}
-          total={questions.length}
-        />
-
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          {error && (
-            <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
-          )}
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              if (isLastQuestion) {
-                handleSubmit()
-              } else {
-                handleNext()
-              }
-            }}
-            className="space-y-6"
-          >
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">
-                {currentQuestion.question}
-                {currentQuestion.required && (
-                  <span className="text-red-600 ml-1">*</span>
-                )}
-              </h2>
-
-              {/* Text Input */}
-              {currentQuestion.type === 'text' && (
+            {/* Form Settings */}
+            <div className="rounded-lg border bg-card p-6 shadow-sm space-y-4">
+              <h2 className="text-lg font-semibold">Form Settings</h2>
+              
+              <div>
+                <label htmlFor="formName" className="block text-sm font-medium mb-2">
+                  Form Name <span className="text-red-600">*</span>
+                </label>
                 <input
+                  id="formName"
                   type="text"
-                  value={answers[currentQuestion.id] || ''}
-                  onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                  required={currentQuestion.required}
-                  className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  placeholder="Type your answer here..."
+                  required
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder="e.g., Instagram Campaign Leads, Q1 2024 Intake"
                 />
-              )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  Internal name to help you organize your forms
+                </p>
+              </div>
 
-              {/* Textarea */}
-              {currentQuestion.type === 'textarea' && (
+              <div>
+                <label htmlFor="instructions" className="block text-sm font-medium mb-2">
+                  Welcome Message (Optional)
+                </label>
                 <textarea
-                  value={answers[currentQuestion.id] || ''}
-                  onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                  required={currentQuestion.required}
-                  className="w-full min-h-[120px] rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  placeholder="Type your answer here..."
+                  id="instructions"
+                  value={instructions}
+                  onChange={(e) => setInstructions(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder="e.g., Thanks for your interest! Please answer these questions so we can better understand your needs..."
                 />
-              )}
-
-              {/* Number Input */}
-              {currentQuestion.type === 'number' && (
-                <input
-                  type="number"
-                  value={answers[currentQuestion.id] || ''}
-                  onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                  required={currentQuestion.required}
-                  className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  placeholder="Enter a number..."
-                />
-              )}
-
-              {/* Dropdown */}
-              {currentQuestion.type === 'dropdown' && (
-                <select
-                  value={answers[currentQuestion.id] || ''}
-                  onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
-                  required={currentQuestion.required}
-                  className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <option value="">Select an option...</option>
-                  {currentQuestion.options?.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              )}
+                <p className="text-xs text-muted-foreground mt-1">
+                  This message will appear at the top of your form
+                </p>
+              </div>
             </div>
 
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={handleBack}
-                className="flex items-center gap-2 rounded-md border border-input bg-background px-6 py-2 text-sm font-medium hover:bg-accent"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </button>
+            {/* Form Builder */}
+            <div className="rounded-lg border bg-card p-6 shadow-sm">
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold">Customize Your Questions</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Edit the default questions, change dropdown options, add new questions, or reorder them as needed
+                </p>
+              </div>
+              <FormBuilder 
+                initialQuestions={questions}
+                onUpdate={setQuestions}
+              />
+            </div>
+
+            {/* Create Button */}
+            <div className="flex gap-4 sticky bottom-0 bg-background py-4 border-t">
               <button
                 type="submit"
-                disabled={
-                  submitting ||
-                  (currentQuestion.required && !answers[currentQuestion.id]?.trim())
-                }
-                className="ml-auto flex items-center gap-2 rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                disabled={loading || !formName.trim() || questions.length === 0}
+                className="flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
-                {submitting ? (
-                  <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                    Submitting...
-                  </>
-                ) : isLastQuestion ? (
-                  'Submit'
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
+                <Save className="h-4 w-4" />
+                {loading ? 'Creating...' : 'Create Form'}
               </button>
+              <Link
+                href="/dashboard"
+                className="rounded-md border border-input bg-background px-6 py-3 text-sm font-medium hover:bg-accent"
+              >
+                Cancel
+              </Link>
             </div>
           </form>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   )
 }

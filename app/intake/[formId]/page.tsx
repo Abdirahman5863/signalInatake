@@ -25,19 +25,61 @@ export default function IntakeFormPage() {
   useEffect(() => {
     async function checkForm() {
       try {
-        const { data, error } = await supabase
+        // Try to find form by share_link first, then by id
+        let query = supabase
           .from('intake_forms')
           .select('*')
-          .eq('share_link', formId)
-          .single()
 
-        if (error || !data) {
-          setFormExists(false)
+        // Check if formId looks like a UUID or a share link
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(formId)
+        
+        if (isUUID) {
+          // Try both id and share_link
+          const { data: byId } = await supabase
+            .from('intake_forms')
+            .select('*')
+            .eq('id', formId)
+            .single()
+
+          if (byId) {
+            setFormExists(true)
+            setFormData(byId)
+            setLoading(false)
+            return
+          }
+
+          const { data: byShareLink } = await supabase
+            .from('intake_forms')
+            .select('*')
+            .eq('share_link', formId)
+            .single()
+
+          if (byShareLink) {
+            setFormExists(true)
+            setFormData(byShareLink)
+            setLoading(false)
+            return
+          }
         } else {
-          setFormExists(true)
-          setFormData(data)
+          // Assume it's a share_link
+          const { data } = await supabase
+            .from('intake_forms')
+            .select('*')
+            .eq('share_link', formId)
+            .single()
+
+          if (data) {
+            setFormExists(true)
+            setFormData(data)
+            setLoading(false)
+            return
+          }
         }
+
+        // If we get here, form was not found
+        setFormExists(false)
       } catch (err) {
+        console.error('Form lookup error:', err)
         setFormExists(false)
       } finally {
         setLoading(false)
@@ -70,70 +112,70 @@ export default function IntakeFormPage() {
   }
 
   const handleSubmit = async () => {
-  if (!leadName.trim() || !leadEmail.trim()) {
-    setError('Please provide your name and email')
-    return
-  }
-
-  setSubmitting(true)
-  setError(null)
-
-  try {
-    console.log('📊 LeadVett analyzing submission...')
-
-    // Call API with public submission flag
-    const analysisResponse = await fetch('/api/analyze-lead', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        answers,
-        questions,
-        formId: formData.id,  // ✅ Include formId
-        leadEmail: leadEmail.trim(),
-        leadName: leadName.trim(),
-        isPublicSubmission: true  // ✅ Flag as public submission
-      }),
-    })
-
-    if (!analysisResponse.ok) {
-      const errorData = await analysisResponse.json()
-      
-      if (errorData.formOwnerExpired) {
-        throw new Error('This form is no longer accepting submissions. Please contact the form owner.')
-      }
-      
-      throw new Error(errorData.error || 'Failed to submit form')
+    if (!leadName.trim() || !leadEmail.trim()) {
+      setError('Please provide your name and email')
+      return
     }
 
-    const { analysis } = await analysisResponse.json()
-    
-    console.log('✅ Submission successful:', analysis.badge)
+    setSubmitting(true)
+    setError(null)
 
-    // Redirect to thank you page
-    router.push(`/intake/${formId}/thank-you`)
-    
-  } catch (err: any) {
-    console.error('❌ Submission error:', err)
-    setError(err.message || 'An error occurred while submitting your response')
-  } finally {
-    setSubmitting(false)
+    try {
+      console.log('📊 LeadVett analyzing submission...')
+
+      // Call API with public submission flag
+      const analysisResponse = await fetch('/api/analyze-lead', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          answers,
+          questions,
+          formId: formData.id,  // Use the actual form ID from database
+          leadEmail: leadEmail.trim(),
+          leadName: leadName.trim(),
+          isPublicSubmission: true
+        }),
+      })
+
+      if (!analysisResponse.ok) {
+        const errorData = await analysisResponse.json()
+        
+        if (errorData.formOwnerExpired) {
+          throw new Error('This form is no longer accepting submissions. Please contact the form owner.')
+        }
+        
+        throw new Error(errorData.error || 'Failed to submit form')
+      }
+
+      const { analysis } = await analysisResponse.json()
+      
+      console.log('✅ Submission successful:', analysis.badge)
+
+      // Redirect to thank you page
+      router.push(`/intake/${formId}/thank-you`)
+      
+    } catch (err: any) {
+      console.error('❌ Submission error:', err)
+      setError(err.message || 'An error occurred while submitting your response')
+    } finally {
+      setSubmitting(false)
+    }
   }
-}
 
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        {/* <!-- Google tag (gtag.js) --> */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
-      <script dangerouslySetInnerHTML={{__html: `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){window.dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-C6QJQ6KGNJ');
-      `}}></script>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+        <script dangerouslySetInnerHTML={{__html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){window.dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-C6QJQ6KGNJ');
+        `}}></script>
         <div className="text-center">
+          <div className="h-8 w-8 border-4 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <div className="text-lg">Loading form...</div>
         </div>
       </div>
@@ -142,11 +184,15 @@ export default function IntakeFormPage() {
 
   if (!formExists) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-4">📋</div>
           <h1 className="text-2xl font-bold mb-2">Form Not Found</h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-6">
             This intake form does not exist or has been removed.
+          </p>
+          <p className="text-sm text-gray-500">
+            Form ID: <code className="bg-gray-100 px-2 py-1 rounded">{formId}</code>
           </p>
         </div>
       </div>
