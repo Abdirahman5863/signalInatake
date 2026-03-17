@@ -198,13 +198,13 @@ export default function NewFormPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Google Analytics */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+      {/* <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
       <script dangerouslySetInnerHTML={{__html: `
         window.dataLayer = window.dataLayer || [];
         function gtag(){window.dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-C6QJQ6KGNJ');
-      `}}></script>
+      `}}></script> */}
 
       <Link
         href="/dashboard"

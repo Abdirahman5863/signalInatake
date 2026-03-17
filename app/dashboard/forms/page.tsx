@@ -21,13 +21,13 @@ export default async function FormsPage() {
   return (
     <div className="space-y-6 px-4 sm:px-0">
       {/* Google Analytics */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+      {/* <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
       <script dangerouslySetInnerHTML={{__html: `
         window.dataLayer = window.dataLayer || [];
         function gtag(){window.dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-C6QJQ6KGNJ');
-      `}}></script>
+      `}}></script> */}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

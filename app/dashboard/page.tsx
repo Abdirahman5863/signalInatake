@@ -66,13 +66,13 @@ const { data: recentLeads, error: leadsError } = await supabase
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
       {/* Google Analytics */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+      {/* <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
       <script dangerouslySetInnerHTML={{__html: `
         window.dataLayer = window.dataLayer || [];
         function gtag(){window.dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-C6QJQ6KGNJ');
-      `}}></script>
+      `}}></script> */}
 
       {/* Client-side Auto Refresh Component */}
       <DashboardRefresh userId={user.id} />

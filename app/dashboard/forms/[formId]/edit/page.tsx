@@ -107,13 +107,13 @@ export default function EditFormPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* <!-- Google tag (gtag.js) --> */}
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
+      {/* <script async src="https://www.googletagmanager.com/gtag/js?id=G-C6QJQ6KGNJ"></script>
       <script dangerouslySetInnerHTML={{__html: `
         window.dataLayer = window.dataLayer || [];
         function gtag(){window.dataLayer.push(arguments);}
         gtag('js', new Date());
         gtag('config', 'G-C6QJQ6KGNJ');
-      `}}></script>
+      `}}></script> */}
       <Link
         href="/dashboard"
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
