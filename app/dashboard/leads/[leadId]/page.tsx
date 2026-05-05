@@ -15,6 +15,7 @@ export default function LeadDetailPage() {
   const leadId = params.leadId as string
   const [lead, setLead] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const aiAnalysis = lead.ai_analysis || {}
 
   useEffect(() => {
     async function loadLead() {
@@ -122,18 +123,18 @@ export default function LeadDetailPage() {
 
       {/* AI Analysis Section */}
       <div className="rounded-lg border bg-card p-6 shadow-sm">
-        <BadgeDisplay
-          badge={lead.badge}
-          strengths={lead.strengths}
-          risks={lead.risks}
-          dmScript={lead.dm_script}
-          summary={lead.summary}
-          action={lead.action}
-          ruleBreakdown={lead.rule_breakdown}
-          hardRuleTriggered={lead.hard_rule_triggered}
-          confidenceScore={lead.confidence_score}
-          confidenceLevel={lead.confidence_level}
-        />
+       <BadgeDisplay
+  badge={lead.badge}
+  strengths={lead.strengths || aiAnalysis.strengths}
+  risks={lead.risks || aiAnalysis.risks}
+  dmScript={lead.dm_script || aiAnalysis.dmScript}
+  summary={lead.summary || aiAnalysis.summary}
+  action={lead.action || aiAnalysis.action}
+  ruleBreakdown={lead.rule_breakdown || aiAnalysis.ruleBreakdown}
+  hardRuleTriggered={lead.hard_rule_triggered || aiAnalysis.hardRuleTriggered}
+  confidenceScore={lead.confidence_score}
+  confidenceLevel={lead.confidence_level || aiAnalysis.confidenceLevel}
+/>
       </div>
 
       {/* Contact & Timing */}
