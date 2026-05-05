@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { analyzeLead } from '@/lib/ai/analyze'
 import { FormQuestion } from '@/lib/forms'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 
 const TRIAL_DAYS = 3
+
+// Service role client — bypasses RLS, safe to use server-side only
+const serviceSupabase = createServiceClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { autoRefreshToken: false, persistSession: false } }
+)
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,11 +27,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Handle public form submissions (no auth required)
+    // ─── PUBLIC FORM SUBMISSION (no auth required) ───────────────────────────
     if (isPublicSubmission) {
       console.log('📝 Public form submission received')
 
-      // Get form owner to check their subscription
       if (!formId) {
         return NextResponse.json(
           { error: 'Form ID required for public submissions' },
@@ -31,7 +38,8 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const { data: form, error: formError } = await supabase
+      // Use service client to read form (bypasses RLS)
+      const { data: form, error: formError } = await serviceSupabase
         .from('intake_forms')
         .select('user_id')
         .eq('id', formId)
@@ -47,31 +55,34 @@ export async function POST(request: NextRequest) {
       const formOwnerId = form.user_id
 
       // Check form owner's subscription status
-      const { data: subscription } = await supabase
+      const { data: subscription } = await serviceSupabase
         .from('subscriptions')
         .select('status, current_period_end')
         .eq('user_id', formOwnerId)
         .single()
 
-      const hasActiveSubscription = subscription?.status === 'active' && 
+      const hasActiveSubscription =
+        subscription?.status === 'active' &&
         new Date(subscription.current_period_end) > new Date()
 
-      // Check form owner's trial status
+      // Check trial status if no active subscription
       if (!hasActiveSubscription) {
         const { data: { user: formOwner } } = await supabase.auth.admin.getUserById(formOwnerId)
-        
+
         if (formOwner) {
           const signupDate = new Date(formOwner.created_at)
           const now = new Date()
-          const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
+          const daysSinceSignup = Math.floor(
+            (now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24)
+          )
           const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
 
           if (trialDaysLeft === 0) {
             console.log('❌ Form owner trial expired')
             return NextResponse.json(
-              { 
-                error: 'This form is no longer active. The owner\'s trial has expired.',
-                formOwnerExpired: true
+              {
+                error: "This form is no longer active. The owner's trial has expired.",
+                formOwnerExpired: true,
               },
               { status: 403 }
             )
@@ -90,68 +101,57 @@ export async function POST(request: NextRequest) {
 
       console.log('✅ Analysis complete:', {
         badge: analysis.badge,
-        confidence: `${analysis.confidenceScore}%`
+        confidence: `${analysis.confidenceScore}%`,
       })
 
-      // Save lead to database
+      // Save lead using service role — bypasses RLS safely
       console.log('💾 Saving lead to database...')
-      
-    const { data: lead, error: leadError } = await supabase
-  .from('lead_responses')
-  .insert({
-    form_id: formId,
-    lead_email: leadEmail || answers.email || 'unknown@email.com',
-    lead_name: leadName || answers.name || 'Unknown Lead',
-    answers: answers,
-    badge: analysis.badge,
-    confidence_score: analysis.confidenceScore,
-    confidence_level: analysis.confidenceLevel,
-    summary: analysis.summary,
-    strengths: analysis.strengths,
-    risks: analysis.risks,
-    dm_script: analysis.dmScript,
-    action: analysis.action,
-    rule_breakdown: analysis.ruleBreakdown,
-    hard_rule_triggered: analysis.hardRuleTriggered || null,
-    ai_analysis: {},  // keep empty, no longer used
-    status: 'new'
-  })
-  .select()
-  .single()
+      const { data: lead, error: leadError } = await serviceSupabase
+        .from('lead_responses')
+        .insert({
+          form_id: formId,
+          lead_email: leadEmail || answers.email || 'unknown@email.com',
+          lead_name: leadName || answers.name || 'Unknown Lead',
+          answers: answers,
+          badge: analysis.badge,
+          confidence_score: analysis.confidenceScore,
+          confidence_level: analysis.confidenceLevel,
+          summary: analysis.summary,
+          strengths: analysis.strengths,
+          risks: analysis.risks,
+          dm_script: analysis.dmScript,
+          action: analysis.action,
+          rule_breakdown: analysis.ruleBreakdown,
+          hard_rule_triggered: analysis.hardRuleTriggered || null,
+          ai_analysis: {},
+          status: 'new',
+        })
+        .select()
+        .single()
 
       if (leadError) {
-  console.error('❌ Failed to save lead - FULL ERROR:', leadError)
-  console.error('Error code:', leadError.code)
-  console.error('Error message:', leadError.message)
-  console.error('Error details:', leadError.details)
-  console.error('Error hint:', leadError.hint)
-  
-  // Return the actual error to the client so they can see what's wrong
-  return NextResponse.json(
-    { 
-      error: 'Failed to save lead',
-      details: leadError.message,
-      code: leadError.code,
-      hint: leadError.hint,
-      fullError: leadError
-    },
-    { status: 500 }
-  )
-}
+        console.error('❌ Failed to save lead - FULL ERROR:', leadError)
+        return NextResponse.json(
+          {
+            error: 'Failed to save lead',
+            details: leadError.message,
+            code: leadError.code,
+            hint: leadError.hint,
+            fullError: leadError,
+          },
+          { status: 500 }
+        )
+      }
 
       console.log('✅ Lead saved with ID:', lead.id)
-      
-      // Revalidate form owner's dashboard
+
       revalidatePath('/dashboard')
       revalidatePath('/dashboard/leads')
 
-      return NextResponse.json({ 
-        success: true, 
-        analysis 
-      })
+      return NextResponse.json({ success: true, analysis })
     }
 
-    // Handle authenticated dashboard usage (existing code)
+    // ─── AUTHENTICATED DASHBOARD USAGE ───────────────────────────────────────
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -161,31 +161,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user has active subscription
+    // Check subscription
     const { data: subscription } = await supabase
       .from('subscriptions')
       .select('status, current_period_end')
       .eq('user_id', user.id)
       .single()
 
-    const hasActiveSubscription = subscription?.status === 'active' && 
+    const hasActiveSubscription =
+      subscription?.status === 'active' &&
       new Date(subscription.current_period_end) > new Date()
 
-    // If no active subscription, check trial period
+    // Check trial period
     if (!hasActiveSubscription) {
       const signupDate = new Date(user.created_at)
       const now = new Date()
-      const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
+      const daysSinceSignup = Math.floor(
+        (now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24)
+      )
       const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
 
       if (trialDaysLeft === 0) {
         console.log('❌ Trial expired for user:', user.email)
         return NextResponse.json(
-          { 
+          {
             error: 'Your 3-day trial has expired. Subscribe to continue using LeadVett.',
             requiresSubscription: true,
             trialExpired: true,
-            redirectTo: '/pricing'
+            redirectTo: '/pricing',
           },
           { status: 403 }
         )
@@ -196,7 +199,6 @@ export async function POST(request: NextRequest) {
 
     console.log('🤖 LeadVett AI analyzing with', questions.length, 'custom questions...')
 
-    // Run AI analysis
     const analysis = await analyzeLead(
       answers as Record<string, string>,
       questions as FormQuestion[]
@@ -205,14 +207,14 @@ export async function POST(request: NextRequest) {
     console.log('✅ Analysis complete:', {
       badge: analysis.badge,
       confidence: `${analysis.confidenceScore}%`,
-      rules: analysis.ruleBreakdown.length
+      rules: analysis.ruleBreakdown.length,
     })
 
-    // Save lead to database if formId is provided
+    // Save lead using service role — flat columns, no RLS issues
     if (formId) {
       console.log('💾 Saving lead to database...')
-      
-      const { data: lead, error: leadError } = await supabase
+
+      const { data: lead, error: leadError } = await serviceSupabase
         .from('lead_responses')
         .insert({
           form_id: formId,
@@ -221,17 +223,16 @@ export async function POST(request: NextRequest) {
           answers: answers,
           badge: analysis.badge,
           confidence_score: analysis.confidenceScore,
-          ai_analysis: {
-            summary: analysis.summary,
-            strengths: analysis.strengths,
-            risks: analysis.risks,
-            dmScript: analysis.dmScript,
-            action: analysis.action,
-            ruleBreakdown: analysis.ruleBreakdown,
-            hardRuleTriggered: analysis.hardRuleTriggered,
-            confidenceLevel: analysis.confidenceLevel
-          },
-          status: 'new'
+          confidence_level: analysis.confidenceLevel,
+          summary: analysis.summary,
+          strengths: analysis.strengths,
+          risks: analysis.risks,
+          dm_script: analysis.dmScript,
+          action: analysis.action,
+          rule_breakdown: analysis.ruleBreakdown,
+          hard_rule_triggered: analysis.hardRuleTriggered || null,
+          ai_analysis: {},
+          status: 'new',
         })
         .select()
         .single()
@@ -240,19 +241,14 @@ export async function POST(request: NextRequest) {
         console.error('❌ Failed to save lead:', leadError)
       } else {
         console.log('✅ Lead saved with ID:', lead.id)
-        
-        // Revalidate dashboard and leads pages to show new data
         revalidatePath('/dashboard')
         revalidatePath('/dashboard/leads')
         revalidatePath(`/dashboard/leads/${lead.id}`)
       }
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      analysis 
-    })
-    
+    return NextResponse.json({ success: true, analysis })
+
   } catch (error: any) {
     console.error('❌ LeadVett AI Error:', error)
     return NextResponse.json(
