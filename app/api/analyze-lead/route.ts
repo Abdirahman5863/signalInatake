@@ -96,29 +96,28 @@ export async function POST(request: NextRequest) {
       // Save lead to database
       console.log('💾 Saving lead to database...')
       
-      const { data: lead, error: leadError } = await supabase
-        .from('lead_responses')
-        .insert({
-          form_id: formId,
-          lead_email: leadEmail || answers.email || 'unknown@email.com',
-          lead_name: leadName || answers.name || 'Unknown Lead',
-          answers: answers,
-          badge: analysis.badge,
-          confidence_score: analysis.confidenceScore,
-          ai_analysis: {
-            summary: analysis.summary,
-            strengths: analysis.strengths,
-            risks: analysis.risks,
-            dmScript: analysis.dmScript,
-            action: analysis.action,
-            ruleBreakdown: analysis.ruleBreakdown,
-            hardRuleTriggered: analysis.hardRuleTriggered,
-            confidenceLevel: analysis.confidenceLevel
-          },
-          status: 'new'
-        })
-        .select()
-        .single()
+    const { data: lead, error: leadError } = await supabase
+  .from('lead_responses')
+  .insert({
+    form_id: formId,
+    lead_email: leadEmail || answers.email || 'unknown@email.com',
+    lead_name: leadName || answers.name || 'Unknown Lead',
+    answers: answers,
+    badge: analysis.badge,
+    confidence_score: analysis.confidenceScore,
+    confidence_level: analysis.confidenceLevel,
+    summary: analysis.summary,
+    strengths: analysis.strengths,
+    risks: analysis.risks,
+    dm_script: analysis.dmScript,
+    action: analysis.action,
+    rule_breakdown: analysis.ruleBreakdown,
+    hard_rule_triggered: analysis.hardRuleTriggered || null,
+    ai_analysis: {},  // keep empty, no longer used
+    status: 'new'
+  })
+  .select()
+  .single()
 
       if (leadError) {
   console.error('❌ Failed to save lead - FULL ERROR:', leadError)
