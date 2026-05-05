@@ -2,15 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { analyzeLead } from '@/lib/ai/analyze'
 import { FormQuestion } from '@/lib/forms'
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 
 const TRIAL_DAYS = 3
-const serviceSupabase = createServiceClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  { auth: { autoRefreshToken: false, persistSession: false } }
-)
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -36,7 +31,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const { data: form, error: formError } = await  serviceSupabase
+      const { data: form, error: formError } = await supabase
         .from('intake_forms')
         .select('user_id')
         .eq('id', formId)
@@ -101,7 +96,7 @@ export async function POST(request: NextRequest) {
       // Save lead to database
       console.log('💾 Saving lead to database...')
       
-    const { data: lead, error: leadError } = await  serviceSupabase
+    const { data: lead, error: leadError } = await supabase
   .from('lead_responses')
  .insert({
           form_id: formId,
@@ -217,7 +212,7 @@ export async function POST(request: NextRequest) {
     if (formId) {
       console.log('💾 Saving lead to database...')
       
-      const { data: lead, error: leadError } = await  serviceSupabase
+      const { data: lead, error: leadError } = await supabase
         .from('lead_responses')
         
           .insert({
