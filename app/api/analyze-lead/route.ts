@@ -121,9 +121,24 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (leadError) {
-        console.error('❌ Failed to save lead:', leadError)
-        throw new Error('Failed to save lead')
-      }
+  console.error('❌ Failed to save lead - FULL ERROR:', leadError)
+  console.error('Error code:', leadError.code)
+  console.error('Error message:', leadError.message)
+  console.error('Error details:', leadError.details)
+  console.error('Error hint:', leadError.hint)
+  
+  // Return the actual error to the client so they can see what's wrong
+  return NextResponse.json(
+    { 
+      error: 'Failed to save lead',
+      details: leadError.message,
+      code: leadError.code,
+      hint: leadError.hint,
+      fullError: leadError
+    },
+    { status: 500 }
+  )
+}
 
       console.log('✅ Lead saved with ID:', lead.id)
       

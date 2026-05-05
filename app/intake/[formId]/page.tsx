@@ -116,15 +116,21 @@ export default function IntakeFormPage() {
       })
 
       if (!analysisResponse.ok) {
-        const errorData = await analysisResponse.json()
+  const errorData = await analysisResponse.json()
+  
+  console.error('❌ Full API Error:', errorData)
 
-        if (errorData.formOwnerExpired) {
-          throw new Error('This form is no longer accepting submissions. Please contact the form owner.')
-        }
+  if (errorData.formOwnerExpired) {
+    throw new Error('This form is no longer accepting submissions. Please contact the form owner.')
+  }
 
-        throw new Error(errorData.error || 'Failed to submit form')
-      }
-
+  // Show the detailed error
+  const errorMessage = errorData.details 
+    ? `${errorData.error}: ${errorData.details}${errorData.hint ? ` (${errorData.hint})` : ''}`
+    : errorData.error || 'Failed to submit form'
+  
+  throw new Error(errorMessage)
+}
       const { analysis } = await analysisResponse.json()
 
       console.log('✅ Submission successful:', analysis.badge)
