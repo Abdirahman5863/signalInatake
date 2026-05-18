@@ -72,7 +72,7 @@ export const metadata: Metadata = {
     description: DEFAULT_DESCRIPTION,
     images: [
       {
-        url: "/leadicon.png",      // 1200x630px — create this if missing
+        url: "/og-image.png",      // 1200x630px — create this if missing
         width: 1200,
         height: 630,
         alt: "LeadVett — AI Lead Qualification Tool for Agencies",
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
     creator: "@abdirahman5863",
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
-    images: ["/leadicon.png"],
+    images: ["/og-image.png"],
   },
 
   // ── Robots ─────────────────────────────────────────────────────────────────
