@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const results = await Promise.all(
       leads.map((lead: any) =>
         resend.emails.send({
-          from: 'Abdirahman from LeadVett <contact@leadvett.com>',
+          from: 'LeadVett <hello@leadvett.com>',
           replyTo: 'contact@leadvett.com',
           to: lead.email,
           subject: lead.subject,
