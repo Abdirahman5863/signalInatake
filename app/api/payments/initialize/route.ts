@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { dodo, PRODUCT_IDS } from '@/lib/payments/dodo'
+import { getDodoClient, PRODUCT_IDS } from '@/lib/payments/dodo'
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     // ── Create checkout session via Dodo SDK ──────────────────────
     try {
-      const checkout = await dodo.checkoutSessions.create({
+      const checkout = await getDodoClient().checkoutSessions.create({
         product_cart: [
           {
             product_id: PRODUCT_IDS.Leadvett,

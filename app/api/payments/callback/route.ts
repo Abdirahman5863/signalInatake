@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { dodo } from '@/lib/payments/dodo'
+import { getDodoClient } from '@/lib/payments/dodo'
 
 // ─── GET — redirect callback from Dodo checkout ──────────────────────────────
 export async function GET(request: NextRequest) {
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
       if (dodoSessionId) {
         console.log('🔍 Verifying payment with Dodo session:', dodoSessionId)
-        dodoSessionData = await dodo.checkoutSessions.retrieve(dodoSessionId)
+        dodoSessionData = await getDodoClient().checkoutSessions.retrieve(dodoSessionId)
         console.log('🔍 Dodo session status:', dodoSessionData?.status)
 
         // Only trust verified statuses from Dodo API
