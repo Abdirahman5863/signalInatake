@@ -1,4 +1,4 @@
-# OAuth Setup Guide for SignalIntake
+# OAuth Setup Guide for LeadVett
 
 ## OAuth Flow Explanation
 
