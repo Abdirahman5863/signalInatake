@@ -23,7 +23,8 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
       question: 'New Question',
       type: 'text',
       required: true,
-      order: questions.length + 1
+      order: questions.length + 1,
+      purpose: 'general'
     }
     const updated = [...questions, newQuestion]
     setQuestions(updated)
@@ -180,6 +181,19 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
                         <option value="textarea">Long Text</option>
                         <option value="dropdown">Dropdown</option>
                         <option value="number">Number</option>
+                      </select>
+
+                      <select
+                        value={question.purpose || 'general'}
+                        onChange={(e) => updateQuestion(question.id, { purpose: e.target.value as FormQuestion['purpose'] })}
+                        className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        aria-label="Scoring purpose"
+                      >
+                        <option value="general">General signal</option>
+                        <option value="need">Need / pain</option>
+                        <option value="budget">Budget</option>
+                        <option value="timeline">Timeline</option>
+                        <option value="authority">Decision authority</option>
                       </select>
 
                       <label className="flex items-center gap-2">

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { FormQuestion } from '@/lib/forms'
 import { ProgressIndicator } from '@/components/intake/ProgressIndicator'
@@ -9,7 +9,6 @@ import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 export default function IntakeFormPage() {
   const params = useParams()
-  const router = useRouter()
   const formId = params.formId as string
 
   const [formExists, setFormExists] = useState<boolean | null>(null)
@@ -21,6 +20,7 @@ export default function IntakeFormPage() {
   const [leadEmail, setLeadEmail] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [submissionResult, setSubmissionResult] = useState<{ status: string; title: string; message: string; bookingUrl?: string | null } | null>(null)
 
   useEffect(() => {
     async function checkForm() {
@@ -28,7 +28,7 @@ export default function IntakeFormPage() {
         // Always try share_link first — works for all users including anonymous
         const { data: byShareLink } = await supabase
           .from('intake_forms')
-          .select('*')
+          .select('id, form_name, instructions, questions, share_link')
           .eq('share_link', formId)
           .maybeSingle()
 
@@ -42,7 +42,7 @@ export default function IntakeFormPage() {
         // Fallback: try by actual id
         const { data: byId } = await supabase
           .from('intake_forms')
-          .select('*')
+          .select('id, form_name, instructions, questions, share_link')
           .eq('id', formId)
           .maybeSingle()
 
@@ -107,7 +107,6 @@ export default function IntakeFormPage() {
         },
         body: JSON.stringify({
           answers,
-          questions,
           formId: formData.id,
           leadEmail: leadEmail.trim(),
           leadName: leadName.trim(),
@@ -131,11 +130,11 @@ export default function IntakeFormPage() {
   
   throw new Error(errorMessage)
 }
-      const { analysis } = await analysisResponse.json()
+      const { result } = await analysisResponse.json()
 
-      console.log('✅ Submission successful:', analysis.badge)
+      console.log('✅ Submission successful')
 
-      router.push(`/intake/${formId}/thank-you`)
+      setSubmissionResult(result)
 
     } catch (err: any) {
       console.error('❌ Submission error:', err)
@@ -168,6 +167,25 @@ export default function IntakeFormPage() {
           <p className="text-sm text-gray-500">
             Form ID: <code className="bg-gray-100 px-2 py-1 rounded">{formId}</code>
           </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (submissionResult) {
+    const canBook = submissionResult.status === 'ready_to_book' && submissionResult.bookingUrl
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f7f3eb] p-4">
+        <div className="w-full max-w-xl rounded-2xl border border-black/10 bg-white p-8 text-center shadow-xl md:p-12">
+          <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-[#b99345] text-xl text-white">✓</div>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.22em] text-[#9b762f]">Submission received</p>
+          <h1 className="text-3xl font-semibold text-[#101010]">{submissionResult.title}</h1>
+          <p className="mx-auto mt-4 max-w-md text-base leading-7 text-black/60">{submissionResult.message}</p>
+          {canBook && (
+            <a href={submissionResult.bookingUrl!} target="_blank" rel="noreferrer" className="mt-8 inline-flex rounded-full bg-[#101010] px-7 py-3 font-medium text-white transition hover:bg-[#b99345]">
+              Choose a time
+            </a>
+          )}
         </div>
       </div>
     )

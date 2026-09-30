@@ -1,263 +1,87 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { analyzeLead } from '@/lib/ai/analyze'
-import { FormQuestion } from '@/lib/forms'
-import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { analyzeLead } from '@/lib/ai/analyze'
+import { DEFAULT_QUALIFICATION_POLICY, DEFAULT_RESULT_MESSAGES, FormQuestion, QualificationPolicy, ResultMessages } from '@/lib/forms'
+import { createClient } from '@/lib/supabase/server'
 
-const TRIAL_DAYS = 3
+type FormRecord = { id: string; user_id: string; questions: FormQuestion[]; qualification_policy: Partial<QualificationPolicy> | null; booking_url: string | null; result_messages: Partial<ResultMessages> | null }
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { answers, questions, formId, leadEmail, leadName, isPublicSubmission } = body
+    const formId = typeof body.formId === 'string' ? body.formId : ''
+    if (!formId || !body.answers || typeof body.answers !== 'object') return NextResponse.json({ error: 'A form and answers are required.' }, { status: 400 })
 
-    if (!answers || !questions) {
-      return NextResponse.json(
-        { error: 'Missing answers or questions' },
-        { status: 400 }
-      )
+    const { data: form, error: formError } = await supabase.from('intake_forms').select('id, user_id, questions, qualification_policy, booking_url, result_messages').eq('id', formId).single<FormRecord>()
+    if (formError || !form) return NextResponse.json({ error: 'Form not found.' }, { status: 404 })
+
+    const questions = Array.isArray(form.questions) ? form.questions : []
+    const validation = validateAnswers(body.answers, questions)
+    if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 })
+
+    const policy = { ...DEFAULT_QUALIFICATION_POLICY, ...(form.qualification_policy || {}) }
+    if (policy.silverThreshold >= policy.goldThreshold) return NextResponse.json({ error: 'This form has an invalid qualification policy.' }, { status: 422 })
+
+    const leadEmail = cleanText(body.leadEmail, 254)
+    if (!/^\S+@\S+\.\S+$/.test(leadEmail)) return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
+
+    const analysis = await analyzeLead(validation.answers, questions, policy)
+    const { data: lead, error: leadError } = await supabase.from('lead_responses').insert({
+      form_id: form.id,
+      lead_email: leadEmail,
+      lead_name: cleanText(body.leadName, 120) || 'Unknown Lead',
+      answers: validation.answers,
+      badge: analysis.badge,
+      confidence_score: analysis.confidenceScore,
+      confidence_level: analysis.confidenceLevel,
+      summary: analysis.summary,
+      strengths: analysis.strengths,
+      risks: analysis.risks,
+      dm_script: analysis.dmScript,
+      action: analysis.action,
+      rule_breakdown: analysis.ruleBreakdown,
+      hard_rule_triggered: analysis.hardRuleTriggered || null,
+      ai_analysis: {}, status: 'new', qualification_status: analysis.qualificationStatus, pipeline_status: 'new',
+    }).select('id').single()
+
+    if (leadError) {
+      console.error('Failed to save lead:', leadError)
+      return NextResponse.json({ error: 'Failed to save this submission.' }, { status: 500 })
     }
 
-    // Handle public form submissions (no auth required)
-    if (isPublicSubmission) {
-      console.log('📝 Public form submission received')
-
-      // Get form owner to check their subscription
-      if (!formId) {
-        return NextResponse.json(
-          { error: 'Form ID required for public submissions' },
-          { status: 400 }
-        )
-      }
-
-      const { data: form, error: formError } = await supabase
-        .from('intake_forms')
-        .select('user_id')
-        .eq('id', formId)
-        .single()
-
-      if (formError || !form) {
-        return NextResponse.json(
-          { error: 'Form not found' },
-          { status: 404 }
-        )
-      }
-
-      const formOwnerId = form.user_id
-
-      // Check form owner's subscription status
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('status, current_period_end')
-        .eq('user_id', formOwnerId)
-        .single()
-
-      const hasActiveSubscription = subscription?.status === 'active' && 
-        new Date(subscription.current_period_end) > new Date()
-
-      // Check form owner's trial status
-      if (!hasActiveSubscription) {
-        const { data: { user: formOwner } } = await supabase.auth.admin.getUserById(formOwnerId)
-        
-        if (formOwner) {
-          const signupDate = new Date(formOwner.created_at)
-          const now = new Date()
-          const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
-          const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
-
-          if (trialDaysLeft === 0) {
-            console.log('❌ Form owner trial expired')
-            return NextResponse.json(
-              { 
-                error: 'This form is no longer active. The owner\'s trial has expired.',
-                formOwnerExpired: true
-              },
-              { status: 403 }
-            )
-          }
-
-          console.log(`⏰ Form owner in trial: ${trialDaysLeft} days left`)
-        }
-      }
-
-      // Run AI analysis
-      console.log('🤖 LeadVett AI analyzing public submission...')
-      const analysis = await analyzeLead(
-        answers as Record<string, string>,
-        questions as FormQuestion[]
-      )
-
-      console.log('✅ Analysis complete:', {
-        badge: analysis.badge,
-        confidence: `${analysis.confidenceScore}%`
-      })
-
-      // Save lead to database
-      console.log('💾 Saving lead to database...')
-      
-    const { data: lead, error: leadError } = await supabase
-  .from('lead_responses')
- .insert({
-          form_id: formId,
-          lead_email: leadEmail || answers.email || 'unknown@email.com',
-          lead_name: leadName || answers.name || 'Unknown Lead',
-          answers: answers,
-          badge: analysis.badge,
-          confidence_score: analysis.confidenceScore,
-          confidence_level: analysis.confidenceLevel,
-          summary: analysis.summary,
-          strengths: analysis.strengths,
-          risks: analysis.risks,
-          dm_script: analysis.dmScript,
-          action: analysis.action,
-          rule_breakdown: analysis.ruleBreakdown,
-          hard_rule_triggered: analysis.hardRuleTriggered || null,
-          ai_analysis: {},
-          status: 'new',
-  })
-  .select()
-  .single()
-
-      if (leadError) {
-  console.error('❌ Failed to save lead - FULL ERROR:', leadError)
-  console.error('Error code:', leadError.code)
-  console.error('Error message:', leadError.message)
-  console.error('Error details:', leadError.details)
-  console.error('Error hint:', leadError.hint)
-  
-  // Return the actual error to the client so they can see what's wrong
-  return NextResponse.json(
-    { 
-      error: 'Failed to save lead',
-      details: leadError.message,
-      code: leadError.code,
-      hint: leadError.hint,
-      fullError: leadError
-    },
-    { status: 500 }
-  )
+    const messages = { ...DEFAULT_RESULT_MESSAGES, ...(form.result_messages || {}) }
+    const result = buildPublicResult(analysis.qualificationStatus, messages, form.booking_url)
+    revalidatePath('/dashboard')
+    revalidatePath('/dashboard/leads')
+    return NextResponse.json({ success: true, leadId: lead.id, result })
+  } catch (error) {
+    console.error('LeadVett analysis error:', error)
+    return NextResponse.json({ error: 'Analysis failed. Please try again.' }, { status: 500 })
+  }
 }
 
-      console.log('✅ Lead saved with ID:', lead.id)
-      
-      // Revalidate form owner's dashboard
-      revalidatePath('/dashboard')
-      revalidatePath('/dashboard/leads')
-
-      return NextResponse.json({ 
-        success: true, 
-        analysis 
-      })
-    }
-
-    // Handle authenticated dashboard usage (existing code)
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      )
-    }
-
-    // Check if user has active subscription
-    const { data: subscription } = await supabase
-      .from('subscriptions')
-      .select('status, current_period_end')
-      .eq('user_id', user.id)
-      .single()
-
-    const hasActiveSubscription = subscription?.status === 'active' && 
-      new Date(subscription.current_period_end) > new Date()
-
-    // If no active subscription, check trial period
-    if (!hasActiveSubscription) {
-      const signupDate = new Date(user.created_at)
-      const now = new Date()
-      const daysSinceSignup = Math.floor((now.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24))
-      const trialDaysLeft = Math.max(0, TRIAL_DAYS - daysSinceSignup)
-
-      if (trialDaysLeft === 0) {
-        console.log('❌ Trial expired for user:', user.email)
-        return NextResponse.json(
-          { 
-            error: 'Your 3-day trial has expired. Subscribe to continue using LeadVett.',
-            requiresSubscription: true,
-            trialExpired: true,
-            redirectTo: '/pricing'
-          },
-          { status: 403 }
-        )
-      }
-
-      console.log(`⏰ User in trial: ${trialDaysLeft} days left`)
-    }
-
-    console.log('🤖 LeadVett AI analyzing with', questions.length, 'custom questions...')
-
-    // Run AI analysis
-    const analysis = await analyzeLead(
-      answers as Record<string, string>,
-      questions as FormQuestion[]
-    )
-
-    console.log('✅ Analysis complete:', {
-      badge: analysis.badge,
-      confidence: `${analysis.confidenceScore}%`,
-      rules: analysis.ruleBreakdown.length
-    })
-
-    // Save lead to database if formId is provided
-    if (formId) {
-      console.log('💾 Saving lead to database...')
-      
-      const { data: lead, error: leadError } = await supabase
-        .from('lead_responses')
-        
-          .insert({
-          form_id: formId,
-          lead_email: leadEmail || answers.email || 'unknown@email.com',
-          lead_name: leadName || answers.name || 'Unknown Lead',
-          answers: answers,
-          badge: analysis.badge,
-          confidence_score: analysis.confidenceScore,
-          confidence_level: analysis.confidenceLevel,
-          summary: analysis.summary,
-          strengths: analysis.strengths,
-          risks: analysis.risks,
-          dm_script: analysis.dmScript,
-          action: analysis.action,
-          rule_breakdown: analysis.ruleBreakdown,
-          hard_rule_triggered: analysis.hardRuleTriggered || null,
-          ai_analysis: {},
-          status: 'new'
-        })
-        .select()
-        .single()
-
-      if (leadError) {
-        console.error('❌ Failed to save lead:', leadError)
-      } else {
-        console.log('✅ Lead saved with ID:', lead.id)
-        
-        // Revalidate dashboard and leads pages to show new data
-        revalidatePath('/dashboard')
-        revalidatePath('/dashboard/leads')
-        revalidatePath(`/dashboard/leads/${lead.id}`)
-      }
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      analysis 
-    })
-    
-  } catch (error: any) {
-    console.error('❌ LeadVett AI Error:', error)
-    return NextResponse.json(
-      { error: error.message || 'Analysis failed' },
-      { status: 500 }
-    )
+function validateAnswers(raw: Record<string, unknown>, questions: FormQuestion[]): { ok: true; answers: Record<string, string> } | { ok: false; error: string } {
+  const answers: Record<string, string> = {}
+  for (const question of questions) {
+    const value = cleanText(raw[question.id], 3000)
+    if (question.required && !value) return { ok: false, error: `Please answer: ${question.question}` }
+    if (value && question.type === 'dropdown' && question.options && !question.options.includes(value)) return { ok: false, error: `Invalid answer for: ${question.question}` }
+    if (value) answers[question.id] = value
   }
+  return { ok: true, answers }
+}
+
+function cleanText(value: unknown, maxLength: number): string { return typeof value === 'string' ? value.trim().slice(0, maxLength) : '' }
+
+function buildPublicResult(status: string, messages: ResultMessages, bookingUrl: string | null) {
+  if (status === 'ready_to_book') return { status, title: 'You are a strong fit', message: messages.gold, bookingUrl: safeUrl(bookingUrl) }
+  if (status === 'nurture') return { status, title: 'Thanks — we have your details', message: messages.silver }
+  if (status === 'manual_review') return { status, title: 'One quick review needed', message: messages.manualReview }
+  return { status: 'not_a_fit', title: 'Thanks for your time', message: messages.bronze }
+}
+
+function safeUrl(value: string | null): string | null {
+  if (!value) return null
+  try { const url = new URL(value); return url.protocol === 'https:' ? url.toString() : null } catch { return null }
 }

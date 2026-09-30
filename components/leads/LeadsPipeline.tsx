@@ -201,6 +201,11 @@ export function LeadsPipeline({ leads }: LeadsPipelineProps) {
                         {lead.confidence_score}% confidence
                       </span>
                     )}
+                    {lead.qualification_status && (
+                      <span className="rounded-full border border-black/10 bg-white/70 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-700">
+                        {lead.qualification_status.replaceAll('_', ' ')}
+                      </span>
+                    )}
                   </div>
 
                   {/* Email */}

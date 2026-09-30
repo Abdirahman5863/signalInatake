@@ -15,6 +15,14 @@ export default function LeadDetailPage() {
   const leadId = params.leadId as string
   const [lead, setLead] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+
+  const updatePipelineStatus = async (pipelineStatus: string) => {
+    setUpdatingStatus(true)
+    const { error } = await supabase.from('lead_responses').update({ pipeline_status: pipelineStatus }).eq('id', leadId)
+    if (!error) setLead((current: any) => ({ ...current, pipeline_status: pipelineStatus }))
+    setUpdatingStatus(false)
+  }
 
 
   useEffect(() => {
@@ -105,6 +113,9 @@ export default function LeadDetailPage() {
           <p className="text-muted-foreground">
             {lead.intake_forms?.form_name || 'Unknown Form'}
           </p>
+          <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-[#9b762f]">
+            {(lead.qualification_status || 'received').replaceAll('_', ' ')} · {(lead.pipeline_status || 'new').replaceAll('_', ' ')}
+          </p>
         </div>
         <a
           href={`mailto:${lead.lead_email}`}
@@ -164,10 +175,18 @@ export default function LeadDetailPage() {
               Send Email
             </a>
             <button
+              type="button"
+              disabled={updatingStatus}
+              onClick={() => updatePipelineStatus('contacted')}
               className="block w-full rounded-md border px-4 py-2 text-sm font-medium hover:bg-accent transition-colors"
             >
-              Mark as Contacted
+              {lead.pipeline_status === 'contacted' ? 'Contacted' : 'Mark as Contacted'}
             </button>
+            <div className="grid grid-cols-3 gap-2">
+              {['booked', 'won', 'lost'].map((status) => (
+                <button key={status} type="button" disabled={updatingStatus} onClick={() => updatePipelineStatus(status)} className={`rounded-md border px-2 py-2 text-xs font-medium capitalize hover:bg-accent ${lead.pipeline_status === status ? 'bg-[#101010] text-white' : ''}`}>{status}</button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

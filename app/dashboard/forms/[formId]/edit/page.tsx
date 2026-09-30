@@ -7,6 +7,8 @@ import { ArrowLeft, Save } from 'lucide-react'
 import Link from 'next/link'
 import { FormBuilder } from '@/components/forms/FormBuilder'
 import { FormQuestion, DEFAULT_QUESTIONS } from '@/lib/forms'
+import { DEFAULT_QUALIFICATION_POLICY, DEFAULT_RESULT_MESSAGES, QualificationPolicy, ResultMessages } from '@/lib/forms'
+import { QualificationPolicyEditor } from '@/components/forms/QualificationPolicyEditor'
 
 export default function EditFormPage() {
   const router = useRouter()
@@ -16,6 +18,9 @@ export default function EditFormPage() {
   const [formName, setFormName] = useState('')
   const [instructions, setInstructions] = useState('')
   const [questions, setQuestions] = useState<FormQuestion[]>(DEFAULT_QUESTIONS)
+  const [policy, setPolicy] = useState<QualificationPolicy>(DEFAULT_QUALIFICATION_POLICY)
+  const [bookingUrl, setBookingUrl] = useState('')
+  const [resultMessages, setResultMessages] = useState<ResultMessages>(DEFAULT_RESULT_MESSAGES)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,6 +49,9 @@ export default function EditFormPage() {
         setFormName(form.form_name)
         setInstructions(form.instructions || '')
         setQuestions(form.questions || DEFAULT_QUESTIONS)
+        setPolicy({ ...DEFAULT_QUALIFICATION_POLICY, ...(form.qualification_policy || {}) })
+        setBookingUrl(form.booking_url || '')
+        setResultMessages({ ...DEFAULT_RESULT_MESSAGES, ...(form.result_messages || {}) })
       } catch (err: any) {
         setError(err.message)
       } finally {
@@ -62,13 +70,17 @@ export default function EditFormPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
+      if (policy.silverThreshold >= policy.goldThreshold) throw new Error('The Gold threshold must be higher than the Silver threshold')
 
       const { error: updateError } = await supabase
         .from('intake_forms')
         .update({ 
           form_name: formName,
           instructions: instructions,
-          questions: questions
+          questions: questions,
+          qualification_policy: policy,
+          booking_url: bookingUrl.trim() || null,
+          result_messages: resultMessages
         })
         .eq('id', formId)
         .eq('user_id', user.id)
@@ -164,6 +176,16 @@ export default function EditFormPage() {
             />
           </div>
         </div>
+
+        {/* Form Builder */}
+        <QualificationPolicyEditor
+          policy={policy}
+          bookingUrl={bookingUrl}
+          messages={resultMessages}
+          onPolicyChange={setPolicy}
+          onBookingUrlChange={setBookingUrl}
+          onMessagesChange={setResultMessages}
+        />
 
         {/* Form Builder */}
         <div className="rounded-lg border bg-card p-6 shadow-sm">

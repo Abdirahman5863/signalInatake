@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
-import { generateShareLink, DEFAULT_QUESTIONS, FormQuestion } from '@/lib/forms'
+import { generateShareLink, DEFAULT_QUESTIONS, DEFAULT_QUALIFICATION_POLICY, DEFAULT_RESULT_MESSAGES, FormQuestion, QualificationPolicy, ResultMessages } from '@/lib/forms'
 import { ArrowLeft, Save, AlertCircle, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { FormBuilder } from '@/components/forms/FormBuilder'
+import { QualificationPolicyEditor } from '@/components/forms/QualificationPolicyEditor'
 
 const TRIAL_DAYS = 3
 const FREE_FORMS_LIMIT = 1
@@ -16,6 +17,9 @@ export default function NewFormPage() {
   const [formName, setFormName] = useState('')
   const [instructions, setInstructions] = useState('')
   const [questions, setQuestions] = useState<FormQuestion[]>(DEFAULT_QUESTIONS)
+  const [policy, setPolicy] = useState<QualificationPolicy>(DEFAULT_QUALIFICATION_POLICY)
+  const [bookingUrl, setBookingUrl] = useState('')
+  const [resultMessages, setResultMessages] = useState<ResultMessages>(DEFAULT_RESULT_MESSAGES)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
@@ -119,6 +123,10 @@ export default function NewFormPage() {
       throw new Error('You need an active subscription to create more forms')
     }
 
+    if (policy.silverThreshold >= policy.goldThreshold) {
+      throw new Error('The Gold threshold must be higher than the Silver threshold')
+    }
+
     const shareLink = generateShareLink()
 
     const { error: insertError } = await supabase
@@ -129,6 +137,9 @@ export default function NewFormPage() {
         share_link: shareLink,
         instructions: instructions || null,
         questions: questions,
+        qualification_policy: policy,
+        booking_url: bookingUrl.trim() || null,
+        result_messages: resultMessages,
       })
 
     if (insertError) throw insertError
@@ -344,6 +355,16 @@ export default function NewFormPage() {
                 </p>
               </div>
             </div>
+
+            {/* Form Builder */}
+            <QualificationPolicyEditor
+              policy={policy}
+              bookingUrl={bookingUrl}
+              messages={resultMessages}
+              onPolicyChange={setPolicy}
+              onBookingUrlChange={setBookingUrl}
+              onMessagesChange={setResultMessages}
+            />
 
             {/* Form Builder */}
             <div className="rounded-lg border bg-card p-6 shadow-sm">

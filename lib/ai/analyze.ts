@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { FormQuestion } from '@/lib/forms'
+import { DEFAULT_QUALIFICATION_POLICY, FormQuestion, QualificationPolicy } from '@/lib/forms'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -16,6 +16,7 @@ export interface AnalysisResult {
   hardRuleTriggered?: string
   confidenceScore: number
   confidenceLevel: 'High' | 'Medium' | 'Low'
+  qualificationStatus: 'ready_to_book' | 'nurture' | 'not_a_fit' | 'manual_review'
 }
 
 export interface RuleScore {
@@ -28,7 +29,8 @@ export interface RuleScore {
 // FLEXIBLE RULE ENGINE - Works with ANY questions
 function evaluateRules(
   answers: Record<string, string>,
-  questions: FormQuestion[]
+  questions: FormQuestion[],
+  policy: QualificationPolicy
 ): {
   baseScore: number
   ruleBreakdown: RuleScore[]
@@ -41,20 +43,20 @@ function evaluateRules(
   let maxBadgeCap: 'Silver' | 'Bronze' | undefined
 
   // Find key questions by analyzing question text
-  const budgetQuestion = questions.find(q => 
+  const budgetQuestion = questions.find(q => q.purpose === 'budget') || questions.find(q =>
     q.question.toLowerCase().includes('budget') ||
     q.question.toLowerCase().includes('price') ||
     q.question.toLowerCase().includes('invest')
   )
   
-  const timelineQuestion = questions.find(q =>
+  const timelineQuestion = questions.find(q => q.purpose === 'timeline') || questions.find(q =>
     q.question.toLowerCase().includes('timeline') ||
     q.question.toLowerCase().includes('when') ||
     q.question.toLowerCase().includes('urgency') ||
     q.question.toLowerCase().includes('start')
   )
   
-  const decisionQuestion = questions.find(q =>
+  const decisionQuestion = questions.find(q => q.purpose === 'authority') || questions.find(q =>
     q.question.toLowerCase().includes('decide') ||
     q.question.toLowerCase().includes('authority') ||
     q.question.toLowerCase().includes('who makes')
@@ -63,6 +65,14 @@ function evaluateRules(
   // BUDGET ANALYSIS
   if (budgetQuestion) {
     const budgetAnswer = answers[budgetQuestion.id]?.toLowerCase() || ''
+    const budgetValue = parseBudgetFloor(budgetAnswer)
+
+    if (policy.minBudget !== null && budgetValue !== null && budgetValue < policy.minBudget) {
+      baseScore = Math.min(baseScore, policy.silverThreshold - 1)
+      hardRuleTriggered = `Budget below configured minimum of $${policy.minBudget.toLocaleString()}`
+      maxBadgeCap = 'Bronze'
+      rules.push({ rule: 'Budget policy: below minimum', impact: 'negative', weight: -30, explanation: hardRuleTriggered })
+    }
     
     // High budget signals
     if (budgetAnswer.includes('5,000') || budgetAnswer.includes('5k') ||
@@ -217,7 +227,8 @@ function evaluateRules(
 
 function assignBadge(
   baseScore: number, 
-  maxBadgeCap?: 'Silver' | 'Bronze'
+  maxBadgeCap: 'Silver' | 'Bronze' | undefined,
+  policy: QualificationPolicy
 ): 'Gold' | 'Silver' | 'Bronze' {
   let calculatedBadge: 'Gold' | 'Silver' | 'Bronze'
 
@@ -225,9 +236,9 @@ function assignBadge(
   // Silver: 50-74 (Qualified lead)
   // Bronze: 0-49 (Needs nurturing)
   
-  if (baseScore >= 75) {
+  if (baseScore >= policy.goldThreshold) {
     calculatedBadge = 'Gold'
-  } else if (baseScore >= 50) {
+  } else if (baseScore >= policy.silverThreshold) {
     calculatedBadge = 'Silver'
   } else {
     calculatedBadge = 'Bronze'
@@ -283,13 +294,15 @@ function calculateConfidence(
 
 export async function analyzeLead(
   answers: Record<string, string>,
-  questions: FormQuestion[]
+  questions: FormQuestion[],
+  configuredPolicy?: Partial<QualificationPolicy>
 ): Promise<AnalysisResult> {
+  const policy: QualificationPolicy = { ...DEFAULT_QUALIFICATION_POLICY, ...configuredPolicy }
   // STEP 1: Rule Engine Evaluation
-  const ruleEvaluation = evaluateRules(answers, questions)
+  const ruleEvaluation = evaluateRules(answers, questions, policy)
   
   // STEP 2: Assign Badge based on score
-  const badge = assignBadge(ruleEvaluation.baseScore, ruleEvaluation.maxBadgeCap)
+  const badge = assignBadge(ruleEvaluation.baseScore, ruleEvaluation.maxBadgeCap, policy)
   
   // STEP 3: Get Action
   const action = getAction(badge, ruleEvaluation.baseScore)
@@ -299,6 +312,15 @@ export async function analyzeLead(
     ruleEvaluation.baseScore,
     ruleEvaluation.ruleBreakdown
   )
+  const qualificationStatus: AnalysisResult['qualificationStatus'] = ruleEvaluation.hardRuleTriggered
+    ? 'not_a_fit'
+    : confidence.score < policy.manualReviewConfidence || ruleEvaluation.ruleBreakdown.length < 2
+      ? 'manual_review'
+      : badge === 'Gold'
+        ? 'ready_to_book'
+        : badge === 'Silver'
+          ? 'nurture'
+          : 'not_a_fit'
 
   // STEP 5: Build context for AI
   const questionsContext = questions.map((q, idx) => 
@@ -362,7 +384,8 @@ Be specific. Reference their actual words. Only respond with JSON.`
       ruleBreakdown: ruleEvaluation.ruleBreakdown,
       hardRuleTriggered: ruleEvaluation.hardRuleTriggered,
       confidenceScore: confidence.score,
-      confidenceLevel: confidence.level
+      confidenceLevel: confidence.level,
+      qualificationStatus
     }
 
   } catch (error) {
@@ -378,7 +401,16 @@ Be specific. Reference their actual words. Only respond with JSON.`
       ruleBreakdown: ruleEvaluation.ruleBreakdown,
       hardRuleTriggered: ruleEvaluation.hardRuleTriggered,
       confidenceScore: confidence.score,
-      confidenceLevel: confidence.level
+      confidenceLevel: confidence.level,
+      qualificationStatus
     }
   }
+}
+
+function parseBudgetFloor(value: string): number | null {
+  const normalized = value.toLowerCase().replace(/,/g, '')
+  const match = normalized.match(/\d+(?:\.\d+)?/)
+  if (!match) return null
+  const amount = Number(match[0])
+  return normalized.includes('k') ? amount * 1000 : amount
 }
