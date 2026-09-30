@@ -1,44 +1,273 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
-import { ArrowRight, CalendarCheck, Check, CheckCircle, ChevronDown, Clock3, Command, Layers3, LockKeyhole, Mail, ShieldCheck, Sparkles, TrendingUp, UsersRound, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import {
+  ArrowRight,
+  BarChart3,
+  CalendarClock,
+  Check,
+  CheckCircle,
+  ChevronDown,
+  Clock3,
+  Copy,
+  FileText,
+  Gauge,
+  Menu,
+  MessageSquareText,
+  ShieldCheck,
+  Sparkles,
+  X,
+  Zap,
+} from 'lucide-react'
+import leadIcon from './public/images/leadicon.png'
+import styles from './landing.module.css'
+
+const steps = [
+  {
+    icon: FileText,
+    label: 'Ask what matters',
+    copy: 'Build a focused intake around budget, timeline, authority, pain, and the standards that define a good client for your agency.',
+  },
+  {
+    icon: Gauge,
+    label: 'Get the verdict',
+    copy: 'LeadVett reads every answer, applies your qualification logic, and returns a Gold, Silver, or Bronze decision in seconds.',
+  },
+  {
+    icon: MessageSquareText,
+    label: 'Take the next step',
+    copy: 'See the reasoning, risks, and recommended action—plus a ready-to-personalize outreach message for the lead.',
+  },
+]
+
+const featureRows = [
+  ['Verdict', 'Gold', 'Book the call while intent is high'],
+  ['Confidence', '87%', 'Strong signals across the core criteria'],
+  ['Budget', '$5k–$10k', 'Inside your preferred engagement range'],
+  ['Timeline', '2–4 weeks', 'Near-term project with clear urgency'],
+]
 
 const faqs = [
-  ['Do my leads need an account?', 'No. Leads open your branded link, answer your questions, and get the next step. There is no LeadVett account or download required.'],
-  ['Can I keep using my existing calendar?', 'Yes. LeadVett sits before your calendar. Qualified leads can be sent to the booking link you already use.'],
-  ['What does LeadVett use to make a recommendation?', 'You set the non-negotiables—such as budget, location, service and timeline. LeadVett then assesses the context in each response and recommends the appropriate next action.'],
-  ['Is this a CRM?', 'No. LeadVett is the qualification layer before your CRM and calendar. It helps you decide what happens next, then routes the lead into the tools your team already uses.'],
+  ['Do leads need to create an account?', 'No. They open your shareable form, answer your questions, and submit. There is no LeadVett account or download required for the lead.'],
+  ['How is this different from a normal form?', 'A normal form stores answers. LeadVett interprets them, gives you a clear qualification verdict, explains the decision, and recommends what to do next.'],
+  ['Can I choose my own qualification questions?', 'Yes. You control the questions, so the decision reflects the offer, minimum budget, timeline, and buying signals that matter to your agency.'],
+  ['Where can I share the form?', 'Anywhere you currently send prospects: your website, Instagram bio, ManyChat flow, WhatsApp, email signature, or direct messages.'],
+  ['What happens after the free trial?', 'LeadVett Pro is $49 per month after the 3-day trial. You can cancel before subscribing, and no card is required to begin the trial.'],
 ]
 
-const outcomes = [
-  { label: 'Ready to book', detail: 'Budget, timing and authority align', tone: 'bg-emerald-50 text-emerald-800 ring-emerald-200', icon: CalendarCheck },
-  { label: 'Nurture', detail: 'Good fit, not ready to move yet', tone: 'bg-amber-50 text-amber-800 ring-amber-200', icon: Clock3 },
-  { label: 'Not a fit', detail: 'A respectful no, without a call', tone: 'bg-slate-100 text-slate-700 ring-slate-200', icon: X },
-]
+function Brand({ light = false }: { light?: boolean }) {
+  return (
+    <span className={`${styles.brand} ${light ? styles.brandLight : ''}`}>
+      <Image src={leadIcon} width={34} height={28} alt="" aria-hidden="true" className={styles.brandIcon} />
+      <span>Lead<strong>Vett</strong></span>
+    </span>
+  )
+}
 
 export default function LeadVettLanding() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  return <main className="min-h-screen overflow-x-hidden bg-[#f7f7f4] font-[family-name:var(--font-inter-tight)] text-[#111827]">
-    <div className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-[680px] bg-[radial-gradient(circle_at_50%_-10%,#dcecff_0%,#f7f7f4_58%)]" />
-    <header className="relative z-20 mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
-      <Link href="/" aria-label="LeadVett home" className="flex items-center gap-2 text-xl font-extrabold tracking-[-0.06em] text-slate-950"><span className="grid h-7 w-7 place-items-center rounded-lg bg-[#0d2545] text-sm text-white">L</span>Lead<span className="text-[#2878d4]">Vett</span></Link>
-      <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex" aria-label="Main navigation"><Link className="transition hover:text-slate-950" href="#how-it-works">How it works</Link><Link className="transition hover:text-slate-950" href="#why-leadvett">Why LeadVett</Link><Link className="transition hover:text-slate-950" href="#pricing">Pricing</Link></nav>
-      <div className="hidden items-center gap-5 md:flex"><Link href="/login" className="text-sm font-semibold text-slate-700 transition hover:text-slate-950">Sign in</Link><Link href="/signup" className="rounded-full bg-[#0d2545] px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(13,37,69,.18)] transition hover:-translate-y-0.5 hover:bg-[#173c69]">Start free</Link></div>
-      <button aria-label="Toggle navigation" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)} className="grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-900 md:hidden"><Command size={19} aria-hidden="true" /></button>
-    </header>
-    {menuOpen && <div className="relative z-20 mx-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-xl md:hidden"><nav className="flex flex-col gap-4 text-sm font-semibold text-slate-700" aria-label="Mobile navigation"><Link onClick={() => setMenuOpen(false)} href="#how-it-works">How it works</Link><Link onClick={() => setMenuOpen(false)} href="#why-leadvett">Why LeadVett</Link><Link onClick={() => setMenuOpen(false)} href="#pricing">Pricing</Link><Link onClick={() => setMenuOpen(false)} href="/signup" className="rounded-xl bg-[#0d2545] px-4 py-3 text-center text-white">Start free</Link></nav></div>}
+  const [openFaq, setOpenFaq] = useState<number | null>(0)
+  const [scrolled, setScrolled] = useState(false)
 
-    <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-14 px-5 pb-24 pt-16 sm:px-8 lg:grid-cols-[1.02fr_.98fr] lg:pb-32 lg:pt-24"><div className="max-w-2xl"><div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#b9d6f7] bg-white/70 px-3 py-1.5 text-xs font-bold tracking-wide text-[#175ea9] shadow-sm"><span className="h-1.5 w-1.5 rounded-full bg-[#2878d4]" />QUALIFICATION BEFORE THE CALENDAR</div><h1 className="font-[family-name:var(--font-outfit)] text-5xl font-extrabold leading-[.98] tracking-[-0.065em] text-[#0d2545] sm:text-6xl lg:text-7xl">Protect your calendar for the work that matters.</h1><p className="mt-7 max-w-xl text-lg leading-8 text-slate-600 sm:text-xl">LeadVett turns every inbound enquiry into a clear next action—book, nurture, or decline—before it takes a minute from your team.</p><div className="mt-9 flex flex-col gap-3 sm:flex-row"><Link href="/signup" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#0d2545] px-6 text-sm font-bold text-white shadow-[0_14px_28px_rgba(13,37,69,.22)] transition hover:-translate-y-0.5 hover:bg-[#173c69]">Start qualifying leads <ArrowRight size={17} aria-hidden="true" /></Link><Link href="#how-it-works" className="inline-flex min-h-12 items-center justify-center rounded-full border border-slate-300 bg-white/80 px-6 text-sm font-bold text-[#0d2545] transition hover:border-[#2878d4] hover:text-[#175ea9]">See the workflow</Link></div><div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-600">{['3-day free trial', 'No card required', 'Set up in minutes'].map(item => <span key={item} className="flex items-center gap-2"><CheckCircle className="text-[#2878d4]" size={16} aria-hidden="true" />{item}</span>)}</div></div>
-      <div className="relative mx-auto w-full max-w-xl lg:mx-0"><div className="absolute -inset-5 -z-10 rounded-[2rem] bg-[#8cc4ff]/25 blur-3xl" /><div className="overflow-hidden rounded-[1.6rem] border border-slate-200 bg-white shadow-[0_30px_70px_rgba(15,42,72,.18)]"><div className="flex items-center justify-between border-b border-slate-100 px-5 py-4"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[#e7f1fe] text-[#2878d4]"><Layers3 size={18} aria-hidden="true" /></span><div><p className="text-sm font-bold text-slate-900">New lead review</p><p className="text-xs text-slate-500">Website enquiry · just now</p></div></div><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-inset ring-emerald-200">High fit</span></div><div className="space-y-5 p-5 sm:p-7"><div className="rounded-2xl bg-[#f6f9fd] p-4"><p className="text-xs font-bold uppercase tracking-[.16em] text-slate-500">Lead signal summary</p><p className="mt-2 text-sm leading-6 text-slate-700">Clear project scope, confirmed budget and an active decision-maker. Timeline is inside 30 days.</p></div><div className="grid gap-3 sm:grid-cols-3">{[['Budget','$5k–$10k'],['Timeline','2–4 weeks'],['Authority','Decision maker']].map(([label,value]) => <div key={label} className="rounded-xl border border-slate-200 p-3"><p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p><p className="mt-1 text-sm font-bold text-slate-800">{value}</p></div>)}</div><div className="flex items-start gap-3 rounded-2xl border border-[#b9d6f7] bg-[#f1f7fe] p-4"><CalendarCheck className="mt-0.5 shrink-0 text-[#2878d4]" size={20} aria-hidden="true" /><div><p className="text-sm font-bold text-[#0d2545]">Recommended next step</p><p className="mt-1 text-sm text-slate-600">Invite them to book a 30-minute discovery call.</p></div></div><div className="flex items-center justify-between border-t border-slate-100 pt-4"><span className="text-xs font-medium text-slate-500">Reviewed in seconds, not another meeting.</span><span className="rounded-lg bg-[#0d2545] px-3 py-2 text-xs font-bold text-white">Approve route</span></div></div></div><div className="absolute -bottom-6 -left-5 hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-xl sm:block"><div className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-50 text-emerald-600"><TrendingUp size={18} aria-hidden="true" /></span><div><p className="text-xs font-bold text-slate-900">Calendar protected</p><p className="text-xs text-slate-500">One less unqualified call</p></div></div></div></div></section>
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
-    <section className="relative z-10 border-y border-[#203c5b] bg-[#0d2545] px-5 py-7 sm:px-8"><div className="mx-auto flex max-w-7xl flex-col justify-between gap-5 text-center sm:flex-row sm:text-left"><p className="font-[family-name:var(--font-outfit)] text-xl font-semibold tracking-tight text-white">A decision layer for every lead source.</p><div className="flex flex-wrap justify-center gap-x-7 gap-y-2 text-sm font-medium text-[#adc9e8]"><span>Website</span><span>Instagram</span><span>ManyChat</span><span>Referral</span><span>WhatsApp</span></div></div></section>
-    <section id="how-it-works" className="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:py-32"><div className="grid gap-12 lg:grid-cols-[.7fr_1.3fr] lg:gap-24"><div><p className="text-xs font-extrabold tracking-[.18em] text-[#2878d4]">ONE CALM WORKFLOW</p><h2 className="mt-4 font-[family-name:var(--font-outfit)] text-4xl font-extrabold leading-tight tracking-[-.055em] text-[#0d2545] sm:text-5xl">Make every enquiry earn its place.</h2><p className="mt-5 max-w-sm text-base leading-7 text-slate-600">You define the standard. LeadVett gives every prospect a clear path and your team a confident next move.</p></div><div className="grid gap-4 md:grid-cols-3">{[['01','Capture the signal','Share one focused qualification link wherever leads find you.',UsersRound],['02','Apply your standard','Use your rules for budget, fit and timing; let AI read the context.',Sparkles],['03','Route the right action','Send the right people to a booking link, nurture path, or graceful no.',ArrowRight]].map(([number,title,copy,Icon]) => { const CardIcon = Icon as typeof UsersRound; return <article key={number as string} className="group rounded-2xl border border-slate-200 bg-white p-6 transition duration-200 hover:-translate-y-1 hover:border-[#b9d6f7] hover:shadow-lg"><span className="text-xs font-extrabold tracking-widest text-[#2878d4]">{number as string}</span><CardIcon className="mt-9 text-[#0d2545]" size={25} strokeWidth={1.7} aria-hidden="true"/><h3 className="mt-5 font-[family-name:var(--font-outfit)] text-xl font-bold tracking-tight text-slate-900">{title as string}</h3><p className="mt-3 text-sm leading-6 text-slate-600">{copy as string}</p></article>})}</div></div></section>
-    <section id="why-leadvett" className="bg-white px-5 py-24 sm:px-8 lg:py-32"><div className="mx-auto max-w-7xl"><div className="max-w-2xl"><p className="text-xs font-extrabold tracking-[.18em] text-[#2878d4]">A VERDICT IS ONLY USEFUL IF IT MOVES WORK FORWARD</p><h2 className="mt-4 font-[family-name:var(--font-outfit)] text-4xl font-extrabold leading-tight tracking-[-.055em] text-[#0d2545] sm:text-5xl">The answer is never just a score.</h2></div><div className="mt-14 grid gap-6 lg:grid-cols-[1.18fr_.82fr]"><div className="rounded-3xl bg-[#0d2545] p-7 text-white sm:p-10"><div className="flex items-center justify-between border-b border-white/15 pb-6"><div><p className="text-xs font-bold tracking-[.16em] text-[#9cc7f7]">LEAD POLICY</p><p className="mt-2 font-[family-name:var(--font-outfit)] text-2xl font-bold">Your standards, consistently applied.</p></div><ShieldCheck className="text-[#8cc4ff]" size={29} aria-hidden="true"/></div><div className="mt-7 grid gap-4 sm:grid-cols-2">{['Minimum budget requirement','Service and location fit','Decision authority','Project timing'].map(item => <div key={item} className="flex items-center gap-3 rounded-xl bg-white/8 px-4 py-3 text-sm font-semibold text-[#e3effe]"><Check size={16} className="text-[#8cc4ff]" aria-hidden="true" />{item}</div>)}</div><p className="mt-8 max-w-xl text-sm leading-6 text-[#b9d6f7]">Use hard rules for the dealbreakers. Give AI the context where it helps: clarity of need, urgency and quality of the response.</p></div><div className="grid gap-3">{outcomes.map(({label,detail,tone,icon: Icon}) => <div key={label} className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-[#fafbfc] p-5"><span className={`grid h-11 w-11 place-items-center rounded-xl ring-1 ring-inset ${tone}`}><Icon size={20} aria-hidden="true" /></span><div><p className="font-bold text-slate-900">{label}</p><p className="mt-0.5 text-sm text-slate-600">{detail}</p></div></div>)}</div></div></div></section>
-    <section id="pricing" className="px-5 py-24 sm:px-8 lg:py-32"><div className="mx-auto max-w-4xl rounded-[2rem] border border-[#b9d6f7] bg-[#eaf4ff] p-7 text-center sm:p-12"><p className="text-xs font-extrabold tracking-[.18em] text-[#2878d4]">SIMPLE PRICING</p><h2 className="mt-4 font-[family-name:var(--font-outfit)] text-4xl font-extrabold tracking-[-.055em] text-[#0d2545] sm:text-5xl">One plan. A clearer pipeline.</h2><p className="mx-auto mt-4 max-w-lg text-slate-600">Everything you need to qualify inbound leads before they take over your calendar.</p><div className="mx-auto mt-9 max-w-md rounded-2xl bg-white p-7 text-left shadow-[0_16px_40px_rgba(36,95,154,.13)]"><div className="flex items-end justify-between"><div><p className="text-sm font-bold text-slate-900">LeadVett Pro</p><p className="mt-1 text-sm text-slate-500">After your 3-day free trial</p></div><p className="font-[family-name:var(--font-outfit)] text-4xl font-extrabold tracking-tight text-[#0d2545]">$49<span className="text-base font-medium text-slate-500">/mo</span></p></div><ul className="mt-7 space-y-3 border-t border-slate-100 pt-6 text-sm text-slate-700">{['Custom qualification forms','Rules and AI signal analysis','Book, nurture and decline routes','Lead pipeline dashboard','Email support'].map(item => <li key={item} className="flex gap-3"><Check size={18} className="shrink-0 text-[#2878d4]" aria-hidden="true" />{item}</li>)}</ul><Link href="/signup" className="mt-8 flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#0d2545] px-5 text-sm font-bold text-white transition hover:bg-[#173c69]">Start free for 3 days <ArrowRight size={16} aria-hidden="true" /></Link></div></div></section>
-    <section className="bg-white px-5 py-24 sm:px-8"><div className="mx-auto grid max-w-5xl gap-12 lg:grid-cols-[.75fr_1.25fr]"><div><p className="text-xs font-extrabold tracking-[.18em] text-[#2878d4]">FAQ</p><h2 className="mt-4 font-[family-name:var(--font-outfit)] text-4xl font-extrabold tracking-[-.055em] text-[#0d2545]">Questions, answered.</h2><p className="mt-4 text-slate-600">Built to make your first qualification workflow feel straightforward.</p></div><div className="divide-y divide-slate-200 border-y border-slate-200">{faqs.map(([question,answer],index) => <div key={question}><button onClick={() => setOpenFaq(openFaq === index ? null : index)} aria-expanded={openFaq === index} className="flex min-h-16 w-full items-center justify-between gap-5 py-4 text-left text-base font-bold text-slate-900"><span>{question}</span><ChevronDown className={`shrink-0 text-[#2878d4] transition ${openFaq === index ? 'rotate-180' : ''}`} size={20} aria-hidden="true" /></button>{openFaq === index && <p className="max-w-2xl pb-5 text-sm leading-7 text-slate-600">{answer}</p>}</div>)}</div></div></section>
-    <section className="bg-[#0d2545] px-5 py-24 text-center sm:px-8 lg:py-32"><div className="mx-auto max-w-2xl"><LockKeyhole className="mx-auto text-[#8cc4ff]" size={25} aria-hidden="true"/><h2 className="mt-6 font-[family-name:var(--font-outfit)] text-4xl font-extrabold leading-tight tracking-[-.055em] text-white sm:text-6xl">Your calendar is a high-value asset.</h2><p className="mx-auto mt-5 max-w-lg text-lg leading-8 text-[#b9d6f7]">Give every lead a clear path—before your team gives them its time.</p><Link href="/signup" className="mt-9 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-[#0d2545] transition hover:-translate-y-0.5 hover:bg-[#eaf4ff]">Start qualifying leads <ArrowRight size={17} aria-hidden="true" /></Link><p className="mt-4 text-xs text-[#9cc7f7]">3-day free trial · No credit card required</p></div></section>
-    <footer className="bg-[#08192f] px-5 py-9 sm:px-8"><div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left"><Link href="/" className="text-lg font-extrabold tracking-[-.06em] text-white">Lead<span className="text-[#8cc4ff]">Vett</span></Link><div className="flex gap-5 text-xs font-medium text-[#9cc7f7]"><Link className="hover:text-white" href="/privacy">Privacy</Link><Link className="hover:text-white" href="/terms">Terms</Link><Link className="hover:text-white" href="/contact">Contact</Link><a className="hover:text-white" href="mailto:contact@leadvett.com"><Mail className="inline-block align-text-bottom" size={13} aria-hidden="true" /> Support</a></div><p className="text-xs text-[#7191b6]">© {new Date().getFullYear()} LeadVett</p></div></footer>
-  </main>
+  return (
+    <main className={styles.page}>
+      <header className={`${styles.header} ${scrolled ? styles.headerScrolled : ''}`}>
+        <div className={styles.navInner}>
+          <Link href="/" aria-label="LeadVett home"><Brand light /></Link>
+          <nav className={styles.desktopNav} aria-label="Main navigation">
+            <Link href="#product">Product</Link>
+            <Link href="#how-it-works">How it works</Link>
+            <Link href="#pricing">Pricing</Link>
+            <Link href="#questions">Questions</Link>
+          </nav>
+          <div className={styles.navActions}>
+            <Link href="/login" className={styles.signIn}>Sign in</Link>
+            <Link href="/signup" className={styles.navCta}>Start free <ArrowRight size={15} aria-hidden="true" /></Link>
+          </div>
+          <button className={styles.menuButton} onClick={() => setMenuOpen(value => !value)} aria-expanded={menuOpen} aria-label="Toggle navigation">
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+        {menuOpen && (
+          <nav className={styles.mobileNav} aria-label="Mobile navigation">
+            <Link href="#product" onClick={() => setMenuOpen(false)}>Product</Link>
+            <Link href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</Link>
+            <Link href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
+            <Link href="/login" onClick={() => setMenuOpen(false)}>Sign in</Link>
+            <Link href="/signup" className={styles.mobileCta} onClick={() => setMenuOpen(false)}>Start free</Link>
+          </nav>
+        )}
+      </header>
+
+      <section className={styles.hero}>
+        <div className={styles.ambient} aria-hidden="true">
+          <span className={styles.orbitOne} />
+          <span className={styles.orbitTwo} />
+          <span className={styles.orbitThree} />
+          <span className={styles.glow} />
+        </div>
+        <div className={styles.heroContent}>
+          <div className={styles.eyebrow}><span /> The decision engine for agency leads</div>
+          <h1>Know who deserves<br /><em>your next call.</em></h1>
+          <p className={styles.heroCopy}>LeadVett turns every inbound enquiry into a clear, explainable verdict—so you know who to call, who to nurture, and who to pass on.</p>
+          <div className={styles.heroActions}>
+            <Link href="/signup" className={styles.primaryCta}>Start free for 3 days <ArrowRight size={17} aria-hidden="true" /></Link>
+            <Link href="#product" className={styles.secondaryCta}>See a real verdict</Link>
+          </div>
+          <div className={styles.heroMeta}>
+            <span><CheckCircle size={15} aria-hidden="true" /> No credit card</span>
+            <span><Clock3 size={15} aria-hidden="true" /> Setup in 5 minutes</span>
+            <span><ShieldCheck size={15} aria-hidden="true" /> You control the questions</span>
+          </div>
+        </div>
+
+        <div id="product" className={styles.productStage}>
+          <div className={styles.windowGlow} aria-hidden="true" />
+          <div className={styles.productWindow}>
+            <div className={styles.windowBar}>
+              <div className={styles.trafficLights} aria-hidden="true"><i /><i /><i /></div>
+              <span>LeadVett — Lead analysis</span>
+              <span className={styles.secure}><ShieldCheck size={13} aria-hidden="true" /> Private</span>
+            </div>
+            <div className={styles.appShell}>
+              <aside className={styles.appSidebar}>
+                <Brand />
+                <div className={styles.sideNav}>
+                  <span><BarChart3 size={16} /> Dashboard</span>
+                  <span className={styles.sideActive}><Sparkles size={16} /> Leads <b>12</b></span>
+                  <span><FileText size={16} /> Forms</span>
+                </div>
+                <div className={styles.sideFooter}><span>AW</span><p>Awsam Agency<small>Workspace</small></p></div>
+              </aside>
+              <div className={styles.appMain}>
+                <div className={styles.appHeading}>
+                  <div><small>NEW LEAD · WEBSITE FORM</small><h2>Usama Hassan</h2><p>Awsam Agency Growth Audit</p></div>
+                  <button><MessageSquareText size={15} /> Email lead</button>
+                </div>
+                <div className={styles.verdictGrid}>
+                  <section className={styles.verdictCard}>
+                    <div className={styles.verdictTop}><span>AI VERDICT</span><small>Completed in 8.4 sec</small></div>
+                    <div className={styles.goldVerdict}><Sparkles size={19} /> Gold</div>
+                    <h3>Book a call within 2 hours</h3>
+                    <p>Budget confirmed, authority verified, and the project timeline is clear.</p>
+                    <div className={styles.signalBars} aria-label="Strong qualification signals">
+                      <span><i style={{ width: '92%' }} /> Fit</span>
+                      <span><i style={{ width: '87%' }} /> Intent</span>
+                      <span><i style={{ width: '81%' }} /> Urgency</span>
+                    </div>
+                  </section>
+                  <section className={styles.breakdownCard}>
+                    <div className={styles.cardTitle}><span>Decision breakdown</span><span className={styles.confidence}>87% confidence</span></div>
+                    <div className={styles.featureTable}>
+                      {featureRows.map(([label, value, note]) => <div key={label}><span>{label}</span><strong>{value}</strong><small>{note}</small></div>)}
+                    </div>
+                  </section>
+                </div>
+                <div className={styles.scriptCard}>
+                  <div><MessageSquareText size={17} /><span><strong>Suggested opening</strong><small>Ready to personalize</small></span></div>
+                  <p>“Hi Usama, your timeline and growth goals look like a strong fit. I’d like to explore the project while the opportunity is fresh…”</p>
+                  <button aria-label="Copy suggested opening"><Copy size={15} /></button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className={`${styles.floatingNote} ${styles.noteOne}`}><Zap size={16} /><span><strong>10-second verdict</strong><small>No manual review</small></span></div>
+          <div className={`${styles.floatingNote} ${styles.noteTwo}`}><CalendarClock size={16} /><span><strong>Next action</strong><small>Book within 2 hours</small></span></div>
+        </div>
+      </section>
+
+      <section className={styles.marketStrip}>
+        <p>Forms collect answers.</p><span />
+        <p>LeadVett makes the decision.</p><span />
+        <p>Your calendar stays focused.</p>
+      </section>
+
+      <section id="how-it-works" className={styles.processSection}>
+        <div className={styles.sectionHeading}>
+          <div><span className={styles.kicker}>THE QUALIFICATION LOOP</span><h2>From enquiry to action,<br />without the guesswork.</h2></div>
+          <p>Every lead moves through the same clear standard. No scanning paragraphs. No deciding by instinct. No treating every form fill like a sales opportunity.</p>
+        </div>
+        <div className={styles.stepsGrid}>
+          {steps.map((step, index) => {
+            const Icon = step.icon
+            return <article key={step.label} className={styles.stepCard}><div className={styles.stepTop}><span>0{index + 1}</span><Icon size={21} /></div><h3>{step.label}</h3><p>{step.copy}</p>{index < steps.length - 1 && <ArrowRight className={styles.stepArrow} size={18} aria-hidden="true" />}</article>
+          })}
+        </div>
+      </section>
+
+      <section className={styles.explainSection}>
+        <div className={styles.explainCopy}>
+          <span className={styles.kicker}>EXPLAINABLE BY DESIGN</span>
+          <h2>Never just<br />a score.</h2>
+          <p>A badge only matters when you can trust it. LeadVett shows the signals behind every decision, the risks worth noticing, and the next move to make.</p>
+          <ul>
+            <li><Check size={16} /> Transparent signal breakdown</li>
+            <li><Check size={16} /> Confidence and risk flags</li>
+            <li><Check size={16} /> Clear next-best action</li>
+            <li><Check size={16} /> Outreach copy grounded in the lead’s answers</li>
+          </ul>
+        </div>
+        <div className={styles.signalPanel}>
+          <div className={styles.panelHeader}><span>Decision signals</span><small>4 positive · 1 risk</small></div>
+          {[
+            ['Budget strength', 'High-tier engagement', '+25', 'positive'],
+            ['Decision authority', 'Primary decision-maker', '+20', 'positive'],
+            ['Project timing', 'Ready within 30 days', '+18', 'positive'],
+            ['Pain clarity', 'Specific, measurable need', '+16', 'positive'],
+            ['Response depth', 'One answer needs clarification', '−5', 'risk'],
+          ].map(([label, detail, points, type]) => <div className={styles.signalRow} key={label}><span className={type === 'risk' ? styles.riskDot : styles.positiveDot} /><p><strong>{label}</strong><small>{detail}</small></p><b className={type === 'risk' ? styles.riskPoints : ''}>{points}</b></div>)}
+          <div className={styles.panelFooter}><span>Recommended action</span><strong>Invite to discovery call today</strong></div>
+        </div>
+      </section>
+
+      <section className={styles.proofSection}>
+        <div className={styles.quoteMark}>“</div>
+        <blockquote>“The AI verdict is genuinely useful and the scoring makes sense. This would save agency owners a lot of time.”</blockquote>
+        <div className={styles.quoteBy}><span>BP</span><p><strong>Barun P.</strong><small>Founder, shipfast.ai · early product feedback</small></p></div>
+      </section>
+
+      <section id="pricing" className={styles.pricingSection}>
+        <div className={styles.pricingWatermark} aria-hidden="true">QUALIFY</div>
+        <div className={styles.pricingIntro}><span className={styles.kicker}>SIMPLE PRICING</span><h2>One plan.<br /><em>Every verdict.</em></h2><p>Start with a real lead. Keep going when LeadVett earns its place in your workflow.</p></div>
+        <div className={styles.priceCard}>
+          <div className={styles.priceTop}><span>LeadVett Pro</span><small>Everything included</small></div>
+          <div className={styles.price}><strong>$49</strong><span>/ month</span></div>
+          <p>After your 3-day free trial. No credit card required to begin.</p>
+          <ul>{['Unlimited lead scoring','Gold, Silver, and Bronze verdicts','AI reasoning and signal breakdown','Custom qualification questions','Suggested outreach messages','Lead pipeline dashboard'].map(item => <li key={item}><Check size={15} />{item}</li>)}</ul>
+          <Link href="/signup">Start free for 3 days <ArrowRight size={16} /></Link>
+          <small>Cancel anytime · Email support included</small>
+        </div>
+      </section>
+
+      <section id="questions" className={styles.faqSection}>
+        <div className={styles.faqIntro}><span className={styles.kicker}>QUESTIONS</span><h2>Before your<br />first verdict.</h2><p>Everything you need to know before putting LeadVett between an enquiry and your calendar.</p></div>
+        <div className={styles.faqList}>{faqs.map(([question, answer], index) => <div className={styles.faqItem} key={question}><button onClick={() => setOpenFaq(openFaq === index ? null : index)} aria-expanded={openFaq === index}><span>{question}</span><ChevronDown size={19} className={openFaq === index ? styles.chevronOpen : ''} /></button><div className={`${styles.faqAnswer} ${openFaq === index ? styles.faqAnswerOpen : ''}`}><p>{answer}</p></div></div>)}</div>
+      </section>
+
+      <section className={styles.finalCta}>
+        <div className={styles.finalGlow} aria-hidden="true" />
+        <div className={styles.finalOrbit} aria-hidden="true" />
+        <span className={styles.kicker}>YOUR NEXT LEAD IS ALREADY ON THE WAY</span>
+        <h2>Decide before<br /><em>you book.</em></h2>
+        <p>Build your qualification form and score your first inbound lead today.</p>
+        <Link href="/signup">Start free—no card required <ArrowRight size={17} /></Link>
+      </section>
+
+      <footer className={styles.footer}>
+        <Brand light />
+        <p>AI lead qualification for agencies.</p>
+        <nav aria-label="Footer navigation"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link><Link href="/login">Sign in</Link></nav>
+        <small>© {new Date().getFullYear()} LeadVett</small>
+      </footer>
+    </main>
+  )
 }
