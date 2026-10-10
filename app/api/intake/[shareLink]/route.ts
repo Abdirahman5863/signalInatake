@@ -5,10 +5,15 @@ import { UUID, validateQuestions } from '@/lib/intake-validation'
 export const dynamic = 'force-dynamic'
 export async function GET(_request: Request, { params }: {params:Promise<{shareLink:string}>}) {
   const {shareLink} = await params
-  if (!UUID.test(shareLink)) return NextResponse.json({error:'Form not found.'},{status:404})
   try {
-    const {data,error} = await createAdminClient().from('intake_forms')
-      .select('form_name,instructions,questions,share_link,version,qualification_policy').eq('share_link',shareLink).eq('is_published',true).maybeSingle()
+    const db = createAdminClient()
+    let {data,error} = await db.from('intake_forms')
+      .select('form_name,instructions,questions,share_link,version,qualification_policy').eq('slug',shareLink).eq('is_published',true).maybeSingle()
+    // Keep existing UUID-based public links working during and after migration.
+    if (!error && !data && UUID.test(shareLink)) {
+      ({data,error} = await db.from('intake_forms')
+        .select('form_name,instructions,questions,share_link,version,qualification_policy').eq('share_link',shareLink).eq('is_published',true).maybeSingle())
+    }
     if (error) throw error
     if (!data || !validateQuestions(data.questions)) return NextResponse.json({error:'This form is not accepting enquiries.'},{status:404})
     const { qualification_policy, ...publicForm } = data

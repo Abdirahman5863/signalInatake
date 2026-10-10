@@ -9,6 +9,20 @@ export function generateShareLink(): string {
   })
 }
 
+/** A readable public path with a stable suffix to avoid collisions. */
+export function generateFormSlug(formName: string, shareLink: string): string {
+  const name = formName
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48)
+    .replace(/-+$/g, '') || 'form'
+  const suffix = shareLink.replace(/-/g, '').slice(0, 10).toLowerCase()
+  return `${name}-${suffix}`
+}
+
 export interface FormQuestion {
   id: string
   question: string

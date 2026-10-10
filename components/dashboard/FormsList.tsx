@@ -10,6 +10,7 @@ interface Form {
   id: string
   form_name: string
   share_link: string
+  slug?: string | null
   created_at: string
 }
 
@@ -24,8 +25,8 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
-  const handleCopyLink = async (shareLink: string, formId: string) => {
-    const fullUrl = `${window.location.origin}/intake/${shareLink}`
+  const handleCopyLink = async (publicPath: string, formId: string) => {
+    const fullUrl = `${window.location.origin}/intake/${publicPath}`
     await navigator.clipboard.writeText(fullUrl)
     setCopiedId(formId)
     setTimeout(() => setCopiedId(null), 2000)
@@ -82,6 +83,10 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
       {/* Forms Grid */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {forms.map((form) => (
+          (() => {
+            const publicPath = form.slug || form.share_link
+            const publicUrl = typeof window !== 'undefined' ? `${window.location.origin}/intake/${publicPath}` : `intake/${publicPath}`
+            return (
           <div
             key={form.id}
             className="rounded-lg border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow"
@@ -96,18 +101,15 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
             {/* Form Link Display */}
             <div className="bg-muted rounded-md p-2 sm:p-3 mb-3">
               <p className="text-xs text-muted-foreground mb-1">Form Link:</p>
-              <p className="text-xs font-mono truncate" title={`${window.location.origin}/intake/${form.share_link}`}>
-                {typeof window !== 'undefined' 
-                  ? `${window.location.origin}/intake/${form.share_link}`
-                  : `intake/${form.share_link}`
-                }
+              <p className="text-xs font-mono truncate" title={publicUrl}>
+                {publicUrl}
               </p>
             </div>
 
             {/* Actions */}
             <div className="flex flex-col gap-2">
               <button
-                onClick={() => handleCopyLink(form.share_link, form.id)}
+                onClick={() => handleCopyLink(publicPath, form.id)}
                 className="flex items-center justify-center gap-2 rounded-md bg-[#b5944b] px-4 py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#9a7a3d] transition-colors"
               >
                 {copiedId === form.id ? (
@@ -125,7 +127,7 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
 
               <div className="grid grid-cols-3 gap-2">
                 <Link
-                  href={`/intake/${form.share_link}`}
+                  href={`/intake/${publicPath}`}
                   target="_blank"
                   className="flex items-center justify-center gap-1 rounded-md border border-input px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium hover:bg-accent transition-colors"
                   title="Preview form"
@@ -195,6 +197,8 @@ export function FormsList({ forms: initialForms }: FormsListProps) {
               </div>
             )}
           </div>
+            )
+          })()
         ))}
       </div>
     </div>

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
-import { generateShareLink, DEFAULT_QUESTIONS, DEFAULT_QUALIFICATION_POLICY, DEFAULT_RESULT_MESSAGES, FormQuestion, QualificationPolicy, ResultMessages } from '@/lib/forms'
+import { generateShareLink, generateFormSlug, DEFAULT_QUESTIONS, DEFAULT_QUALIFICATION_POLICY, DEFAULT_RESULT_MESSAGES, FormQuestion, QualificationPolicy, ResultMessages } from '@/lib/forms'
 import { ArrowLeft, Save, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { FormBuilder } from '@/components/forms/FormBuilder'
@@ -41,6 +41,7 @@ export default function NewFormPage() {
     if (!validateQuestions(questions)) throw new Error('Use 1–20 valid questions, with unique IDs and valid dropdown options.')
     if (bookingUrl.trim() && !safeBookingUrl(bookingUrl.trim())) throw new Error('Use an HTTPS calendar URL without embedded credentials.')
     const shareLink = generateShareLink()
+    const slug = generateFormSlug(formName, shareLink)
 
     const { error: insertError } = await supabase
       .from('intake_forms')
@@ -48,6 +49,7 @@ export default function NewFormPage() {
         user_id: user.id,
         form_name: formName,
         share_link: shareLink,
+        slug,
         instructions: instructions || null,
         questions: questions,
         qualification_policy: normalizePolicy(policy),

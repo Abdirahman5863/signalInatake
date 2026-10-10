@@ -74,7 +74,7 @@ export default function IntakeFormPage() {
     setError(null)
 
     try {
-      const payload = JSON.stringify({ answers, shareLink: formId, formVersion: formData.version, leadEmail: leadEmail.trim(), leadName: leadName.trim(), website })
+      const payload = JSON.stringify({ answers, shareLink: formData.share_link, formVersion: formData.version, leadEmail: leadEmail.trim(), leadName: leadName.trim(), website })
       if (!submission.current || submission.current.payload !== payload) {
         submission.current = { payload, key: crypto.randomUUID() }
       }
