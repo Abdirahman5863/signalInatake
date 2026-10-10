@@ -18,5 +18,8 @@ export async function GET(_request: Request, { params }: {params:Promise<{shareL
     if (!data || !validateQuestions(data.questions)) return NextResponse.json({error:'This form is not accepting enquiries.'},{status:404})
     const { qualification_policy, ...publicForm } = data
     return NextResponse.json({...publicForm,budget_currency:qualification_policy?.currency ?? 'USD',budget_basis:qualification_policy?.budgetBasis ?? 'monthly'},{headers:{'Cache-Control':'no-store'}})
-  } catch { return NextResponse.json({error:'The form is temporarily unavailable. Please try again.'},{status:503}) }
+  } catch (error) {
+    console.error('Intake form load failed:', error instanceof Error ? error.message : error)
+    return NextResponse.json({error:'The form is temporarily unavailable. Please try again.'},{status:503})
+  }
 }

@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     return NextResponse.json({success:true,...receipt},{status:201,headers:{'Cache-Control':'no-store'}})
   } catch (error) {
     if (error instanceof RequestError) return NextResponse.json({error:error.message},{status:error.status,headers:error.status===429?{'Retry-After':'3600'}:undefined})
-    console.error('Intake storage unavailable; submission was not acknowledged.')
+    console.error('Intake storage unavailable; submission was not acknowledged:', error instanceof Error ? error.message : error)
     return NextResponse.json({error:'We could not confirm receipt. Please retry; the same submission will not be saved twice.'},{status:503})
   }
 }
