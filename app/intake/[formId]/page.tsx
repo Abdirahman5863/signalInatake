@@ -11,6 +11,7 @@ export default function IntakeFormPage() {
   const formId = params.formId as string
 
   const [formExists, setFormExists] = useState<boolean | null>(null)
+  const [formLoadError, setFormLoadError] = useState<string | null>(null)
   const [formData, setFormData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(-1)
@@ -24,25 +25,59 @@ export default function IntakeFormPage() {
   const [submissionResult, setSubmissionResult] = useState<{ status: string; title: string; message: string; bookingUrl?: string | null } | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     async function checkForm() {
       try {
         const response = await fetch(`/api/intake/${encodeURIComponent(formId)}`, { cache: 'no-store' })
-        if (!response.ok) throw new Error('Form unavailable')
-        const data = await response.json()
-        setFormData(data)
-        setFormExists(true)
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok) {
+          if (!cancelled) {
+            setFormLoadError(data.error || (response.status >= 500
+              ? 'The form is temporarily unavailable. Please try again shortly.'
+              : 'This intake form does not exist or has been removed.'))
+            setFormExists(false)
+          }
+          return
+        }
+        if (!cancelled) {
+          setFormData(data)
+          setFormLoadError(null)
+          setFormExists(true)
+        }
       } catch (err) {
         console.error('Form lookup error:', err)
-        setFormExists(false)
+        if (!cancelled) {
+          setFormLoadError('Could not connect to the form service. Check your connection and try again.')
+          setFormExists(false)
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
     if (formId) {
       checkForm()
     }
+    return () => { cancelled = true }
   }, [formId])
+
+  const retryFormLoad = () => {
+    setLoading(true)
+    setFormExists(null)
+    setFormLoadError(null)
+    fetch(`/api/intake/${encodeURIComponent(formId)}`, { cache: 'no-store' })
+      .then(async response => {
+        const data = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(data.error || 'The form could not be loaded.')
+        setFormData(data)
+        setFormExists(true)
+      })
+      .catch(err => {
+        setFormLoadError(err.message || 'Could not connect to the form service. Check your connection and try again.')
+        setFormExists(false)
+      })
+      .finally(() => setLoading(false))
+  }
 
   const questions: FormQuestion[] = formData?.questions || []
 
@@ -111,10 +146,15 @@ export default function IntakeFormPage() {
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">📋</div>
-          <h1 className="text-2xl font-bold mb-2">Form Not Found</h1>
+          <h1 className="text-2xl font-bold mb-2">{formLoadError?.includes('temporarily unavailable') || formLoadError?.includes('connect') ? 'Form Temporarily Unavailable' : 'Form Not Found'}</h1>
           <p className="text-muted-foreground mb-6">
-            This intake form does not exist or has been removed.
+            {formLoadError || 'This intake form does not exist or has been removed.'}
           </p>
+          {formLoadError?.includes('temporarily unavailable') || formLoadError?.includes('connect') ? (
+            <button onClick={retryFormLoad} className="mb-6 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+              Try again
+            </button>
+          ) : null}
           <p className="text-sm text-gray-500">
             Form ID: <code className="bg-gray-100 px-2 py-1 rounded">{formId}</code>
           </p>
