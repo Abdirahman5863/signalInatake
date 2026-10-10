@@ -28,7 +28,7 @@ The framework upgrade follows https://nextjs.org/docs/app/guides/upgrading/versi
 ## Activation sequence
 
 1. Back up the database and create a staging copy. Inspect actual production schema/policies against migrations; repository migrations cannot reveal manual production changes.
-2. On a fresh database apply `001_initial_schema.sql`, `002_qualification_workflow.sql`, then `003_reliable_intake.sql`. On an existing database apply only unapplied migrations. `001` and `003` contain policy creation and are not designed to be replayed indiscriminately.
+2. On a fresh database apply `001_initial_schema.sql`, `002_qualification_workflow.sql`, `003_reliable_intake.sql`, then `004_ensure_booking_url.sql`. On an existing database apply only unapplied migrations. Migration 004 safely ensures the calendar URL column exists and refreshes the PostgREST schema cache. `001` and `003` contain policy creation and are not designed to be replayed indiscriminately.
 3. Set environment values from `.env.example`. Keep the service-role key server-only. A public-prefixed service key must never be used. Use a supported Node release meeting the package engine requirement.
 4. Coordinate application and database release during an intake maintenance window: migration 003 revokes the legacy anonymous write path. Do not run old and new intake code against the migrated database as a rolling mixed-version release.
 5. Register staging and production `/auth/callback` URLs in Supabase/Google OAuth configuration. Set `NEXT_PUBLIC_SITE_URL` per environment. Test sign-in, session refresh, sign-out and a second account.
