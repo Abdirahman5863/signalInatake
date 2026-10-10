@@ -8,11 +8,11 @@ const heading = { fontFamily: "var(--font-outfit), sans-serif" }
 const faqs = [
   {
     q: "How is this different from a regular form?",
-    a: "Regular forms collect data. LeadVett analyzes every answer, scores buying intent (0-100%), assigns a priority badge, and tells you exactly when to reach out. It's the difference between raw data and a clinical verdict."
+    a: "LeadVett compares submitted project details with your budget and service criteria, explains the result, and suggests a next step."
   },
   {
     q: "Can I customize the questions?",
-    a: "Absolutely. You control every question. LeadVett's AI adapts to YOUR questions — whether you ask about budget, timeline, pain points, or anything else. You're not locked into templates."
+    a: "Yes. Map questions to budget, timeline, authority and service. Unrecognized or ambiguous answers require human review."
   },
   {
     q: "Does it integrate with ManyChat?",
@@ -20,11 +20,11 @@ const faqs = [
   },
   {
     q: "How accurate is the AI?",
-    a: "LeadVett uses GPT-4 + a rule engine that analyzes budget, urgency, authority, and pain signals. In testing with 500+ real leads, it matched or beat human qualification 94% of the time."
+    a: "Qualification uses explicit rules, not a predicted conversion rate. Optional AI helps draft replies for your review. We have not established an accuracy benchmark against real sales outcomes."
   },
   {
     q: "What if I don't like it?",
-    a: "Cancel anytime during your 3-day trial. No questions asked. No credit card required to start."
+    a: "LeadVett is currently free. No trial, subscription, or credit card is required."
   },
   {
     q: "How is this different from a Google Form?",

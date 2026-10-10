@@ -44,7 +44,7 @@ const steps = [
 
 const featureRows = [
   ['Verdict', 'Gold', 'Book the call while intent is high'],
-  ['Confidence', '87%', 'Strong signals across the core criteria'],
+  ['Approval', 'Self-reported', 'Confirm stakeholders on the discovery call'],
   ['Budget', '$5k–$10k', 'Inside your preferred engagement range'],
   ['Timeline', '2–4 weeks', 'Near-term project with clear urgency'],
 ]
@@ -54,7 +54,7 @@ const faqs = [
   ['How is this different from a normal form?', 'A normal form stores answers. LeadVett interprets them, gives you a clear qualification verdict, explains the decision, and recommends what to do next.'],
   ['Can I choose my own qualification questions?', 'Yes. You control the questions, so the decision reflects the offer, minimum budget, timeline, and buying signals that matter to your agency.'],
   ['Where can I share the form?', 'Anywhere you currently send prospects: your website, Instagram bio, ManyChat flow, WhatsApp, email signature, or direct messages.'],
-  ['What happens after the free trial?', 'LeadVett Pro is $49 per month after the 3-day trial. You can cancel before subscribing, and no card is required to begin the trial.'],
+  ['Is LeadVett really free?', 'Yes. Create qualification forms, collect responses, and review lead verdicts without a trial, subscription, or credit card.'],
 ]
 
 function Brand({ light = false }: { light?: boolean }) {
@@ -86,7 +86,7 @@ export default function LeadVettLanding() {
           <nav className={styles.desktopNav} aria-label="Main navigation">
             <Link href="#product">Product</Link>
             <Link href="#how-it-works">How it works</Link>
-            <Link href="#pricing">Pricing</Link>
+            <Link href="#free">Free access</Link>
             <Link href="#questions">Questions</Link>
           </nav>
           <div className={styles.navActions}>
@@ -101,7 +101,7 @@ export default function LeadVettLanding() {
           <nav className={styles.mobileNav} aria-label="Mobile navigation">
             <Link href="#product" onClick={() => setMenuOpen(false)}>Product</Link>
             <Link href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</Link>
-            <Link href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</Link>
+            <Link href="#free" onClick={() => setMenuOpen(false)}>Free access</Link>
             <Link href="/login" onClick={() => setMenuOpen(false)}>Sign in</Link>
             <Link href="/signup" className={styles.mobileCta} onClick={() => setMenuOpen(false)}>Start free</Link>
           </nav>
@@ -116,12 +116,12 @@ export default function LeadVettLanding() {
           <span className={styles.glow} />
         </div>
         <div className={styles.heroContent}>
-          <div className={styles.eyebrow}><span /> The decision engine for agency leads</div>
-          <h1>Know who deserves<br /><em>your next call.</em></h1>
-          <p className={styles.heroCopy}>LeadVett turns every inbound enquiry into a clear, explainable verdict—so you know who to call, who to nurture, and who to pass on.</p>
+          <div className={styles.eyebrow}><span /> Project qualification for independent web studios</div>
+          <h1>Is this website project<br /><em>worth a discovery call?</em></h1>
+          <p className={styles.heroCopy}>Collect project scope, budget and timing before you open your calendar. See what fits, what needs clarification, and what to ask next.</p>
           <div className={styles.heroActions}>
-            <Link href="/signup" className={styles.primaryCta}>Start free for 3 days <ArrowRight size={17} aria-hidden="true" /></Link>
-            <Link href="#product" className={styles.secondaryCta}>See a real verdict</Link>
+            <Link href="/signup" className={styles.primaryCta}>Start qualifying for free <ArrowRight size={17} aria-hidden="true" /></Link>
+            <Link href="#product" className={styles.secondaryCta}>See an example enquiry</Link>
           </div>
           <div className={styles.heroMeta}>
             <span><CheckCircle size={15} aria-hidden="true" /> No credit card</span>
@@ -155,18 +155,14 @@ export default function LeadVettLanding() {
                 </div>
                 <div className={styles.verdictGrid}>
                   <section className={styles.verdictCard}>
-                    <div className={styles.verdictTop}><span>AI VERDICT</span><small>Completed in 8.4 sec</small></div>
+                    <div className={styles.verdictTop}><span>PROJECT FIT</span><small>Illustrative example</small></div>
                     <div className={styles.goldVerdict}><Sparkles size={19} /> Gold</div>
-                    <h3>Book a call within 2 hours</h3>
-                    <p>Budget confirmed, authority verified, and the project timeline is clear.</p>
-                    <div className={styles.signalBars} aria-label="Strong qualification signals">
-                      <span><i style={{ width: '92%' }} /> Fit</span>
-                      <span><i style={{ width: '87%' }} /> Intent</span>
-                      <span><i style={{ width: '81%' }} /> Urgency</span>
-                    </div>
+                    <h3>Invite to discovery</h3>
+                    <p>Reported budget meets the minimum. Confirm scope and approvers on the call.</p>
+
                   </section>
                   <section className={styles.breakdownCard}>
-                    <div className={styles.cardTitle}><span>Decision breakdown</span><span className={styles.confidence}>87% confidence</span></div>
+                    <div className={styles.cardTitle}><span>Decision breakdown</span><span className={styles.confidence}>Submitted evidence</span></div>
                     <div className={styles.featureTable}>
                       {featureRows.map(([label, value, note]) => <div key={label}><span>{label}</span><strong>{value}</strong><small>{note}</small></div>)}
                     </div>
@@ -180,8 +176,8 @@ export default function LeadVettLanding() {
               </div>
             </div>
           </div>
-          <div className={`${styles.floatingNote} ${styles.noteOne}`}><Zap size={16} /><span><strong>10-second verdict</strong><small>No manual review</small></span></div>
-          <div className={`${styles.floatingNote} ${styles.noteTwo}`}><CalendarClock size={16} /><span><strong>Next action</strong><small>Book within 2 hours</small></span></div>
+          <div className={`${styles.floatingNote} ${styles.noteOne}`}><Zap size={16} /><span><strong>Explainable decision</strong><small>Review unclear answers</small></span></div>
+          <div className={`${styles.floatingNote} ${styles.noteTwo}`}><CalendarClock size={16} /><span><strong>Next action</strong><small>Confirm project scope</small></span></div>
         </div>
       </section>
 
@@ -211,40 +207,33 @@ export default function LeadVettLanding() {
           <p>A badge only matters when you can trust it. LeadVett shows the signals behind every decision, the risks worth noticing, and the next move to make.</p>
           <ul>
             <li><Check size={16} /> Transparent signal breakdown</li>
-            <li><Check size={16} /> Confidence and risk flags</li>
+            <li><Check size={16} /> Missing details and risk flags</li>
             <li><Check size={16} /> Clear next-best action</li>
             <li><Check size={16} /> Outreach copy grounded in the lead’s answers</li>
           </ul>
         </div>
         <div className={styles.signalPanel}>
-          <div className={styles.panelHeader}><span>Decision signals</span><small>4 positive · 1 risk</small></div>
+          <div className={styles.panelHeader}><span>Example project evidence</span><small>3 signals · scope to confirm</small></div>
           {[
-            ['Budget strength', 'High-tier engagement', '+25', 'positive'],
-            ['Decision authority', 'Primary decision-maker', '+20', 'positive'],
-            ['Project timing', 'Ready within 30 days', '+18', 'positive'],
-            ['Pain clarity', 'Specific, measurable need', '+16', 'positive'],
-            ['Response depth', 'One answer needs clarification', '−5', 'risk'],
+            ['Budget', 'Reported amount meets your minimum', 'Fits', 'positive'],
+            ['Project approver', 'Says they approve the project', 'Reported', 'positive'],
+            ['Project timing', 'Reports a start within 30 days', 'Near-term', 'positive'],
+            ['Scope', 'Confirm requirements during discovery', 'Review', 'risk'],
           ].map(([label, detail, points, type]) => <div className={styles.signalRow} key={label}><span className={type === 'risk' ? styles.riskDot : styles.positiveDot} /><p><strong>{label}</strong><small>{detail}</small></p><b className={type === 'risk' ? styles.riskPoints : ''}>{points}</b></div>)}
           <div className={styles.panelFooter}><span>Recommended action</span><strong>Invite to discovery call today</strong></div>
         </div>
       </section>
 
-      <section className={styles.proofSection}>
-        <div className={styles.quoteMark}>“</div>
-        <blockquote>“The AI verdict is genuinely useful and the scoring makes sense. This would save agency owners a lot of time.”</blockquote>
-        <div className={styles.quoteBy}><span>BP</span><p><strong>Barun P.</strong><small>Founder, shipfast.ai · early product feedback</small></p></div>
-      </section>
-
-      <section id="pricing" className={styles.pricingSection}>
+      <section id="free" className={styles.pricingSection}>
         <div className={styles.pricingWatermark} aria-hidden="true">QUALIFY</div>
-        <div className={styles.pricingIntro}><span className={styles.kicker}>SIMPLE PRICING</span><h2>One plan.<br /><em>Every verdict.</em></h2><p>Start with a real lead. Keep going when LeadVett earns its place in your workflow.</p></div>
+        <div className={styles.pricingIntro}><span className={styles.kicker}>FREE PILOT FOR WEB STUDIOS</span><h2>No trial.<br /><em>No paywall.</em></h2><p>LeadVett is available free while we learn from independent web studios using it with real enquiries.</p></div>
         <div className={styles.priceCard}>
-          <div className={styles.priceTop}><span>LeadVett Pro</span><small>Everything included</small></div>
-          <div className={styles.price}><strong>$49</strong><span>/ month</span></div>
-          <p>After your 3-day free trial. No credit card required to begin.</p>
-          <ul>{['Unlimited lead scoring','Gold, Silver, and Bronze verdicts','AI reasoning and signal breakdown','Custom qualification questions','Suggested outreach messages','Lead pipeline dashboard'].map(item => <li key={item}><Check size={15} />{item}</li>)}</ul>
-          <Link href="/signup">Start free for 3 days <ArrowRight size={16} /></Link>
-          <small>Cancel anytime · Email support included</small>
+          <div className={styles.priceTop}><span>LeadVett Free</span><small>Everything you need to begin</small></div>
+          <div className={styles.price}><strong>$0</strong><span>for now</span></div>
+          <p>Create an account and start qualifying leads. No card, trial countdown, or subscription.</p>
+          <ul>{['Up to 100 enquiries per form per hour','Gold, Silver, and Bronze verdicts','Qualification rules and evidence','Custom qualification questions','Suggested outreach messages','Lead pipeline dashboard'].map(item => <li key={item}><Check size={15} />{item}</li>)}</ul>
+          <Link href="/signup">Create your free account <ArrowRight size={16} /></Link>
+          <small>No credit card · Your existing data stays yours</small>
         </div>
       </section>
 
@@ -264,7 +253,7 @@ export default function LeadVettLanding() {
 
       <footer className={styles.footer}>
         <Brand light />
-        <p>AI lead qualification for agencies.</p>
+        <p>Website project qualification for independent studios.</p>
         <nav aria-label="Footer navigation"><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link><Link href="/contact">Contact</Link><Link href="/login">Sign in</Link></nav>
         <small>© {new Date().getFullYear()} LeadVett</small>
       </footer>

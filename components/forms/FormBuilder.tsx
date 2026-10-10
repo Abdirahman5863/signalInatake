@@ -194,6 +194,7 @@ export function FormBuilder({ initialQuestions, onUpdate }: FormBuilderProps) {
                         <option value="budget">Budget</option>
                         <option value="timeline">Timeline</option>
                         <option value="authority">Decision authority</option>
+                        <option value="service">Service</option>
                       </select>
 
                       <label className="flex items-center gap-2">

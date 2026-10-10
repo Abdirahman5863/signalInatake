@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Mail, Instagram, ArrowLeft } from "lucide-react"
+import { Mail, Camera as Instagram, ArrowLeft } from "lucide-react"
 
 const heading = { fontFamily: "var(--font-outfit), sans-serif" }
 

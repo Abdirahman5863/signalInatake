@@ -14,12 +14,12 @@ interface LeadsPipelineProps {
 
 export function LeadsPipeline({ leads }: LeadsPipelineProps) {
   const [filter, setFilter] = useState<'all' | 'Gold' | 'Silver' | 'Bronze' | 'Rejected'>('all')
-  const [sortBy, setSortBy] = useState<'date' | 'confidence' | 'badge'>('date')
+  const [sortBy, setSortBy] = useState<'date' | 'badge'>('date')
   const [searchQuery, setSearchQuery] = useState('')
 
   // Filter and sort leads
   const filteredLeads = useMemo(() => {
-    let filtered = leads
+    let filtered = [...leads]
 
     // Apply badge filter
     if (filter !== 'all') {
@@ -42,12 +42,10 @@ export function LeadsPipeline({ leads }: LeadsPipelineProps) {
     // Apply sort
     filtered.sort((a, b) => {
       switch (sortBy) {
-        case 'confidence':
-          return (b.confidence_score || 0) - (a.confidence_score || 0)
         case 'badge':
           const badgeOrder = { Gold: 0, Silver: 1, Bronze: 2, Rejected: 3 }
-          return (badgeOrder[a.badge as keyof typeof badgeOrder] || 99) - 
-                 (badgeOrder[b.badge as keyof typeof badgeOrder] || 99)
+          return (badgeOrder[a.badge as keyof typeof badgeOrder] ?? 99) -
+                 (badgeOrder[b.badge as keyof typeof badgeOrder] ?? 99)
         case 'date':
         default:
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -68,13 +66,13 @@ export function LeadsPipeline({ leads }: LeadsPipelineProps) {
   }
 
   const getActionText = (action: string | null, badge: string | null) => {
-    if (badge === 'Rejected') return 'Disqualified - Archive'
+    if (badge === 'Rejected') return 'Review project fit'
     if (action) return action
     
     switch (badge) {
-      case 'Gold': return 'Book 30-min Strategy Call within 2 hours'
-      case 'Silver': return 'Send 15-min Screening Loom Video'
-      case 'Bronze': return 'Add to 90-day Nurture Sequence'
+      case 'Gold': return 'Review for discovery'
+      case 'Silver': return 'Clarify project requirements'
+      case 'Bronze': return 'Review project fit'
       default: return 'Review needed'
     }
   }
@@ -108,7 +106,7 @@ export function LeadsPipeline({ leads }: LeadsPipelineProps) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Search this page by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
@@ -158,7 +156,6 @@ export function LeadsPipeline({ leads }: LeadsPipelineProps) {
               className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="date">Latest First</option>
-              <option value="confidence">Confidence Score</option>
               <option value="badge">Badge Priority</option>
             </select>
           </div>
@@ -166,7 +163,7 @@ export function LeadsPipeline({ leads }: LeadsPipelineProps) {
 
         {/* Results Count */}
         <div className="text-sm text-gray-600">
-          Showing {filteredLeads.length} of {leads.length} leads
+          Showing {filteredLeads.length} of {leads.length} enquiries on this page
         </div>
       </div>
 
@@ -195,12 +192,6 @@ export function LeadsPipeline({ leads }: LeadsPipelineProps) {
                       {lead.badge === 'Silver' && '⚡ '}
                       {lead.badge?.toUpperCase()}
                     </Badge>
-                    {lead.confidence_score && (
-                      <span className="text-xs font-semibold text-gray-600 flex items-center gap-1 flex-shrink-0">
-                        <Award className="h-3.5 w-3.5" />
-                        {lead.confidence_score}% confidence
-                      </span>
-                    )}
                     {lead.qualification_status && (
                       <span className="rounded-full border border-black/10 bg-white/70 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-700">
                         {lead.qualification_status.replaceAll('_', ' ')}
@@ -255,7 +246,7 @@ export function LeadsPipeline({ leads }: LeadsPipelineProps) {
                     'bg-gray-600 hover:bg-gray-700'
                   }`}
                 >
-                  <span>View Full Analysis</span>
+                  <span>Review enquiry</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>

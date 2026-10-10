@@ -21,11 +21,11 @@ const SITE_URL = "https://leadvett.com"
 const SITE_NAME = "LeadVett"
 
 // 52 chars — primary keyword first, brand last
-const DEFAULT_TITLE = "Lead Qualification Tool for Agencies — LeadVett"
+const DEFAULT_TITLE = "Website Project Qualification — LeadVett"
 
 // 149 chars — answers search intent, includes target keywords
 const DEFAULT_DESCRIPTION =
-  "Qualify every inbound lead in 10 seconds. LeadVett scores leads Gold, Silver, or Bronze so agencies only book calls with buyers. Free 3-day trial."
+  "Qualify website project enquiries before discovery. Compare budget, timing and scope with your web studio’s criteria, and clarify what is missing."
 
 export const metadata: Metadata = {
   title: {
@@ -99,79 +99,24 @@ const structuredData = {
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       featureList: [
-        "AI lead scoring in 10 seconds",
+        "Rule-based website project qualification",
         "Gold, Silver, Bronze lead verdicts",
         "Custom qualification intake forms",
         "Lead pipeline dashboard",
         "Pre-written outreach scripts",
-        "ManyChat and Instagram bio integration",
+        "Shareable public intake links",
       ],
       offers: {
         "@type": "Offer",
-        name: "LeadVett Pro",
-        price: "49.00",
+        name: "LeadVett Free",
+        price: "0",
         priceCurrency: "USD",
-        priceValidUntil: "2027-01-01",
         availability: "https://schema.org/InStock",
         url: `${SITE_URL}/signup`,
-        description: "Full AI lead qualification engine. Unlimited leads. 3-day free trial.",
+        description: "Free lead qualification forms, explainable verdicts, and lead workflow tools.",
       },
       description:
-        "LeadVett is an AI-powered lead qualification tool for digital marketing agencies. It scores every inbound lead in 10 seconds — Gold (book the call), Silver (nurture first), or Bronze (not worth your time).",
-    },
-    {
-      "@type": "FAQPage",
-      "@id": `${SITE_URL}/#faq`,
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "What is a lead qualification tool?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "A lead qualification tool automatically scores your inbound leads based on budget, timeline, decision authority, and urgency. Instead of manually reviewing every inquiry, it tells you which leads are worth a call (Gold), which need nurturing (Silver), and which to skip (Bronze). LeadVett scores every lead in 10 seconds.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How do you qualify inbound leads automatically?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "To qualify inbound leads automatically: (1) Create a short intake form with 3-5 questions about budget, timeline, and decision authority. (2) Share the form link instead of your Calendly. (3) When a lead submits, AI scores them instantly. LeadVett does this in under 10 seconds, before leads touch your calendar.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How is LeadVett different from a regular contact form?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "A contact form just collects data. LeadVett analyzes every answer, scores buying intent from 0-100%, assigns a Gold, Silver, or Bronze badge, flags risks, and writes a personalized outreach script. It is a decision engine, not a form.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Does LeadVett work with ManyChat?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Paste your LeadVett form link into your ManyChat auto-reply and you are live in under 2 minutes. When a lead fills the form, you get an instant AI verdict in your dashboard. No developer needed.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "How much does LeadVett cost?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "LeadVett costs $49 per month with a 3-day free trial. No credit card required to start. Cancel anytime.",
-          },
-        },
-        {
-          "@type": "Question",
-          name: "Do leads need to create an account to fill the qualification form?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "No. Leads just click the link, answer 5 questions, and submit. Zero signup required. It takes under 60 seconds and works on mobile.",
-          },
-        },
-      ],
+        "LeadVett helps independent web studios compare website enquiries with their project criteria and decide what to clarify before discovery.",
     },
     {
       "@type": "Organization",

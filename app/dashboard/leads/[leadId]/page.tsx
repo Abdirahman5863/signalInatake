@@ -14,13 +14,21 @@ export default function LeadDetailPage() {
   const router = useRouter()
   const leadId = params.leadId as string
   const [lead, setLead] = useState<any>(null)
+  const [events, setEvents] = useState<{id:string;event:string;created_at:string}[]>([])
   const [loading, setLoading] = useState(true)
+  const [statusError, setStatusError] = useState('')
   const [updatingStatus, setUpdatingStatus] = useState(false)
 
   const updatePipelineStatus = async (pipelineStatus: string) => {
     setUpdatingStatus(true)
+    setStatusError('')
     const { error } = await supabase.from('lead_responses').update({ pipeline_status: pipelineStatus }).eq('id', leadId)
+    if (error) setStatusError('Could not save the status. Please retry.')
     if (!error) setLead((current: any) => ({ ...current, pipeline_status: pipelineStatus }))
+    if (!error) {
+      const {data} = await supabase.from('lead_events').select('id,event,created_at').eq('lead_id',leadId).order('created_at',{ascending:false}).limit(30)
+      setEvents(data ?? [])
+    }
     setUpdatingStatus(false)
   }
 
@@ -56,6 +64,8 @@ export default function LeadDetailPage() {
 
       if (data) {
         setLead(data)
+        const {data:history} = await supabase.from('lead_events').select('id,event,created_at').eq('lead_id',leadId).order('created_at',{ascending:false}).limit(30)
+        setEvents(history ?? [])
       }
       setLoading(false)
     }
@@ -95,7 +105,7 @@ export default function LeadDetailPage() {
   }
 
   const answers = lead.answers as Record<string, string>
-  const formQuestions = lead.intake_forms?.questions as FormQuestion[] || []
+  const formQuestions = (lead.form_snapshot?.questions ?? lead.intake_forms?.questions) as FormQuestion[] || []
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -126,10 +136,13 @@ export default function LeadDetailPage() {
         </a>
       </div>
 
-      {/* AI Analysis Section */}
+      {statusError && <p role="alert" className="text-red-700">{statusError}</p>}
+      <p className="text-sm text-muted-foreground">Decision based on submitted answers. {lead.analysis_status === 'pending' ? 'An optional reply draft is queued.' : lead.analysis_status === 'completed' ? 'AI reply draft available; review before sending.' : 'A standard reply draft is available.'}</p>
+      {/* Qualification evidence */}
       <div className="rounded-lg border bg-card p-6 shadow-sm">
     <BadgeDisplay
   badge={lead.badge}
+  qualificationStatus={lead.qualification_status}
   strengths={lead.strengths}
   risks={lead.risks}
   dmScript={lead.dm_script}
@@ -183,7 +196,7 @@ export default function LeadDetailPage() {
               {lead.pipeline_status === 'contacted' ? 'Contacted' : 'Mark as Contacted'}
             </button>
             <div className="grid grid-cols-3 gap-2">
-              {['booked', 'won', 'lost'].map((status) => (
+              {['booked', 'held', 'won', 'lost', 'archived'].map((status) => (
                 <button key={status} type="button" disabled={updatingStatus} onClick={() => updatePipelineStatus(status)} className={`rounded-md border px-2 py-2 text-xs font-medium capitalize hover:bg-accent ${lead.pipeline_status === status ? 'bg-[#101010] text-white' : ''}`}>{status}</button>
               ))}
             </div>
@@ -192,6 +205,7 @@ export default function LeadDetailPage() {
       </div>
 
       {/* Full Responses - NOW WITH QUESTIONS */}
+      {events.length > 0 && <section className="rounded-lg border p-6"><h2 className="font-semibold">Activity</h2><ol className="mt-3 space-y-2 text-sm">{events.map(event => <li key={event.id} className="flex justify-between gap-3"><span className="capitalize">{event.event.replaceAll('_',' ')}</span><time dateTime={event.created_at} className="text-muted-foreground">{new Date(event.created_at).toLocaleString()}</time></li>)}</ol><p className="mt-3 text-xs text-muted-foreground">Latest 30 recorded events.</p></section>}
       <div className="rounded-lg border bg-card p-6 shadow-sm">
         <LeadAnswers 
           answers={answers} 

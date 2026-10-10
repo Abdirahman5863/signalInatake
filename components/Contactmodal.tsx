@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Mail, Instagram, MessageSquare } from "lucide-react"
+import { X, Mail, Camera as Instagram, MessageSquare } from "lucide-react"
 
 interface ContactModalProps {
   isOpen: boolean

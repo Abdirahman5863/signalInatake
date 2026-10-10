@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: "Start Free Trial — LeadVett",
-  description: "Start your 3-day free trial. No credit card required. Qualify DM leads in 10 seconds.",
+  description: "Create your free LeadVett account. No trial or credit card required.",
 }
 
 export default function SignupLayout({ children }: { children: React.ReactNode }) {

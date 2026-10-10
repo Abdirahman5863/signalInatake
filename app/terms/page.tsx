@@ -33,9 +33,9 @@ export default function TermsPage() {
             <section>
               <h2 className="text-2xl font-bold mb-3">Description of Service</h2>
               <p className="text-gray-700 leading-relaxed">
-                LeadVett is a lead qualification platform that uses AI to analyze and score 
+                LeadVett is a lead qualification platform that uses configured rules to assess
                 potential customers based on custom criteria you define. The service includes 
-                form creation, lead data collection, AI analysis, and reporting tools.
+                form creation, lead data collection, optional AI reply drafts, and reporting tools.
               </p>
             </section>
 
@@ -69,16 +69,12 @@ export default function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-3">Subscription and Payment</h2>
-              <p className="text-gray-700 leading-relaxed mb-3">
-                LeadVett offers subscription-based pricing:
+              <h2 className="text-2xl font-bold mb-3">Free Access</h2>
+              <p className="text-gray-700 leading-relaxed">
+                LeadVett is currently provided without a subscription fee. We may introduce
+                optional paid features in the future, but we will communicate material pricing
+                changes before they affect your use of the service.
               </p>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
-                <li>Subscriptions are billed monthly in advance</li>
-                <li>You may cancel your subscription at any time</li>
-                <li>No refunds for partial months</li>
-                <li>We reserve the right to change pricing with 30 days notice</li>
-              </ul>
             </section>
 
             <section>
@@ -103,9 +99,9 @@ export default function TermsPage() {
               <h2 className="text-2xl font-bold mb-3">Limitation of Liability</h2>
               <p className="text-gray-700 leading-relaxed">
                 LeadVett is provided "as is" without warranties of any kind. We are not liable 
-                for any indirect, incidental, special, consequential, or punitive damages resulting 
-                from your use of the service. Our total liability shall not exceed the amount you 
-                paid in the past 12 months.
+                for any indirect, incidental, special, consequential, or punitive damages resulting
+                from your use of the service. To the extent permitted by law, our total liability
+                for the free service is limited to the amount you paid to use it.
               </p>
             </section>
 

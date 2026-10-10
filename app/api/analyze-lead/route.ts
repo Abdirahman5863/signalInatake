@@ -1,87 +1,58 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
-import { analyzeLead } from '@/lib/ai/analyze'
-import { DEFAULT_QUALIFICATION_POLICY, DEFAULT_RESULT_MESSAGES, FormQuestion, QualificationPolicy, ResultMessages } from '@/lib/forms'
-import { createClient } from '@/lib/supabase/server'
+﻿import { createHash } from 'node:crypto'
+import { NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { DEFAULT_RESULT_MESSAGES, ResultMessages } from '@/lib/forms'
+import { qualifyLead, normalizePolicy, RULE_VERSION } from '@/lib/qualification'
+import { UUID, validateQuestions, validateAnswers, safeBookingUrl } from '@/lib/intake-validation'
+import { readJson, RequestError } from '@/lib/http'
 
-type FormRecord = { id: string; user_id: string; questions: FormQuestion[]; qualification_policy: Partial<QualificationPolicy> | null; booking_url: string | null; result_messages: Partial<ResultMessages> | null }
-
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
-    const body = await request.json()
-    const formId = typeof body.formId === 'string' ? body.formId : ''
-    if (!formId || !body.answers || typeof body.answers !== 'object') return NextResponse.json({ error: 'A form and answers are required.' }, { status: 400 })
-
-    const { data: form, error: formError } = await supabase.from('intake_forms').select('id, user_id, questions, qualification_policy, booking_url, result_messages').eq('id', formId).single<FormRecord>()
-    if (formError || !form) return NextResponse.json({ error: 'Form not found.' }, { status: 404 })
-
-    const questions = Array.isArray(form.questions) ? form.questions : []
-    const validation = validateAnswers(body.answers, questions)
-    if (!validation.ok) return NextResponse.json({ error: validation.error }, { status: 400 })
-
-    const policy = { ...DEFAULT_QUALIFICATION_POLICY, ...(form.qualification_policy || {}) }
-    if (policy.silverThreshold >= policy.goldThreshold) return NextResponse.json({ error: 'This form has an invalid qualification policy.' }, { status: 422 })
-
-    const leadEmail = cleanText(body.leadEmail, 254)
-    if (!/^\S+@\S+\.\S+$/.test(leadEmail)) return NextResponse.json({ error: 'Please enter a valid email address.' }, { status: 400 })
-
-    const analysis = await analyzeLead(validation.answers, questions, policy)
-    const { data: lead, error: leadError } = await supabase.from('lead_responses').insert({
-      form_id: form.id,
-      lead_email: leadEmail,
-      lead_name: cleanText(body.leadName, 120) || 'Unknown Lead',
-      answers: validation.answers,
-      badge: analysis.badge,
-      confidence_score: analysis.confidenceScore,
-      confidence_level: analysis.confidenceLevel,
-      summary: analysis.summary,
-      strengths: analysis.strengths,
-      risks: analysis.risks,
-      dm_script: analysis.dmScript,
-      action: analysis.action,
-      rule_breakdown: analysis.ruleBreakdown,
-      hard_rule_triggered: analysis.hardRuleTriggered || null,
-      ai_analysis: {}, status: 'new', qualification_status: analysis.qualificationStatus, pipeline_status: 'new',
-    }).select('id').single()
-
-    if (leadError) {
-      console.error('Failed to save lead:', leadError)
-      return NextResponse.json({ error: 'Failed to save this submission.' }, { status: 500 })
+    const body=await readJson(request)
+    if (body.website) throw new RequestError('Unable to accept this submission.')
+    if (typeof body.shareLink !== 'string' || !UUID.test(body.shareLink) || typeof body.submissionKey !== 'string' || !UUID.test(body.submissionKey)) throw new RequestError('A valid form link and submission key are required.')
+    if (typeof body.leadName !== 'string' || !body.leadName.trim() || body.leadName.length>120) throw new RequestError('Please enter your name (up to 120 characters).')
+    if (typeof body.leadEmail !== 'string' || body.leadEmail.length>254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.leadEmail.trim())) throw new RequestError('Please enter a valid email address.')
+    const db=createAdminClient()
+    const {data:form,error}=await db.from('intake_forms').select('id,version,questions,qualification_policy,booking_url,result_messages,is_published').eq('share_link',body.shareLink).maybeSingle()
+    if (error) throw error
+    if (!form) throw new RequestError('This form is unavailable.',404)
+    // Replays return the original receipt, including after a form edit. Never return private answers.
+    const name=body.leadName.trim(); const email=body.leadEmail.trim().toLowerCase()
+    if (!body.answers || typeof body.answers!=='object' || Array.isArray(body.answers)) throw new RequestError('Answers must be an object.')
+    const canonical=Object.fromEntries(Object.entries(body.answers).sort(([a],[b])=>a.localeCompare(b)))
+    const hash=createHash('sha256').update(JSON.stringify({name,email,answers:canonical})).digest('hex')
+    const {data:prior,error:priorError}=await db.from('lead_responses').select('id,request_hash,public_result').eq('form_id',form.id).eq('submission_key',body.submissionKey).maybeSingle()
+    if (priorError) throw priorError
+    if (prior) {
+      if (prior.request_hash!==hash) throw new RequestError('This submission key was already used for different answers.',409)
+      return NextResponse.json({success:true,leadId:prior.id,result:prior.public_result},{headers:{'Cache-Control':'no-store'}})
     }
-
-    const messages = { ...DEFAULT_RESULT_MESSAGES, ...(form.result_messages || {}) }
-    const result = buildPublicResult(analysis.qualificationStatus, messages, form.booking_url)
-    revalidatePath('/dashboard')
-    revalidatePath('/dashboard/leads')
-    return NextResponse.json({ success: true, leadId: lead.id, result })
+    if (!form.is_published) throw new RequestError('This form is not accepting enquiries.',404)
+    if (body.formVersion!==form.version) throw new RequestError('This form changed. Reload it before submitting.',409)
+    if (!validateQuestions(form.questions)) throw new RequestError('This form needs an update from its owner.',422)
+    let answers:Record<string,string>; let policy
+    try { answers=validateAnswers(body.answers,form.questions) } catch (e) { throw new RequestError(e instanceof Error ? e.message : 'Invalid answers.') }
+    try { policy=normalizePolicy(form.qualification_policy ?? {}) } catch { throw new RequestError('This form needs a valid qualification policy.',422) }
+    const decision=qualifyLead(answers,form.questions,policy)
+    const messages={...DEFAULT_RESULT_MESSAGES,...(form.result_messages ?? {})} as ResultMessages
+    const status=decision.qualificationStatus
+    const messageKey=status==='ready_to_book'?'gold':status==='not_a_fit'?'bronze':status==='nurture'?'silver':'manualReview'
+    const result={status,title:status==='ready_to_book'?'Your project looks like a potential fit':'Your enquiry has been received',message:typeof messages[messageKey]==='string'?messages[messageKey].slice(0,2000):DEFAULT_RESULT_MESSAGES[messageKey],...(status==='ready_to_book'?{bookingUrl:safeBookingUrl(form.booking_url)}:{})}
+    const {data:receipt,error:captureError}=await db.rpc('capture_enquiry',{
+      p_form_id:form.id,p_version:form.version,p_key:body.submissionKey,p_hash:hash,p_name:name,p_email:email,p_answers:answers,p_decision:decision,p_result:result,p_rule_version:RULE_VERSION,
+      p_enqueue:process.env.LEAD_ENRICHMENT_ENABLED==='true' && Boolean(process.env.OPENAI_API_KEY) && (process.env.LEAD_WORKER_SECRET?.length ?? 0)>=32,
+    })
+    if (captureError) {
+      if (captureError.message.includes('INTAKE_LIMIT')) throw new RequestError('This form has reached its submission limit. Please try later.',429)
+      if (captureError.message.includes('IDEMPOTENCY_CONFLICT') || captureError.message.includes('FORM_CHANGED')) throw new RequestError('The form or submission changed. Reload before trying again.',409)
+      if (captureError.message.includes('FORM_UNAVAILABLE')) throw new RequestError('This form is unavailable.',404)
+      throw captureError
+    }
+    return NextResponse.json({success:true,...receipt},{status:201,headers:{'Cache-Control':'no-store'}})
   } catch (error) {
-    console.error('LeadVett analysis error:', error)
-    return NextResponse.json({ error: 'Analysis failed. Please try again.' }, { status: 500 })
+    if (error instanceof RequestError) return NextResponse.json({error:error.message},{status:error.status,headers:error.status===429?{'Retry-After':'3600'}:undefined})
+    console.error('Intake storage unavailable; submission was not acknowledged.')
+    return NextResponse.json({error:'We could not confirm receipt. Please retry; the same submission will not be saved twice.'},{status:503})
   }
-}
-
-function validateAnswers(raw: Record<string, unknown>, questions: FormQuestion[]): { ok: true; answers: Record<string, string> } | { ok: false; error: string } {
-  const answers: Record<string, string> = {}
-  for (const question of questions) {
-    const value = cleanText(raw[question.id], 3000)
-    if (question.required && !value) return { ok: false, error: `Please answer: ${question.question}` }
-    if (value && question.type === 'dropdown' && question.options && !question.options.includes(value)) return { ok: false, error: `Invalid answer for: ${question.question}` }
-    if (value) answers[question.id] = value
-  }
-  return { ok: true, answers }
-}
-
-function cleanText(value: unknown, maxLength: number): string { return typeof value === 'string' ? value.trim().slice(0, maxLength) : '' }
-
-function buildPublicResult(status: string, messages: ResultMessages, bookingUrl: string | null) {
-  if (status === 'ready_to_book') return { status, title: 'You are a strong fit', message: messages.gold, bookingUrl: safeUrl(bookingUrl) }
-  if (status === 'nurture') return { status, title: 'Thanks — we have your details', message: messages.silver }
-  if (status === 'manual_review') return { status, title: 'One quick review needed', message: messages.manualReview }
-  return { status: 'not_a_fit', title: 'Thanks for your time', message: messages.bronze }
-}
-
-function safeUrl(value: string | null): string | null {
-  if (!value) return null
-  try { const url = new URL(value); return url.protocol === 'https:' ? url.toString() : null } catch { return null }
 }

@@ -1,8 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
 import { FormQuestion } from '@/lib/forms'
 import { ProgressIndicator } from '@/components/intake/ProgressIndicator'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
@@ -18,6 +17,8 @@ export default function IntakeFormPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [leadName, setLeadName] = useState('')
   const [leadEmail, setLeadEmail] = useState('')
+  const submission = useRef<{ payload: string; key: string } | null>(null)
+  const [website, setWebsite] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submissionResult, setSubmissionResult] = useState<{ status: string; title: string; message: string; bookingUrl?: string | null } | null>(null)
@@ -25,36 +26,11 @@ export default function IntakeFormPage() {
   useEffect(() => {
     async function checkForm() {
       try {
-        // Always try share_link first — works for all users including anonymous
-        const { data: byShareLink } = await supabase
-          .from('intake_forms')
-          .select('id, form_name, instructions, questions, share_link')
-          .eq('share_link', formId)
-          .maybeSingle()
-
-        if (byShareLink) {
-          setFormExists(true)
-          setFormData(byShareLink)
-          setLoading(false)
-          return
-        }
-
-        // Fallback: try by actual id
-        const { data: byId } = await supabase
-          .from('intake_forms')
-          .select('id, form_name, instructions, questions, share_link')
-          .eq('id', formId)
-          .maybeSingle()
-
-        if (byId) {
-          setFormExists(true)
-          setFormData(byId)
-          setLoading(false)
-          return
-        }
-
-        // Nothing found
-        setFormExists(false)
+        const response = await fetch(`/api/intake/${encodeURIComponent(formId)}`, { cache: 'no-store' })
+        if (!response.ok) throw new Error('Form unavailable')
+        const data = await response.json()
+        setFormData(data)
+        setFormExists(true)
       } catch (err) {
         console.error('Form lookup error:', err)
         setFormExists(false)
@@ -98,42 +74,17 @@ export default function IntakeFormPage() {
     setError(null)
 
     try {
-      console.log('📊 LeadVett analyzing submission...')
-
-      const analysisResponse = await fetch('/api/analyze-lead', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          answers,
-          formId: formData.id,
-          leadEmail: leadEmail.trim(),
-          leadName: leadName.trim(),
-          isPublicSubmission: true
-        }),
+      const payload = JSON.stringify({ answers, shareLink: formId, formVersion: formData.version, leadEmail: leadEmail.trim(), leadName: leadName.trim(), website })
+      if (!submission.current || submission.current.payload !== payload) {
+        submission.current = { payload, key: crypto.randomUUID() }
+      }
+      const response = await fetch('/api/analyze-lead', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...JSON.parse(payload), submissionKey: submission.current.key }),
       })
-
-      if (!analysisResponse.ok) {
-  const errorData = await analysisResponse.json()
-  
-  console.error('❌ Full API Error:', errorData)
-
-  if (errorData.formOwnerExpired) {
-    throw new Error('This form is no longer accepting submissions. Please contact the form owner.')
-  }
-
-  // Show the detailed error
-  const errorMessage = errorData.details 
-    ? `${errorData.error}: ${errorData.details}${errorData.hint ? ` (${errorData.hint})` : ''}`
-    : errorData.error || 'Failed to submit form'
-  
-  throw new Error(errorMessage)
-}
-      const { result } = await analysisResponse.json()
-
-      console.log('✅ Submission successful')
-
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Unable to confirm receipt. Please retry.')
+      const { result } = data
       setSubmissionResult(result)
 
     } catch (err: any) {
@@ -209,6 +160,7 @@ export default function IntakeFormPage() {
             </p>
           </div>
 
+          <div className="hidden" aria-hidden="true"><label htmlFor="website">Website</label><input id="website" tabIndex={-1} autoComplete="off" value={website} onChange={e => setWebsite(e.target.value)} /></div>
           <form
             onSubmit={(e) => {
               e.preventDefault()
@@ -229,7 +181,7 @@ export default function IntakeFormPage() {
                 Your Name
               </label>
               <input
-                id="leadName"
+                id="leadName" maxLength={120}
                 type="text"
                 required
                 value={leadName}
@@ -244,7 +196,7 @@ export default function IntakeFormPage() {
                 Your Email
               </label>
               <input
-                id="leadEmail"
+                id="leadEmail" maxLength={254}
                 type="email"
                 required
                 value={leadEmail}
@@ -280,7 +232,7 @@ export default function IntakeFormPage() {
 
         <div className="rounded-lg border bg-card p-6 shadow-sm">
           {error && (
-            <div className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div role="alert" className="mb-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
               {error}
             </div>
           )}
@@ -297,18 +249,21 @@ export default function IntakeFormPage() {
             className="space-y-6"
           >
             <div>
-              <h2 className="text-2xl font-semibold mb-4">
+              <h2 id="question-label" className="text-2xl font-semibold mb-4">
                 {currentQuestion.question}
                 {currentQuestion.required && (
                   <span className="text-red-600 ml-1">*</span>
                 )}
               </h2>
 
+              {currentQuestion.purpose === 'budget' && <p className="mb-3 text-sm text-muted-foreground">Budget in {formData.budget_currency}, {formData.budget_basis === 'monthly' ? 'per month' : 'for the whole project'}.</p>}
               {currentQuestion.type === 'text' && (
                 <input
                   type="text"
+                  maxLength={3000}
                   value={answers[currentQuestion.id] || ''}
                   onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                  aria-labelledby="question-label"
                   required={currentQuestion.required}
                   className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="Type your answer here..."
@@ -317,8 +272,10 @@ export default function IntakeFormPage() {
 
               {currentQuestion.type === 'textarea' && (
                 <textarea
+                  maxLength={3000}
                   value={answers[currentQuestion.id] || ''}
                   onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                  aria-labelledby="question-label"
                   required={currentQuestion.required}
                   className="w-full min-h-[120px] rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="Type your answer here..."
@@ -328,8 +285,10 @@ export default function IntakeFormPage() {
               {currentQuestion.type === 'number' && (
                 <input
                   type="number"
+                  maxLength={3000}
                   value={answers[currentQuestion.id] || ''}
                   onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                  aria-labelledby="question-label"
                   required={currentQuestion.required}
                   className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="Enter a number..."
@@ -340,6 +299,7 @@ export default function IntakeFormPage() {
                 <select
                   value={answers[currentQuestion.id] || ''}
                   onChange={(e) => handleAnswerChange(currentQuestion.id, e.target.value)}
+                  aria-labelledby="question-label"
                   required={currentQuestion.required}
                   className="w-full rounded-md border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >

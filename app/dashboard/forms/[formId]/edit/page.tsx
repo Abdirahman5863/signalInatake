@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { FormBuilder } from '@/components/forms/FormBuilder'
 import { FormQuestion, DEFAULT_QUESTIONS } from '@/lib/forms'
 import { DEFAULT_QUALIFICATION_POLICY, DEFAULT_RESULT_MESSAGES, QualificationPolicy, ResultMessages } from '@/lib/forms'
+import { normalizePolicy } from '@/lib/qualification'
+import { validateQuestions, safeBookingUrl } from '@/lib/intake-validation'
 import { QualificationPolicyEditor } from '@/components/forms/QualificationPolicyEditor'
 
 export default function EditFormPage() {
@@ -20,6 +22,7 @@ export default function EditFormPage() {
   const [questions, setQuestions] = useState<FormQuestion[]>(DEFAULT_QUESTIONS)
   const [policy, setPolicy] = useState<QualificationPolicy>(DEFAULT_QUALIFICATION_POLICY)
   const [bookingUrl, setBookingUrl] = useState('')
+  const [published, setPublished] = useState(true)
   const [resultMessages, setResultMessages] = useState<ResultMessages>(DEFAULT_RESULT_MESSAGES)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -49,8 +52,9 @@ export default function EditFormPage() {
         setFormName(form.form_name)
         setInstructions(form.instructions || '')
         setQuestions(form.questions || DEFAULT_QUESTIONS)
-        setPolicy({ ...DEFAULT_QUALIFICATION_POLICY, ...(form.qualification_policy || {}) })
+        setPolicy(normalizePolicy(form.qualification_policy || {}))
         setBookingUrl(form.booking_url || '')
+        setPublished(form.is_published !== false)
         setResultMessages({ ...DEFAULT_RESULT_MESSAGES, ...(form.result_messages || {}) })
       } catch (err: any) {
         setError(err.message)
@@ -72,14 +76,17 @@ export default function EditFormPage() {
       if (!user) throw new Error('Not authenticated')
       if (policy.silverThreshold >= policy.goldThreshold) throw new Error('The Gold threshold must be higher than the Silver threshold')
 
+    if (!validateQuestions(questions)) throw new Error('Use 1–20 valid questions, with unique IDs and valid dropdown options.')
+    if (bookingUrl.trim() && !safeBookingUrl(bookingUrl.trim())) throw new Error('Use an HTTPS calendar URL without embedded credentials.')
       const { error: updateError } = await supabase
         .from('intake_forms')
         .update({ 
           form_name: formName,
           instructions: instructions,
           questions: questions,
-          qualification_policy: policy,
+          qualification_policy: normalizePolicy(policy),
           booking_url: bookingUrl.trim() || null,
+          is_published: published,
           result_messages: resultMessages
         })
         .eq('id', formId)
@@ -137,6 +144,7 @@ export default function EditFormPage() {
       <h1 className="text-3xl font-bold">Edit Form</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        <label className="flex items-center gap-3 rounded-lg border p-4 text-sm"><input type="checkbox" checked={published} onChange={e => setPublished(e.target.checked)} />Accept new enquiries through this form</label>
         {error && (
           <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
             {error}

@@ -23,14 +23,14 @@ export function RecentLeads({ leads }: RecentLeadsProps) {
   }
 
   const getActionText = (action: string | null, badge: string | null) => {
-    if (badge === 'Rejected') return 'Disqualified - Archive'
+    if (badge === 'Rejected') return 'Review project fit'
     if (action) return action
     
     switch (badge) {
       case 'Gold':
-        return 'Call within 2 hours'
+        return 'Review for discovery'
       case 'Silver':
-        return 'Send screening Loom'
+        return 'Clarify requirements'
       case 'Bronze':
         return 'Add to nurture'
       default:
@@ -84,7 +84,7 @@ export function RecentLeads({ leads }: RecentLeadsProps) {
           <div className="flex items-center gap-2">
             <span className="text-xl sm:text-2xl">🔥</span>
             <h3 className="text-base sm:text-lg font-bold text-green-700">
-              CALL NOW ({goldLeads.length})
+              READY FOR DISCOVERY ({goldLeads.length})
             </h3>
           </div>
           <div className="space-y-2">
@@ -100,7 +100,7 @@ export function RecentLeads({ leads }: RecentLeadsProps) {
                         {lead.lead_name}
                       </h4>
                     <Badge className="bg-green-500 text-white text-xs flex-shrink-0">
-  🔥 GOLD {lead.confidence_score}%
+  🔥 GOLD
 </Badge>
                     </div>
                     <p className="text-xs sm:text-sm text-gray-600 mb-2 truncate">
@@ -160,7 +160,7 @@ export function RecentLeads({ leads }: RecentLeadsProps) {
                         {lead.lead_name}
                       </h4>
                      <Badge className={`${getBadgeColor(lead.badge)} text-xs flex-shrink-0`}>
-  {lead.badge} {lead.confidence_score}%
+  {lead.badge}
 </Badge>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-gray-600">

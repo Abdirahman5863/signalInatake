@@ -68,7 +68,7 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-2xl font-bold mb-3">AI Processing</h2>
               <p className="text-gray-700 leading-relaxed">
-                We use OpenAI's services to analyze lead responses and generate qualification scores. 
+                Qualification decisions use configured rules. When optional reply drafting is enabled, submitted answers are sent to OpenAI to prepare a draft for human review.
                 Lead data is processed through OpenAI's API in accordance with their data usage policies. 
                 We do not use your data to train AI models.
               </p>

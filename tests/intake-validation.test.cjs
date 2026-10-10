@@ -1,0 +1,26 @@
+const { test }=require('node:test')
+const assert=require('node:assert/strict')
+const { load }=require('./load-ts.cjs')
+const { validateQuestions, validateAnswers, safeBookingUrl }=load('lib/intake-validation.ts')
+const { readJson }=load('lib/http.ts')
+const q=[{id:'budget',question:'Budget?',type:'dropdown',required:true,options:['3000'],order:1}]
+test('rejects forged dropdown options, oversized answers and unsafe question IDs',()=>{
+  assert.ok(validateQuestions(q)); assert.throws(()=>validateAnswers({budget:'Gold'},q))
+  assert.throws(()=>validateAnswers({},q)); assert.throws(()=>validateAnswers({budget:'x'.repeat(3001)},q))
+  assert.equal(validateQuestions([{...q[0],id:'__proto__'}]),false)
+  assert.equal(validateQuestions([...q,...q]),false)
+  assert.deepEqual({...validateAnswers({budget:'3000',badge:'Gold'},q)},{budget:'3000'})
+})
+test('only safe HTTPS booking links are returned',()=>{
+  assert.equal(safeBookingUrl('javascript:alert(1)'),null)
+  assert.equal(safeBookingUrl('https://user:pass@example.com'),null)
+  assert.equal(safeBookingUrl('https://cal.com/studio'),'https://cal.com/studio')
+})
+test('JSON parser enforces type and actual byte limits without trusting content-length',async()=>{
+  const req=body=>new Request('https://example.com',{method:'POST',headers:{'content-type':'application/json'},body})
+  assert.deepEqual(await readJson(req('{"ok":true}')),{ok:true})
+  await assert.rejects(readJson(req('[]')),e=>e.status===400)
+  await assert.rejects(readJson(req('{')),e=>e.status===400)
+  await assert.rejects(readJson(req('"'+ 'x'.repeat(70000)+'"')),e=>e.status===413)
+  await assert.rejects(readJson(new Request('https://example.com',{method:'POST',body:'{}'})),e=>e.status===415)
+})
